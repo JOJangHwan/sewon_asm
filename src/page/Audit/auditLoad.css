@@ -1,0 +1,89 @@
+.audit-container {
+    padding: 20px;
+    font-family: Arial, sans-serif;
+  }
+  
+  .top-section {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  
+  .barcode-icon {
+    width: 50px;
+    height: 50px;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  
+  .barcode-icon:hover {
+    transform: scale(1.1);
+  }
+  
+  .search-bar {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .search-bar input {
+    width: 100%;
+    padding: 8px;
+    font-size: 14px;
+  }
+  
+  .button-group {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .delete-btn,
+  .register-btn {
+    padding: 8px 16px;
+    font-size: 14px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .delete-btn {
+    background-color: #f44336;
+    color: white;
+  }
+  
+  .register-btn {
+    background-color: #4caf50;
+    color: white;
+  }
+  
+  .audit-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .audit-table th,
+  .audit-table td {
+    border: 1px solid #ccc;
+    padding: 8px;
+    text-align: center;
+    font-size: 13px;
+  }
+  
+  .audit-table thead {
+    background-color: #f5f5f5;
+  }
+  
+  .no-data {
+    text-align: center;
+    padding: 20px;
+    font-size: 14px;
+    color: #888;
+  }
+  
+  .qr-reader {
+    width: 300px;
+    margin: 20px auto;
+  }
+  

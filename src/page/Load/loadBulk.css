@@ -1,0 +1,87 @@
+.bulk-container {
+    padding: 20px;
+    font-family: 'Arial', sans-serif;
+    background-color: #f9f9f9;
+  }
+  
+  .bulk-top-controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    align-items: center;
+  }
+  
+  .btn {
+    padding: 8px 14px;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+    font-weight: bold;
+  }
+  
+  .primary {
+    background-color: #ffa726;
+    color: #fff;
+  }
+  
+  .upload {
+    background-color: #42a5f5;
+    color: #fff;
+  }
+  
+  .danger {
+    background-color: #ef5350;
+    color: white;
+  }
+  
+  .success {
+    background-color: #66bb6a;
+    color: white;
+  }
+  
+  .file-name-input {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 200px;
+  }
+  
+  .bulk-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #fff;
+  }
+  
+  .bulk-table th, .bulk-table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: center;
+  }
+  
+  .bulk-table th {
+    background-color: #eeeeee;
+    font-weight: bold;
+  }
+  
+  .bulk-table tr.selected {
+    background-color: #c8e6c9;
+  }
+  
+  .error-summary {
+    background: #ffdddd;
+    color: #aa0000;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 12px;
+    font-weight: bold;
+  }
+  
+  .row-error {
+    background-color: #ffe5e5 !important;
+  }
+  
+  .error-text {
+    color: #b00020;
+    font-size: 0.9em;
+    white-space: pre-wrap;
+  }

@@ -1,0 +1,99 @@
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    background-color: #f8f9fa;
+  }
+  
+  .from_wrap {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+  }
+  
+  form {
+    width: 100%;
+    max-width: 400px;
+    background: white;
+    border: 2px solid #ccc;
+    border-radius: 12px;
+    padding: 2rem;
+    padding-top: 0; /* form 위쪽 padding 없애기! */
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    text-align: center;
+    position: relative;
+  }
+  
+  .logo {
+    width: 300px; /* 2배 확실히 키움 */
+    height: auto;
+    margin: 2rem auto 2rem auto; /* 위에 여백 없이 아래만 여백 */
+    display: block;
+  }
+  
+  label {
+    display: block;
+    text-align: left;
+    margin: 0.5rem 0 0.25rem 0;
+    font-weight: bold;
+    font-size: 0.95rem;
+    color: #333;
+  }
+  
+  .input-field__input {
+    width: 100%;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-sizing: border-box;
+    font-size: 1rem;
+    transition: border-color 0.3s;
+  }
+  
+  .input-field__input:focus {
+    border-color: #FCBD49;
+    outline: none;
+  }
+  
+  p {
+    margin: 0 0 1rem;
+    font-size: 0.9rem;
+    color: #ff3333;
+    text-align: left;
+  }
+  
+  .sign-up-button {
+    width: 100%;
+    padding: 0.75rem;
+    margin-top: 1rem;
+    border: none;
+    border-radius: 8px;
+    background-color: #FCBD49;
+    color: white;
+    font-weight: bold;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .sign-up-button:hover {
+    background-color: #f1a500;
+  }
+
+  .error-message {
+    color: red;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+    text-align: center;
+  }
+  
+  /* 모바일 대응 */
+  @media screen and (max-width: 480px) {
+    .logo {
+      width: 200px; /* 모바일에서는 조금 줄이기 */
+    }
+  }
+  

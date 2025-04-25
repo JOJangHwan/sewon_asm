@@ -1,0 +1,168 @@
+/* 전체 페이지 */
+.page-container {
+  padding: 24px;
+  font-family: 'Arial', sans-serif;
+}
+
+/* 헤더 */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.page-header h2 {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+/* 버튼 */
+.primary-btn {
+  background-color: #facc15;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 24px; /* 기존보다 상하 +2px, 좌우 +8px */
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 14px;     /* 글자도 약간 키움 */
+}
+
+/* 승인-거절 간격용 클래스 */
+.button-group {
+  display: flex;
+  gap: 12px; /* 버튼 간격 */
+  align-items: center;
+  justify-content: flex-end;
+  margin-bottom: 8px;
+}
+
+.primary-btn:hover {
+  background-color: #fbbf24;
+}
+
+.submit-btn {
+  background-color: #facc15;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 12px;
+  margin-top: 20px;
+  font-weight: bold;
+  cursor: pointer;
+}
+.submit-btn:hover {
+  background-color: #fbbf24;
+}
+
+/* 테이블 */
+.table-wrapper {
+  overflow-x: auto;
+  border: 1px solid #ccc;
+  border-radius: 12px;
+}
+.asset-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.asset-table th,
+.asset-table td {
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+  text-align: center;
+}
+.asset-table thead {
+  background-color: #f9fafb;
+}
+
+/* 모달 */
+.modal-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  width: 600px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.modal-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+/* 라벨과 인풋 */
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.row span {
+  flex: 0 0 130px; /* 너비 고정 */
+  font-weight: bold;
+  white-space: nowrap;
+}
+.row input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-sizing: border-box;
+}
+
+/* 아이콘 버튼 */
+.icon-btn {
+  background-color: #facc15;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.icon-btn:hover {
+  background-color: #fbbf24;
+}
+
+/* 날짜 */
+/* 대여기간 라인 정렬 */
+.date-range {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.date-range input {
+  flex: 1;
+  min-width: 0;
+}
+.calendar-icon {
+  color: #999;
+}
+.date-range span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%; /* 인풋 높이와 맞추기 위해 */
+  padding: 0 4px;
+  font-weight: bold;
+}

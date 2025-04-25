@@ -1,0 +1,69 @@
+.label-print-page {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* A4 기준 가로 2개 */
+    gap: 20px;
+    padding: 20px;
+  }
+  
+  .label-box {
+    display: flex;
+    align-items: center;
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    padding: 20px;
+    background: white;
+    width: 380px;
+    height: 180px;
+    box-sizing: border-box;
+  }
+  
+  .qr-area {
+    margin-right: 20px;
+  }
+  
+  .info-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  
+  .label-logo {
+    width: 100px;
+    margin-bottom: 8px;
+  }
+  
+  .location {
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 4px;
+  }
+  
+  .barcode {
+    font-size: 18px;
+    font-weight: bold;
+    margin: 8px 0;
+  }
+  
+  .item-name {
+    font-size: 16px;
+    font-weight: bold;
+  }
+  
+  /* 인쇄 전용 */
+  @media print {
+    body {
+      background: white;
+    }
+    .label-print-page {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      padding: 0;
+    }
+    .label-box {
+      page-break-inside: avoid;
+      border: none;
+    }
+  }
+  

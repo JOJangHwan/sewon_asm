@@ -1,0 +1,402 @@
+/* 전체 Layout */
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Roboto, sans-serif;
+  background: #f5f7fa;
+}
+
+.layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.layout-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.layout-main {
+  flex: 1;
+  background: white;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+/* Header */
+.header {
+  height: 80px;
+  background: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 2rem;
+  border-bottom: 2px solid #ccc;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.hamburger {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.hamburger svg {
+  width: 28px;
+  height: 28px;
+}
+
+.header-logo {
+  width: 200px;
+  height: auto;
+}
+
+.header-company-name {
+  font-size: 1.3rem;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.header-alarm {
+  font-size: 1.5rem;
+  margin-right: 0.5rem;
+  cursor: pointer;
+  text-decoration: none; /* 링크 밑줄 제거 */
+  color: inherit; /* 링크 색 유지 */
+  display: flex;
+  align-items: center;
+}
+
+.header-user {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1.1;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.user-name,
+.user-dept {
+  font-size: 0.8rem;
+}
+
+.header-icon {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+}
+
+/* 로그아웃버튼 css */
+.logout-button {
+  margin-top: 4px;
+  background: transparent;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 0.7rem;
+  cursor: pointer;
+  color: #555;
+  transition: all 0.2s ease;
+}
+
+.logout-button:hover {
+  background-color: #ffe082;
+  color: black;
+}
+
+
+
+
+/* 알람 뱃지 (숫자) */
+.alarm-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: red;
+  color: #fff;
+  font-size: 0.7rem;
+  border-radius: 50%;
+  padding: 2px 6px;
+  font-weight: bold;
+}
+
+/* 알람 드롭다운 */
+.alarm-dropdown {
+  position: absolute;
+  top: 80px; /* 헤더 높이 바로 아래 */
+  right: 2rem;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  width: 300px;
+  max-height: 350px;
+  overflow-y: auto;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  animation: slideDown 0.3s ease forwards;
+  z-index: 999;
+}
+
+/* 알람 드롭다운 헤더 */
+.alarm-header {
+  padding: 0.8rem 1rem;
+  font-weight: bold;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+}
+
+.alarm-header-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.alarm-header button {
+  background: none;
+  border: none;
+  color: #007bff;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+/* 알람 아이템 */
+.alarm-item {
+  padding: 0.8rem 1rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.alarm-item:hover {
+  background-color: #f5f5f5;
+}
+
+.alarm-item.read {
+  color: #999;
+  font-weight: normal;
+}
+
+/* 알람 텍스트 */
+.alarm-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+}
+
+/* ● 표시 */
+.alarm-dot {
+  color: #f44336;
+  font-size: 1rem;
+  margin-right: 0.5rem;
+}
+
+/* 시간 (날짜) */
+.alarm-time {
+  font-size: 0.7rem;
+  color: #aaa;
+}
+
+/* 삭제 버튼 (X) */
+.alarm-delete {
+  background: none;
+  border: none;
+  color: #bbb;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-left: 1rem;
+}
+
+.alarm-delete:hover {
+  color: red;
+}
+
+/* 알림 없을 때 */
+.alarm-empty {
+  padding: 1.5rem;
+  text-align: center;
+  color: #777;
+}
+
+/* 드롭다운 슬라이드 애니메이션 */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+
+
+/* Sidebar */
+.sidebar {
+  background: #ffffff;
+  width: 140px;
+  height: calc(100vh - 80px);
+  border-right: 2px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform 0.3s ease;
+  box-sizing: border-box;
+  transform: translateX(0); /* 디폴트: 열림 */
+}
+
+.sidebar.closed {
+  transform: translateX(-100%); /* 닫힘 */
+}
+
+.sidebar.open {
+  transform: translateX(0); /* 열림 */
+}
+
+/* 사이드바 아이템 */
+.sidebar-item {
+  width: 100%;
+  padding: 0.8rem 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center; /* 중앙 배치 추가 */
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: background-color 0.3s;
+}
+
+.sidebar-item:hover {
+  background-color: #f5f5f5;
+}
+
+.sidebar-item.active {
+  background-color: #ffe082;
+}
+
+/* 아이콘 부분 */
+.sidebar-icon {
+  background-color: #fffde7;
+  padding: 0.4rem;
+  border-radius: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebar-icon img {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+}
+
+/* 텍스트 */
+.sidebar-label {
+  margin-top: 0.3rem;
+  font-size: 0.85rem;
+  color: #333;
+  font-weight: 500;
+  text-align: center;
+}
+
+/* 하위 메뉴 (실사 메뉴) */
+.audit-item:hover .submenu {
+  display: flex;
+}
+
+.submenu {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: #fff9c4;
+  border-top: 1px solid #ddd;
+  animation: fadeIn 0.3s ease-in-out;
+}  
+
+.submenu-item {
+  padding: 0.7rem 0;
+  font-size: 0.85rem;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.submenu-item:hover {
+  background-color: #ffe082;
+}
+
+/* 부드럽게 등장하는 애니메이션 */
+@keyframes fadeIn {
+  0% { opacity: 0; transform: translateY(-5px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* 오버레이 (모바일 전용) */
+.overlay {
+  position: fixed;
+  top: 60px; /* 모바일에서는 Header가 60px */
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 500;
+}
+
+/* 모바일 대응 */
+@media (max-width: 768px) {
+  .header {
+    flex-direction: row;
+    height: 60px;
+    padding: 0 1rem;
+  }
+
+  .header-left {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .header-logo {
+    width: 100px;
+    height: auto;
+  }
+
+  .header-company-name {
+    display: none;
+  }
+
+  .header-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .sidebar {
+    position: absolute;
+    top: 60px;
+    left: 0;
+    width: 140px;
+    height: calc(100vh - 60px);
+    box-shadow: 2px 0 5px rgba(0,0,0,0.2);
+    z-index: 1000;
+  }
+}

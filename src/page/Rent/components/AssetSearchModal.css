@@ -1,0 +1,131 @@
+.modal-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.modal-content {
+  background: #fff;
+  padding: 30px;
+  border-radius: 12px;
+  width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* 타이틀 + X 버튼 */
+.modal-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-top h3 {
+  font-size: 22px;
+  margin: 0;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 28px;
+  font-weight: bold;
+  color: #666;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.modal-close:hover {
+  color: #e55353;
+}
+
+/* 필터 영역 */
+.modal-filter {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: nowrap;   /* ✅ 줄바꿈 방지 */
+  flex-shrink: 0;
+  overflow-x: auto;    /* ✅ 공간 부족 시 가로 스크롤 가능 */
+}
+
+
+.modal-filter label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;  /* ✅ 줄바꿈 방지 */
+}
+
+
+.modal-filter select {
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+/* 검색 영역 */
+.modal-search {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.modal-search input {
+  padding: 8px 10px;
+  font-size: 14px;
+  width: 250px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.modal-search button {
+  background-color: #ffe066;
+  border: none;
+  padding: 8px 12px;
+  font-size: 16px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* 결과 테이블 */
+.asset-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.asset-table th, .asset-table td {
+  padding: 10px;
+  border: 1px solid #ccc;
+  text-align: center;
+}
+
+.asset-table th {
+  background-color: #f8f8f8;
+}
+
+.select-btn {
+  background-color: #ffc107;
+  border: none;
+  padding: 6px 12px;
+  font-size: 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.select-btn:hover {
+  background-color: #e0a800;
+}

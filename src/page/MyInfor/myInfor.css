@@ -1,0 +1,192 @@
+/* MyInfoPage 전체 레이아웃 */
+.my-info-container {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  /* 내가 올린 정보 + 내정보 라인 */
+  .info-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  
+  /* 내가 올린 정보 텍스트 */
+  h2 {
+    margin: 0;
+    font-size: 24px;
+  }
+  
+  /* 내정보 (박스) */
+  .user-info-inline {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    border: 2px solid #ffc107;
+    border-radius: 8px;
+    padding: 15px 20px;
+    background: white;
+    min-width: 500px;
+    white-space: nowrap;
+  }
+  
+  .user-info-item {
+    font-size: 14px;
+  }
+  
+  /* 내 정보 수정 버튼 */
+  .info-edit-button {
+    background-color: #ffc107;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 14px;
+    cursor: pointer;
+    height: 40px;
+    transition: background-color 0.3s;
+  }
+  
+  .info-edit-button:hover {
+    background-color: #e0a800;
+  }
+  
+  /* 버튼 그룹 (수정/삭제/인쇄) */
+  .top-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  
+  .button-group {
+    display: flex;
+    gap: 10px;
+  }
+  
+  /* 개별 버튼 */
+  .action-button {
+    background-color: #ffc107;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .action-button:hover {
+    background-color: #e0a800;
+  }
+  
+  /* 선택개수 표시 */
+  .selected-count {
+    font-weight: bold;
+    font-size: 14px;
+    color: #12de7b;
+  }
+  
+  /* 테이블 */
+  .table-container {
+    overflow-x: auto;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+  }
+  
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  table th, table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+    white-space: nowrap;
+  }
+  
+  table th {
+    background-color: #f2f2f2;
+  }
+  
+  /* 페이징 */
+  .pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+    gap: 5px;
+  }
+  
+  .page-btn {
+    background-color: white;
+    border: 1px solid #ddd;
+    padding: 6px 12px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  
+  .page-btn.active {
+    background-color: #ffc107;
+    font-weight: bold;
+    border-color: #ffc107;
+  }
+  
+  .page-btn:disabled {
+    color: #ccc;
+    cursor: not-allowed;
+  }
+  
+  /* 인쇄할 때 숨겨야 할 영역 */
+  @media print {
+    .info-top-row,
+    .top-actions,
+    .pagination {
+      display: none;
+    }
+    
+    .table-container {
+      border: none;
+    }
+  
+    table th, table td {
+      border: 1px solid #999;
+      padding: 10px;
+      font-size: 16px;
+    }
+  
+    body {
+      background: white;
+    }
+  }
+  
+  /* 모바일 반응형 */
+  @media (max-width: 768px) {
+    .info-top-row {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+    }
+  
+    .user-info-inline {
+      flex-direction: column;
+      align-items: flex-start;
+      width: 100%;
+      min-width: unset;
+    }
+  
+    .top-actions {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+    }
+  
+    .button-group {
+      flex-wrap: wrap;
+    }
+  }
+  

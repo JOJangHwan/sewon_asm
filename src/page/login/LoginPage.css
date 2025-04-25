@@ -1,0 +1,84 @@
+.loginPage-container {
+  max-width: 400px;
+  margin: 5% auto;
+  padding: 2rem;
+  text-align: center;
+  border: 2px solid #ccc;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  background-color: #fff;
+}
+
+.loginPage-logo {
+  width: 380px; /* 약간 더 키우자! (원하면 더 키움 가능) */
+  margin: 0 auto;
+  display: block;
+}
+
+.loginPage-title {
+  font-size: 1.9rem;
+  font-weight: bold;
+  margin-top: 0.1rem; /* 로고랑 타이틀 사이 여백 */
+  margin-bottom: 0.1rem; /* 타이틀과 desc 사이 */
+  text-align: center;
+}
+
+.loginPage-desc {
+  font-size: 0.75rem;
+  color: #666;
+  margin-bottom: 2rem; /* desc 밑 여백 추가 */
+  line-height: 1.4;
+  text-align: center;
+}
+
+.loginPage-input {
+  width: 100%;
+  padding: 0.75rem;
+  margin: 0.5rem 0;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  box-sizing: border-box;
+}
+
+.loginPage-remember {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  font-size: 0.9rem;
+  margin: 0.5rem 0 1rem 0;
+}
+
+.loginPage-remember input {
+  margin-right: 0.5rem;
+}
+
+.loginPage-loginButton,
+.loginPage-signupButton {
+  width: 100%;
+  padding: 0.75rem;
+  margin-top: 0.5rem;
+  border: none;
+  border-radius: 5px;
+  color: white;
+  font-weight: bold;
+  background-color: #FCBD49;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.loginPage-loginButton:hover,
+.loginPage-signupButton:hover {
+  background-color: #f1a500;
+}
+
+/* 반응형 */
+@media screen and (max-width: 480px) {
+  .loginPage-container {
+    margin: 2rem;
+    padding: 1rem;
+  }
+
+  .loginPage-title {
+    font-size: 1.2rem;
+  }
+}

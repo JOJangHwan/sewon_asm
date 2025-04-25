@@ -1,0 +1,63 @@
+.asset-register-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 40px;
+  }
+  
+  .asset-register-title {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+  }
+  
+  .asset-register-form {
+    width: 400px;
+    padding: 20px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .form-row {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .form-row label {
+    margin-bottom: 5px;
+    font-weight: 600;
+  }
+  
+  .form-row input,
+  .form-row select {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  .radio-group {
+    display: flex;
+    gap: 20px;
+    margin-top: 5px;
+  }
+  
+  .submit-button {
+    margin-top: 20px;
+    padding: 10px;
+    background-color: #FFC107;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  
+  .submit-button:hover {
+    background-color: #e6ac00;
+  }
+  
