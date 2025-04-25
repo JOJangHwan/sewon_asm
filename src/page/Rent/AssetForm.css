@@ -166,3 +166,11 @@
   padding: 0 4px;
   font-weight: bold;
 }
+
+/* 대여기간 열 너비 조정 */
+.asset-table td:last-child,
+.asset-table th:last-child {
+  width: 150px;          /* 원하는 만큼 줄일 수 있음 */
+  white-space: nowrap;   /* 날짜 줄바꿈 방지 */
+  text-align: center;
+}

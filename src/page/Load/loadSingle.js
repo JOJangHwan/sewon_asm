@@ -14,7 +14,17 @@ const companyData = {
 
 const assetCategoryData = {
   '가구': ['책상', '의자'],
-  '전자제품': ['노트북', '모니터']
+  '전자제품': ['노트북','컴퓨터', '모니터']
+};
+
+const convertToGB = (value, unit) => {
+  const num = parseFloat(value);
+  switch (unit) {
+    case 'TB': return num * 1024;
+    case 'MB': return num / 1024;
+    case 'GB': return num;
+    default: return 0;
+  }
 };
 
 const AssetRegister = () => {
@@ -31,10 +41,15 @@ const AssetRegister = () => {
     acquisitionDate: '',
     acquisitionCost: '',
     renter: '',
-    rentalDate: ''
+    rentalDate: '',
+    cpu: '',
+    memory: '',
+    gpu: '',
+    storageList: [{ value: '', unit: 'GB' }],
+    totalStorage: ''
   });
 
-  const handleChange = (e) => {
+  const handleChange = (e, idx = null) => {
     const { name, value } = e.target;
     if (name === 'company') {
       setFormData({ ...formData, company: value, department: '', location: '' });
@@ -42,13 +57,51 @@ const AssetRegister = () => {
       setFormData({ ...formData, department: value, location: '' });
     } else if (name === 'assetCategory') {
       setFormData({ ...formData, assetCategory: value, item: '' });
+    } else if (name.startsWith('storage-') && idx !== null) {
+      const updated = [...formData.storageList];
+      const field = name.split('-')[1];
+      updated[idx][field] = value;
+      setFormData({ ...formData, storageList: updated });
     } else {
       setFormData({ ...formData, [name]: value });
     }
   };
 
+  const addStorageField = () => {
+    setFormData({
+      ...formData,
+      storageList: [...formData.storageList, { value: '', unit: 'GB' }]
+    });
+  };
+
+  const handleStorageConvert = () => {
+    const total = formData.storageList.reduce((sum, s) => {
+      const value = s.value === '' ? 0 : s.value;
+      return sum + convertToGB(value, s.unit);
+    }, 0);
+    setFormData({ ...formData, totalStorage: total.toFixed(2) });
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
+    const requiredFields = [
+      'company', 'department', 'location', 'acquisitionType', 'assetCategory', 'item', 'manufacturer', 'model', 'acquisitionDate', 'acquisitionCost'
+    ];
+    for (let field of requiredFields) {
+      if (!formData[field]) {
+        alert(`필수 입력값이 누락되었습니다: ${field}`);
+        return;
+      }
+    }
+    if ((formData.item === '노트북' || formData.item === '컴퓨터') && !formData.totalStorage) {
+      alert('총 저장공간을 계산해주세요.');
+      return;
+    }
+    if (formData.assetStatus === '대여' && (!formData.renter || !formData.rentalDate)) {
+      alert('대여 상태일 경우 대여자 및 대여일자를 입력해주세요.');
+      return;
+    }
+    alert('등록이 완료되었습니다!');
     console.log('등록 데이터:', formData);
   };
 
@@ -109,6 +162,68 @@ const AssetRegister = () => {
               ))}
           </select>
         </div>
+        {(formData.item === '노트북' || formData.item === '컴퓨터') && (
+          <>
+            <div className="form-row">
+              <label>CPU</label>
+              <input type="text" name="cpu" value={formData.cpu} onChange={handleChange} />
+            </div>
+            <div className="form-row">
+              <label>메모리</label>
+              <input type="text" name="memory" value={formData.memory} onChange={handleChange} />
+            </div>
+            <div className="form-row">
+              <label>그래픽카드</label>
+              <input type="text" name="gpu" value={formData.gpu} onChange={handleChange} />
+            </div>
+            <div className="form-row">
+  <label>데이터 변환기 (PC 저장공간만큼 추가하세요)</label>
+  {formData.storageList.map((s, idx) => (
+  <div key={idx} className="conversion-group">
+    <input
+      type="text"
+      name={`storage-value`}
+      value={s.value}
+      onChange={(e) => handleChange({ target: { name: 'storage-value', value: e.target.value } }, idx)}
+      placeholder="용량 입력"
+    />
+    <select
+      name={`storage-unit`}
+      value={s.unit}
+      onChange={(e) => handleChange({ target: { name: 'storage-unit', value: e.target.value } }, idx)}
+    >
+      <option value="GB">GB</option>
+      <option value="TB">TB</option>
+      <option value="MB">MB</option>
+    </select>
+
+    {idx === 0 && (
+      <button type="button" className="add-btn" onClick={addStorageField}>➕</button>
+    )}
+    {formData.storageList.length > 1 && (
+      <button
+        type="button"
+        className="remove-btn"
+        onClick={() => {
+          if (window.confirm('이 항목을 삭제하시겠습니까?')) {
+            const newList = [...formData.storageList];
+            newList.splice(idx, 1);
+            setFormData({ ...formData, storageList: newList });
+          }
+        }}
+      >➖</button>
+    )}
+  </div>
+))}
+
+  <button type="button" onClick={handleStorageConvert}>변환</button>
+</div>
+            <div className="form-row">
+              <label>총 저장공간(GB기준)</label>
+              <input type="text" name="totalStorage" value={formData.totalStorage} readOnly />
+            </div>
+          </>
+        )}
         <div className="form-row">
           <label>자산상태</label>
           <div className="radio-group">
@@ -149,7 +264,8 @@ const AssetRegister = () => {
           <input type="text" name="acquisitionCost" value={formData.acquisitionCost} onChange={handleChange} />
         </div>
         <button type="submit" className="submit-button">등록</button>
-      </form>
+        <button type="button" className="reset-button" onClick={() => window.location.reload()}>초기화</button>
+</form>
     </div>
   );
 };

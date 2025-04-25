@@ -7,10 +7,10 @@ export default function AssetListPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [checkedItems, setCheckedItems] = useState([]);
   const [assets, setAssets] = useState([
-    { barcode: '20ORSFFL1', company: '평택 공장', department: '전산운영P', location: '전산실', category: 'IT자산', item: '노트북', borrower: '홍길동', registrar: '김영준' },
-    { barcode: '20ORSFFL2', company: '평택 공장', department: '회계팀', location: '서버실', category: 'IT자산', item: '모니터', borrower: '신청중', registrar: '홍길동' },
-    { barcode: '20ORSFFL3', company: '우신비나', department: '생산팀', location: '라인1', category: '사무자산', item: '책상', borrower: '이철수', registrar: '홍길동' },
-    { barcode: '20ORSFFL4', company: '우신비나', department: '자재팀', location: '창고', category: '사무자산', item: '의자', borrower: '김민지', registrar: '홍길동' }
+    { barcode: '20ORSFFL1', company: '평택 공장', department: '전산운영P', location: '전산실', category: 'IT자산', item: '노트북', borrower: '홍길동', registrar: '김영준', startDate: '2025-04-24', endDate: '2025-04-30' },
+    { barcode: '20ORSFFL2', company: '평택 공장', department: '회계팀', location: '서버실', category: 'IT자산', item: '모니터', borrower: '신청중', registrar: '홍길동', startDate: '2025-04-24', endDate: '2025-05-01' },
+    { barcode: '20ORSFFL3', company: '우신비나', department: '생산팀', location: '라인1', category: '사무자산', item: '책상', borrower: '이철수', registrar: '홍길동', startDate: '2025-04-20', endDate: '2025-04-28' },
+    { barcode: '20ORSFFL4', company: '우신비나', department: '자재팀', location: '창고', category: '사무자산', item: '의자', borrower: '김민지', registrar: '홍길동', startDate: '2025-04-21', endDate: '2025-04-29' }
   ]);
 
   const handleCheck = (barcode) => {
@@ -86,6 +86,7 @@ export default function AssetListPage() {
               <th>품목</th>
               <th>대여자</th>
               <th>등록자</th>
+              <th>대여기간</th>
             </tr>
           </thead>
           <tbody>
@@ -108,6 +109,7 @@ export default function AssetListPage() {
                 <td>{item.item}</td>
                 <td>{item.borrower}</td>
                 <td>{item.registrar}</td>
+                <td style={{ fontSize: '13px' }}>{item.startDate && item.endDate ? `${item.startDate} ~ ${item.endDate}` : '-'}</td>
               </tr>
             ))}
           </tbody>

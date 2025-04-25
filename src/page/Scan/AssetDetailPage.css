@@ -1,0 +1,30 @@
+.asset-detail-container {
+    max-width: 600px;
+    margin: 40px auto;
+    padding: 30px;
+    background-color: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    font-family: 'Arial', sans-serif;
+  }
+  
+  .asset-detail-container h2 {
+    font-size: 24px;
+    margin-bottom: 24px;
+    color: #333;
+    text-align: center;
+  }
+  
+  .asset-info-row {
+    margin-bottom: 12px;
+    font-size: 16px;
+    color: #444;
+  }
+  
+  .asset-info-row strong {
+    display: inline-block;
+    width: 140px;
+    color: #222;
+  }
+  

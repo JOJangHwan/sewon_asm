@@ -12,7 +12,8 @@ import ReportPage from './page/Report/report'; //보고서
 import MyInforPage from './page/MyInfor/myInfor'//내정보
 
 import AssetRentPage from './page/Rent/components/CommonPage'//대여
-import ScanPage from './page/Scan/Scan'//내정보
+import ScanPage from './page/Scan/Scan'//스캔기능
+import AssetDetailPage from './page/Scan/AssetDetailPage'//상세정보보는 스캔기능
 
 import Layout from './components/layout/Layout';//공통레이아웃
 
@@ -49,6 +50,7 @@ function App() {
           <Route path='/profile' element={<MyInforPage/>}></Route>
 
           <Route path='/scan' element={<ScanPage/>}></Route>
+          <Route path="/asset" element={<AssetDetailPage />} />
           <Route path='/rent' element={<AssetRentPage/>}></Route>
 
 
