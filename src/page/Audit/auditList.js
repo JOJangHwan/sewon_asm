@@ -40,11 +40,16 @@ export default function AuditSearch() {
   const [location, setLocation] = useState("");
   const [category, setCategory] = useState("");
   const [item, setItem] = useState("");
+  const [barcodeKeyword, setBarcodeKeyword] = useState("");
+  const [viewCount, setViewCount] = useState(30);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [filteredItems, setFilteredItems] = useState([]);
+  const [searched, setSearched] = useState(false);
   const [selectedItems, setSelectedItems] = useState([]);
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-  const totalPages = Math.ceil(items.length / itemsPerPage);
 
   useEffect(() => {
     setDepartment("");
@@ -59,14 +64,53 @@ export default function AuditSearch() {
     setItem("");
   }, [category]);
 
-  const handleClickPage = (pageNumber) => {
-    setCurrentPage(Math.max(1, Math.min(pageNumber, totalPages)));
+  const handleSearch = () => {
+    let result = items.filter(it => {
+      const matchCompany = company ? it.company === company : true;
+      const matchDepartment = department ? it.department === department : true;
+      const matchLocation = location ? it.location === location : true;
+      const matchCategory = category ? it.assetCategory === category : true;
+      const matchItem = item ? it.itemName === item : true;
+      const matchBarcode = barcodeKeyword ? it.barcode === barcodeKeyword : true;
+
+      const matchStartDate = startDate ? it.acquisitionDate >= startDate : true;
+      const matchEndDate = endDate ? it.acquisitionDate <= endDate : true;
+      return matchCompany && matchDepartment && matchLocation && matchCategory && matchItem && matchBarcode && matchStartDate && matchEndDate;
+    });
+
+    if (viewCount > 0) {
+      result = result.slice(0, viewCount);
+    }
+
+    setFilteredItems(result);
+    setSearched(true);
+    setSelectedItems([]);
+    setCurrentPage(1);
   };
+
+  const handleReset = () => {
+    setCompany("");
+    setDepartment("");
+    setLocation("");
+    setCategory("");
+    setItem("");
+    setBarcodeKeyword("");
+    setStartDate("");
+    setEndDate("");
+    setViewCount(30);
+    setFilteredItems([]);
+    setSearched(false);
+    setSelectedItems([]);
+    setCurrentPage(1);
+  };
+
+  const listToDisplay = searched ? filteredItems : items;
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = items.slice(indexOfFirstItem, indexOfLastItem);
+  const currentItems = listToDisplay.slice(indexOfFirstItem, indexOfLastItem);
 
+  const totalPages = Math.ceil(listToDisplay.length / itemsPerPage);
   const pageGroupSize = 5;
   const groupStart = Math.floor((currentPage - 1) / pageGroupSize) * pageGroupSize + 1;
   const groupEnd = Math.min(groupStart + pageGroupSize - 1, totalPages);
@@ -89,52 +133,92 @@ export default function AuditSearch() {
     );
   };
 
+  const handleClickPage = (pageNumber) => {
+    setCurrentPage(Math.max(1, Math.min(pageNumber, totalPages)));
+  };
+
   return (
     <div className="audit-search-container">
       <h2 className="audit-title">실사 조회</h2>
 
       <div className="audit-search-filter">
-        <select className="audit-search-simple" value={company} onChange={(e) => { setCompany(e.target.value); }}>
-          <option value="">회사구분</option>
-          {Object.keys(companyData).map((comp) => (
-            <option key={comp} value={comp}>{comp}</option>
-          ))}
-        </select>
+        {/* 1열 */}
+        <div className="audit-search-row">
+          <select className="audit-search-simple" value={company} onChange={(e) => setCompany(e.target.value)}>
+            <option value="">회사구분</option>
+            {Object.keys(companyData).map(comp => (
+              <option key={comp} value={comp}>{comp}</option>
+            ))}
+          </select>
 
-        <select className="audit-search-simple" value={department} onChange={(e) => { setDepartment(e.target.value); }}>
-          <option value="">부서구분</option>
-          {company && Object.keys(companyData[company] || {}).map(dep => (
-            <option key={dep} value={dep}>{dep}</option>
-          ))}
-        </select>
+          <select className="audit-search-simple" value={department} onChange={(e) => setDepartment(e.target.value)}>
+            <option value="">부서구분</option>
+            {company && Object.keys(companyData[company] || {}).map(dep => (
+              <option key={dep} value={dep}>{dep}</option>
+            ))}
+          </select>
 
-        <select className="audit-search-simple" value={location} onChange={(e) => setLocation(e.target.value)}>
-          <option value="">세부위치</option>
-          {(companyData[company]?.[department] || []).map(loc => (
-            <option key={loc} value={loc}>{loc}</option>
-          ))}
-        </select>
+          <select className="audit-search-simple" value={location} onChange={(e) => setLocation(e.target.value)}>
+            <option value="">세부위치</option>
+            {(companyData[company]?.[department] || []).map(loc => (
+              <option key={loc} value={loc}>{loc}</option>
+            ))}
+          </select>
 
-        <select className="audit-search-simple" value={category} onChange={(e) => { setCategory(e.target.value); }}>
-          <option value="">자산분류</option>
-          {Object.keys(assetCategoryData).map((cat) => (
-            <option key={cat} value={cat}>{cat}</option>
-          ))}
-        </select>
+          <select className="audit-search-simple" value={category} onChange={(e) => setCategory(e.target.value)}>
+            <option value="">자산분류</option>
+            {Object.keys(assetCategoryData).map(cat => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
+          </select>
 
-        <select className="audit-search-simple" value={item} onChange={(e) => setItem(e.target.value)}>
-          <option value="">품목</option>
-          {(assetCategoryData[category] || []).map(it => (
-            <option key={it} value={it}>{it}</option>
-          ))}
-        </select>
+          <select className="audit-search-simple" value={item} onChange={(e) => setItem(e.target.value)}>
+            <option value="">품목</option>
+            {(assetCategoryData[category] || []).map(it => (
+              <option key={it} value={it}>{it}</option>
+            ))}
+          </select>
+        </div>
 
-        <input type="text" placeholder="검색어" className="audit-search-simple" />
-        <input type="date" className="audit-search-simple" />
-        <input type="date" className="audit-search-simple" />
-        <button className="audit-search-btn"><FaSearch /> 조회</button>
+        {/* 2열 */}
+        <div className="audit-search-row">
+          <input
+            type="text"
+            placeholder="바코드 검색"
+            className="audit-search-simple"
+            value={barcodeKeyword}
+            onChange={(e) => setBarcodeKeyword(e.target.value)}
+          />
+
+          <input
+            type="number"
+            placeholder="출력개수"
+            className="audit-search-simple"
+            value={viewCount}
+            min="1"
+            onChange={(e) => setViewCount(Number(e.target.value))}
+          />
+
+          <input
+            type="date"
+            className="audit-search-simple"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+          />
+          <span>~</span>
+          <input
+            type="date"
+            className="audit-search-simple"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+          />
+
+          <button className="audit-search-btn" onClick={handleSearch}><FaSearch /> 조회</button>
+          <button className="audit-search-btn reset" onClick={handleReset}>↺ 초기화</button>
+        </div>
       </div>
 
+      {/* 테이블 */}
       <div className="audit-table-wrapper">
         <table className="audit-table">
           <thead>
@@ -178,6 +262,7 @@ export default function AuditSearch() {
         </table>
       </div>
 
+      {/* 페이징 */}
       <div className="audit-pagination">
         <button onClick={() => handleClickPage(1)}>처음</button>
         <button onClick={() => handleClickPage(currentPage - 1)}>이전</button>
@@ -190,4 +275,3 @@ export default function AuditSearch() {
     </div>
   );
 }
-

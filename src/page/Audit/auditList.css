@@ -1,93 +1,160 @@
-.audit-title {
-  font-size: 24px;
-  margin-bottom: 20px;
-  text-align: center;
+/* 전체 컨테이너 */
+.audit-search-container {
+  padding: 20px;
 }
 
+/* 타이틀 */
+.audit-title {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+/* 검색 필터 전체 영역 */
 .audit-search-filter {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 12px;
+  margin-bottom: 24px;
+}
+
+/* 검색 한 줄 (row) */
+.audit-search-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
   align-items: center;
-  margin-bottom: 20px;
   justify-content: center;
 }
 
-.audit-search-simple,
-.audit-search-simple select {
-  height: 36px;
-  padding: 8px 10px;
-  font-size: 14px;
+/* 각 검색 입력, 셀렉트박스 */
+.audit-search-simple {
   border: 1px solid #ccc;
+  padding: 0 10px;
+  height: 36px;
+  font-size: 14px;
   border-radius: 4px;
-  width: 160px;
+  width: 140px;
   box-sizing: border-box;
 }
 
+/* 날짜 input은 조금 넓게 */
+.audit-search-simple[type="date"] {
+  width: 160px;
+}
+
+/* 조회 버튼 */
 .audit-search-btn {
-  height: 36px;
-  background-color: #f6a800;
+  background-color: #FFC107;
   color: white;
-  padding: 0 16px;
+  font-weight: bold;
+  padding: 0 18px;
+  height: 36px;
   border: none;
   border-radius: 4px;
-  font-weight: bold;
   font-size: 14px;
   cursor: pointer;
   white-space: nowrap;
+  transition: background-color 0.2s;
 }
 
+.audit-search-btn:hover {
+  background-color: #ffb300;
+}
+
+/* 초기화 버튼 */
+.audit-search-btn.reset {
+  background-color: #9e9e9e;
+}
+
+.audit-search-btn.reset:hover {
+  background-color: #7e7e7e;
+}
+
+/* 테이블 영역 */
 .audit-table-wrapper {
-  overflow-y: auto;
-  max-height: 400px;
+  width: 100%;
+  overflow-x: auto;
 }
 
+/* 테이블 */
 .audit-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
+  min-width: 1000px;
 }
 
 .audit-table th,
 .audit-table td {
-  border: 1px solid #ddd;
+  border: 1px solid #ccc;
+  padding: 10px;
   text-align: center;
-  padding: 8px;
 }
 
-.audit-table th {
-  background-color: #f5f5f5;
-}
-
-.audit-table input[type="checkbox"] {
-  transform: scale(1.2);
-  cursor: pointer;
+.audit-table thead {
+  background-color: #f3f4f6;
+  border-bottom: 2px solid #999;
 }
 
 .audit-table tbody tr:hover {
-  background-color: #fcfcfc;
+  background-color: #f9fafb;
+  transition: background-color 0.2s;
 }
 
+/* 페이징 버튼 영역 */
 .audit-pagination {
   display: flex;
   justify-content: center;
-  align-items: center;
-  margin-top: 16px;
   gap: 4px;
+  margin-top: 24px;
+  flex-wrap: wrap;
 }
 
+/* 페이징 버튼 기본 */
 .audit-pagination button {
-  border: 1px solid #ccc;
-  background: white;
-  padding: 6px 12px;
-  cursor: pointer;
+  width: 40px;
+  height: 36px;
   font-size: 14px;
+  font-weight: normal; /* 🔥 숫자와 처음/이전/다음/끝 모두 일반 글자 */
+  border: 1px solid #d1d5db;
   border-radius: 4px;
+  background: #ffffff;
+  color: black;
+  cursor: pointer;
+  text-align: center;
+  transition: background-color 0.3s, color 0.3s, border-color 0.3s;
 }
 
+/* 페이징 버튼 hover */
+.audit-pagination button:hover:not(:disabled):not(.active) {
+  background-color: #f3f4f6;
+}
+
+/* 현재 페이지 active */
 .audit-pagination button.active {
-  background: #f6a800;
-  color: white;
-  font-weight: bold;
-  border: 1px solid #f6a800;
+  background-color: #FFC107;
+  border: 1px solid #d1d5db;
+  color: black;
+}
+
+/* 비활성화 버튼 */
+.audit-pagination button:disabled {
+  background-color: #ffffff;
+  border: 1px solid #d1d5db;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* 반응형 대응 */
+@media (max-width: 768px) {
+  .audit-search-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .audit-search-simple,
+  .audit-search-btn {
+    width: 100%;
+  }
 }
