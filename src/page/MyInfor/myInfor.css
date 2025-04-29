@@ -1,3 +1,6 @@
+/* src/page/MyInfor/myInfor.css */
+
+/* ── 전체 컨테이너 ── */
 .my-info-container {
   max-width: 1200px;
   margin: 0 auto;
@@ -8,13 +11,15 @@
   background: #f9fafb;
 }
 
+/* ── 섹션 제목 ── */
 .section-title {
   margin: 0;
   font-size: 20px;
   font-weight: 600;
+  color: #333;
 }
 
-/* 1. 맨 위: 내정보 박스 + 수정 버튼 */
+/* ── 1. 맨 위: 내정보 박스 + 수정 버튼 ── */
 .top-section {
   display: flex;
   justify-content: space-between;
@@ -43,12 +48,11 @@
   cursor: pointer;
   transition: background-color .2s;
 }
-
 .info-edit-button:hover {
   background-color: #e0a800;
 }
 
-/* 2. 중간: 조회 필터 */
+/* ── 2. 중간: 조회 필터 ── */
 .search-section {
   background: #fff;
   padding: 16px;
@@ -67,6 +71,7 @@
   flex-wrap: wrap;
   gap: 12px;
   align-items: center;
+  justify-content: center;
 }
 
 .search-input {
@@ -75,9 +80,10 @@
   height: 32px;
   padding: 0 10px;
   font-size: 14px;
+  box-sizing: border-box;
 }
 
-.view-count {
+.search-input.view-count {
   width: 80px;
 }
 
@@ -89,13 +95,19 @@
   height: 32px;
   border-radius: 4px;
   cursor: pointer;
+  transition: background-color .2s;
 }
-
+.search-button:hover {
+  background-color: #e0a800;
+}
 .search-button.reset {
   background-color: #999;
 }
+.search-button.reset:hover {
+  background-color: #777;
+}
 
-/* 3. 하단 헤더: 제목 + 버튼 */
+/* ── 3. 하단 헤더: 제목 + 버튼 ── */
 .bottom-header {
   display: flex;
   justify-content: space-between;
@@ -117,17 +129,16 @@
   cursor: pointer;
   transition: background-color .2s;
 }
-
-.action-button:disabled {
-  background-color: #ffe8a1;
-  cursor: not-allowed;
-}
-
 .action-button:hover:not(:disabled) {
   background-color: #e0a800;
 }
+.action-button:disabled {
+  background-color: #ffe8a1;
+  cursor: not-allowed;
+  color: #666;
+}
 
-/* 4. 테이블 + 페이징 */
+/* ── 4. 테이블 + 페이징 ── */
 .table-section {
   display: flex;
   flex-direction: column;
@@ -161,6 +172,7 @@ thead th {
 
 tbody tr:hover {
   background: #f3f4f6;
+  transition: background-color .2s;
 }
 
 .pagination {
@@ -178,24 +190,21 @@ tbody tr:hover {
   cursor: pointer;
   transition: background-color .2s, color .2s;
 }
-
+.page-btn:hover:not(:disabled):not(.active) {
+  background: #f3f4f6;
+}
 .page-btn.active {
   background: #ffc107;
   border-color: #ffc107;
   color: #333;
   font-weight: 600;
 }
-
 .page-btn:disabled {
   color: #ccc;
   cursor: not-allowed;
 }
 
-.page-btn:hover:not(:disabled):not(.active) {
-  background: #f3f4f6;
-}
-
-/* 모달 숨김/인쇄 스타일 */
+/* ── 인쇄용 숨김 ── */
 @media print {
   .top-section,
   .search-section,
@@ -205,7 +214,7 @@ tbody tr:hover {
   th, td { border: 1px solid #999; padding: 10px; font-size: 16px; }
 }
 
-/* 모바일 */
+/* ── 모바일 대응 ── */
 @media (max-width: 768px) {
   .top-section,
   .search-section,
@@ -214,12 +223,48 @@ tbody tr:hover {
     align-items: stretch;
     gap: 12px;
   }
+  .search-bar,
   .button-group {
-    justify-content: flex-end;
-    flex-wrap: wrap;
+    justify-content: stretch;
   }
-  th, td {
-    padding: 8px 4px;
-    font-size: 12px;
+  .search-input,
+  .search-button,
+  .search-button.reset,
+  .action-button {
+    width: 100%;
   }
+  .user-info-inline {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* 사이드 드로어 */
+.drawer-overlay {
+  position: fixed; top:0; left:0; width:100%; height:100%;
+  background: rgba(0,0,0,0.3); z-index: 1000;
+}
+.drawer {
+  position: fixed; top:0; right:0; width:320px; height:100%;
+  background:#fff; padding:16px; box-shadow:-2px 0 8px rgba(0,0,0,0.1);
+  overflow-y:auto; z-index:1001;
+  transform: translateX(100%); animation: slide-in 0.3s forwards;
+}
+@keyframes slide-in {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+.drawer-close {
+  background:none; border:none; font-size:24px;
+  position:absolute; top:8px; right:12px; cursor:pointer;
+}
+
+/* 모바일 풀페이지 */
+.detail-fullpage {
+  position: fixed; top:0; left:0; width:100%; height:100%;
+  background:#fff; padding:16px; overflow-y:auto; z-index:1002;
+}
+.detail-back {
+  background:none; border:none; font-size:18px; margin-bottom:12px;
+  cursor:pointer;
 }

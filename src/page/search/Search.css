@@ -4,9 +4,8 @@
   flex-direction: column;
   align-items: center;
   padding: 0 16px;
-  margin-bottom: 24px; /* 검색바와 테이블 사이 여백 */
+  margin-bottom: 24px;
 }
-
 /* 상단 필터 바 */
 .search-bar.top-bar {
   display: flex;
@@ -15,8 +14,7 @@
   justify-content: center;
   margin-bottom: 12px;
 }
-
-/* 하단 바: 바코드 / 날짜 / 정렬 / 버튼 */
+/* 하단 바 */
 .search-bar.bottom-bar {
   display: flex;
   flex-wrap: wrap;
@@ -24,8 +22,7 @@
   justify-content: center;
   align-items: center;
 }
-
-/* 공통 input 스타일 */
+/* 공통 input */
 .search-input {
   border: 1px solid #d1d5db;
   padding: 0 12px;
@@ -33,37 +30,24 @@
   font-size: 14px;
   border-radius: 4px;
   width: 140px;
-  box-sizing: border-box;
   transition: border-color 0.2s;
 }
 .search-input:focus {
   border-color: #FFC107;
   outline: none;
 }
-
-/* 출력 개수 input만 좁게 */
+/* 출력 개수 */
 .search-input.view-count {
-  width: 80px;
+  width: 140px;   /* 다른 입력창과 동일한 너비 */
+  height: 36px;   /* 다른 입력창과 동일한 높이 */
+  box-sizing: border-box;
 }
-
-/* 바코드 검색 input */
-.search-input.barcode-search {
-  width: 200px;    /* 필요에 따라 180px~240px로 조절 */
-  max-width: 100%; /* 모바일 등 좁은 화면에선 꽉 채움 */
-}
-
-/* 바코드 검색창과 다음 요소 간 여백 */
-.search-bar.bottom-bar .barcode-search {
-  margin-right: 8px;
-}
-
-/* 날짜 input */
+/* 바코드 검색 */
+.search-input.barcode-search { width: 200px; max-width: 100%; }
+/* 날짜 */
 .search-input.date,
-.search-input[type="date"] {
-  width: 180px;
-}
-
-/* 조회/초기화 버튼 */
+.search-input[type="date"] { width: 180px; }
+/* 버튼 */
 .search-button {
   background-color: #FFC107;
   color: white;
@@ -74,20 +58,16 @@
   border-radius: 4px;
   font-size: 14px;
   cursor: pointer;
-  white-space: nowrap;
   transition: background-color 0.2s;
 }
-.search-button:hover {
-  background-color: #ffb300;
-}
+.search-button:hover { background-color: #ffb300; }
 .search-button.reset {
   background-color: #9e9e9e;
 }
 .search-button.reset:hover {
   background-color: #7e7e7e;
 }
-
-/* 테이블 영역 */
+/* 테이블 */
 .search-table-wrapper {
   width: 100%;
   overflow-x: auto;
@@ -110,10 +90,8 @@
 }
 .search-asset-table tbody tr:hover {
   background-color: #f9fafb;
-  transition: background-color 0.2s;
 }
-
-/* 페이징 버튼 영역 */
+/* 페이징 */
 .search-pagination {
   display: flex;
   justify-content: center;
@@ -125,40 +103,31 @@
   width: 40px;
   height: 36px;
   font-size: 14px;
-  font-weight: normal;
   border: 1px solid #d1d5db;
   border-radius: 4px;
-  background: #ffffff;
-  color: black;
+  background: white;
   cursor: pointer;
-  text-align: center;
-  transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+  transition: background-color 0.3s, color 0.3s;
 }
 .search-page-button:hover:not(:disabled):not(.active) {
   background-color: #f3f4f6;
 }
 .search-page-button.active {
   background-color: #FFC107;
-  border: 1px solid #d1d5db;
-  color: black;
 }
 .search-page-button:disabled {
-  background-color: #ffffff;
-  border: 1px solid #d1d5db;
   color: #9ca3af;
   cursor: not-allowed;
 }
-/* nav-button 별도 처리(처음/이전/다음/끝) */
+/* nav-button */
 .nav-button {
-  background: #ffffff !important;
+  background: white !important;
 }
 .nav-button:disabled {
-  background: #ffffff !important;
-  border: 1px solid #d1d5db;
+  background: white !important;
   color: #9ca3af;
 }
-
-/* 반응형 대응 */
+/* 반응형 */
 @media (max-width: 768px) {
   .search-bar.top-bar,
   .search-bar.bottom-bar {
@@ -166,11 +135,35 @@
     align-items: stretch;
   }
   .search-input,
-  .search-input.view-count,
-  .search-input.barcode-search,
-  .search-input.date,
   .search-button,
   .search-button.reset {
     width: 100%;
   }
+}
+/* 상세 풀페이지 */
+.detail-fullpage {
+  position: fixed; top:0; left:0; width:100%; height:100%;
+  background:#fff; padding:20px; overflow:auto; z-index:1000;
+}
+.detail-back {
+  background:none; border:none; font-size:16px; cursor:pointer;
+}
+/* 드로어 */
+.drawer-overlay {
+  position:fixed; top:0; left:0; width:100%; height:100%;
+  background:rgba(0,0,0,0.3); z-index:1000;
+}
+.drawer {
+  position:fixed; top:0; right:0; width:360px; height:100%;
+  background:#fff; padding:20px; box-shadow:-2px 0 8px rgba(0,0,0,0.2);
+  z-index:1001; overflow:auto;
+}
+.drawer-close {
+  background:none; border:none; font-size:24px; cursor:pointer;
+}
+@media (max-width: 768px) {
+  .drawer, .drawer-overlay { display: none; }
+}
+@media (min-width: 769px) {
+  .detail-fullpage { display: none; }
 }
