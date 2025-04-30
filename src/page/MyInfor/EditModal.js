@@ -16,6 +16,7 @@ const categoryOptions = {
 const statusOptions = ['사용', '대기', '수리중', '폐기'];
 
 const EditModal = ({ item, onSave, onClose }) => {
+  
   const [editedItem, setEditedItem] = useState(item);
 
   const [selectedCompany, setSelectedCompany] = useState(item.company || '');

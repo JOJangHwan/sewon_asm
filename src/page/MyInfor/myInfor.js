@@ -706,9 +706,10 @@
 import React, { useState, useEffect } from 'react';
 import EditModal from './EditModal';
 import InfoEditModal from './MyInfoModal';
+import LabelPrint from './LabelPrint';
+import { createRoot } from 'react-dom/client';
 import './myInfor.css';
 
-// 화면 크기 체크 훅
 function useMediaQuery(query) {
   const [matches, setMatches] = useState(() => window.matchMedia(query).matches);
   useEffect(() => {
@@ -727,7 +728,6 @@ function useMediaQuery(query) {
 }
 
 export default function MyInfoPage() {
-  // ── 더미 데이터
   const [items, setItems] = useState(
     Array.from({ length: 100 }, (_, i) => ({
       barcode: `200RSFFL${i + 1}`,
@@ -746,15 +746,16 @@ export default function MyInfoPage() {
   );
 
   // ── 검색 필터 상태
-  const [company, setCompany]               = useState('');
-  const [department, setDepartment]         = useState('');
-  const [location, setLocation]             = useState('');
-  const [assetCategory, setAssetCategory]   = useState('');
-  const [itemName, setItemName]             = useState('');
+  const [company, setCompany] = useState('');
+  const [department, setDepartment] = useState('');
+  const [location, setLocation] = useState('');
+  const [assetCategory, setAssetCategory] = useState('');
+  const [itemName, setItemName] = useState('');
   const [barcodeKeyword, setBarcodeKeyword] = useState('');
-  const [startDate, setStartDate]           = useState('');
-  const [endDate, setEndDate]               = useState('');
-  const [viewCount, setViewCount]           = useState(30);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [viewCount, setViewCount] = useState(30);
+
 
   // ── 필터된 결과 & 검색 여부
   const [filteredItems, setFilteredItems] = useState([]);
@@ -825,10 +826,10 @@ export default function MyInfoPage() {
   };
 
   // ── 페이지별 리스트
-  const listToShow  = searched ? filteredItems : items;
-  const totalPages  = Math.ceil(listToShow.length / itemsPerPage);
-  const idxLast     = currentPage * itemsPerPage;
-  const idxFirst    = idxLast - itemsPerPage;
+  const listToShow = searched ? filteredItems : items;
+  const totalPages = Math.ceil(listToShow.length / itemsPerPage);
+  const idxLast = currentPage * itemsPerPage;
+  const idxFirst = idxLast - itemsPerPage;
   const currentList = listToShow.slice(idxFirst, idxLast);
 
   // ── 페이징 버튼
@@ -839,11 +840,7 @@ export default function MyInfoPage() {
     for (let i = 1; i <= totalPages; i++) {
       if (i >= minPageNum && i <= maxPageNum) {
         pages.push(
-          <button
-            key={i}
-            onClick={() => setCurrentPage(i)}
-            className={`page-btn ${currentPage === i ? 'active' : ''}`}
-          >
+          <button key={i} onClick={() => setCurrentPage(i)} className={`page-btn ${currentPage === i ? 'active' : ''}`}>
             {i}
           </button>
         );
@@ -883,25 +880,30 @@ export default function MyInfoPage() {
   };
   const handlePrint = () => {
     if (!selectedItems.length) return alert('인쇄할 항목을 선택하세요!');
-    const toPrint = selectedItems.map(idx => {
-      const gi = (currentPage - 1)*itemsPerPage + idx;
-      return listToShow[gi];
-    });
-    const w = window.open('','_blank','width=800,height=600');
-    const html = `
-      <html><head><title>인쇄</title>
-      <style>body{font-family:Arial;padding:20px;display:flex;flex-wrap:wrap}
-      .lbl{border:1px solid#000;margin:10px;padding:10px;width:200px;text-align:center}
-      </style></head><body>
-      ${toPrint.map(a=>`
-        <div class="lbl">
-          <div><strong>${a.barcode}</strong></div>
-          <div>${a.itemName}</div>
-        </div>
-      `).join('')}
-      <script>window.onload=()=>{window.print();window.onafterprint=()=>window.close();}</script>
-      </body></html>`;
-    w.document.write(html); w.document.close();
+    const toPrint = selectedItems.map(idx => listToShow[(currentPage - 1) * itemsPerPage + idx]);
+    const printWindow = window.open('', '_blank', 'width=900,height=700');
+    if (!printWindow) return alert('팝업 차단을 해제해주세요.');
+
+    printWindow.document.write('<div id="print-root"></div>');
+    printWindow.document.close();
+
+    const interval = setInterval(() => {
+      const container = printWindow.document.getElementById('print-root');
+      if (container) {
+        clearInterval(interval);
+        const root = createRoot(container);
+        root.render(
+          <LabelPrint
+            selectedAssets={toPrint}
+            onAllImagesLoaded={() => {
+              printWindow.focus();
+              printWindow.print();
+              printWindow.close();
+            }}
+          />
+        );
+      }
+    }, 100);
   };
 
   return (

@@ -395,6 +395,7 @@ export default function AuditSearch() {
   const [currentPage, setCurrentPage] = useState(1);
   const [detailItem, setDetailItem] = useState(null);
 
+
   const itemsPerPage = 10;
 
   useEffect(() => { setDepartment(""); setLocation(""); }, [company]);
