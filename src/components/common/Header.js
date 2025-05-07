@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import ScanImg from '../../assets/img/scan.png';
 import rentImg from '../../assets/img/rent.png';
 import alarmImg from '../../assets/img/alarm.png';
+import logoImg from '../../assets/img/sewon.jpg';
 
 function Header({ toggleSidebar, isSidebarOpen }) {
   const [isAlarmOpen, setIsAlarmOpen] = useState(false);
@@ -68,7 +69,7 @@ function Header({ toggleSidebar, isSidebarOpen }) {
 
         {/* ✅ 로고 클릭 시 메인 이동 */}
         <Link to="/main" className="header-logo-wrap">
-          <img src="/img/login_img.jpg" alt="로고" className="header-logo" />
+          <img src={logoImg} alt="로고" className="header-logo" />
         </Link>
 
         <div className="header-company-name">세원전자 자산관리 시스템</div>

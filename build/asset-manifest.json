@@ -1,0 +1,16 @@
+{
+  "files": {
+    "main.css": "/static/css/main.8dfc0e6f.css",
+    "main.js": "/static/js/main.c84b8bd4.js",
+    "static/js/453.12c7cd12.chunk.js": "/static/js/453.12c7cd12.chunk.js",
+    "static/media/sewon.jpg": "/static/media/sewon.93d604f52adc9e96c95c.jpg",
+    "index.html": "/index.html",
+    "main.8dfc0e6f.css.map": "/static/css/main.8dfc0e6f.css.map",
+    "main.c84b8bd4.js.map": "/static/js/main.c84b8bd4.js.map",
+    "453.12c7cd12.chunk.js.map": "/static/js/453.12c7cd12.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.8dfc0e6f.css",
+    "static/js/main.c84b8bd4.js"
+  ]
+}
