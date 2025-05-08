@@ -37,6 +37,7 @@
   .button-group {
     display: flex;
     gap: 10px;
+    flex-wrap: wrap; /* 👉 버튼이 한 줄에 다 못 들어가면 자동 줄바꿈 */
   }
   
   .delete-btn,
@@ -56,6 +57,15 @@
   .register-btn {
     background-color: #4caf50;
     color: white;
+  }
+
+  .verify-btn {
+    background-color: #3b82f6;
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
   }
   
   .audit-table {
