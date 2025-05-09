@@ -35,12 +35,13 @@ const LabelPrint = ({ selectedAssets, onAllImagesLoaded }) => {
           </div>
           <div style={{ marginLeft: '20px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
             {/* 로고 */}
-            <img 
-              src="/img/sewon.jpg" 
-              alt="sewon logo" 
-              style={{ width: '100px', marginBottom: '5px' }}
-              onLoad={handleImageLoad}
-            />
+          {/* 로고 (OCR 영향 없음) */}
+          <img
+            src="/img/sewon.jpg"
+            alt="sewon logo"
+            style={{ width: '90px', marginTop: '8px' }}
+            onLoad={handleImageLoad}
+          />
             {/* 텍스트 */}
             <div style={{ fontSize: '14px', fontWeight: 'bold' }}>{asset.company} {asset.department} {asset.location}</div>
             <div style={{ fontSize: '14px', marginTop: '2px' }}>{asset.barcode}</div>
