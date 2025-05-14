@@ -1,169 +1,6 @@
-// import React, { useState, useRef, useEffect } from 'react';
-// import { Html5QrcodeScanner } from 'html5-qrcode';
-// import './auditLoad.css';
-
-// import barcodeIcon from '../../assets/img/scan.png'; // 바코드 아이콘
-
-// const AuditLoad = () => {
-//   const [searchBarcode, setSearchBarcode] = useState('');
-//   const [items, setItems] = useState([]);
-//   const [scannerVisible, setScannerVisible] = useState(false);
-//   const [registeredItems, setRegisteredItems] = useState([]);
-//   const scannerRef = useRef(null);
-
-//   useEffect(() => {
-//     if (scannerVisible && !scannerRef.current) {
-//       scannerRef.current = new Html5QrcodeScanner(
-//         'reader',
-//         { fps: 10, qrbox: { width: 250, height: 250 } },
-//         false
-//       );
-//       scannerRef.current.render(onScanSuccess, onScanFailure);
-//     }
-//     // eslint-disable-next-line react-hooks/exhaustive-deps
-//   }, [scannerVisible]);
-
-//   const handleBarcodeClick = () => {
-//     setScannerVisible(true);
-//   };
-
-//   const onScanSuccess = (decodedText) => {
-//     const newItem = {
-//       barcode: decodedText,
-//       company: '',
-//       department: '',
-//       location: '',
-//       acquisitionType: '',
-//       assetCategory: '',
-//       itemName: '',
-//       assetStatus: '',
-//       manufacturer: '',
-//       model: '',
-//       acquisitionDate: '',
-//       acquisitionPrice: '',
-//       registrant: '',
-//     };
-//     setItems((prevItems) => [...prevItems, newItem]);
-//     setScannerVisible(false);
-
-//     if (scannerRef.current) {
-//       scannerRef.current.clear();
-//       scannerRef.current = null;
-//     }
-//   };
-
-//   const onScanFailure = (error) => {
-//     console.warn(`QR 스캔 실패: ${error}`);
-//   };
-
-//   const handleDelete = () => {
-//     const selectedItems = items.filter(item => !item.selected);
-//     setItems(selectedItems);
-//   };
-
-//   const handleRegister = () => {
-//     setRegisteredItems((prev) => [...prev, ...items]);
-//     setItems([]);
-//     alert('등록 완료되었습니다.');
-//   };
-
-//   const handleSelectAll = (e) => {
-//     const checked = e.target.checked;
-//     const updatedItems = items.map(item => ({ ...item, selected: checked }));
-//     setItems(updatedItems);
-//   };
-
-//   const handleSelectItem = (index) => {
-//     const updatedItems = [...items];
-//     updatedItems[index].selected = !updatedItems[index].selected;
-//     setItems(updatedItems);
-//   };
-
-//   return (
-//     <div className="audit-container">
-//       <h2>실사 등록</h2>
-
-//       <div className="top-section">
-//         <img
-//           src={barcodeIcon}
-//           alt="바코드 스캔"
-//           className="barcode-icon"
-//           onClick={handleBarcodeClick}
-//         />
-//         <div className="search-bar">
-//           <input
-//             type="text"
-//             placeholder="바코드 번호"
-//             value={searchBarcode}
-//             onChange={(e) => setSearchBarcode(e.target.value)}
-//           />
-//         </div>
-//         <div className="button-group">
-//           <button className="delete-btn" onClick={handleDelete}>삭제하기</button>
-//           <button className="register-btn" onClick={handleRegister}>등록하기</button>
-//         </div>
-//       </div>
-
-//       {/* 항상 div를 만들어두고, visible만 조절 */}
-//       <div
-//         id="reader"
-//         className="qr-reader"
-//         style={{ display: scannerVisible ? 'block' : 'none' }}
-//       ></div>
-
-//       <table className="audit-table">
-//         <thead>
-//           <tr>
-//             <th><input type="checkbox" onChange={handleSelectAll} /></th>
-//             <th>바코드</th>
-//             <th>회사구분</th>
-//             <th>부서구분</th>
-//             <th>세부위치</th>
-//             <th>취득구분</th>
-//             <th>자산분류</th>
-//             <th>품목</th>
-//             <th>자산상태</th>
-//             <th>제조사</th>
-//             <th>모델</th>
-//             <th>취득일자</th>
-//             <th>취득가</th>
-//             <th>등록자</th>
-//           </tr>
-//         </thead>
-//         <tbody>
-//           {items.length === 0 ? (
-//             <tr><td colSpan="14" className="no-data">스캔된 데이터가 없습니다.</td></tr>
-//           ) : (
-//             items.map((item, index) => (
-//               <tr key={index}>
-//                 <td><input type="checkbox" checked={item.selected || false} onChange={() => handleSelectItem(index)} /></td>
-//                 <td>{item.barcode}</td>
-//                 <td>{item.company}</td>
-//                 <td>{item.department}</td>
-//                 <td>{item.location}</td>
-//                 <td>{item.acquisitionType}</td>
-//                 <td>{item.assetCategory}</td>
-//                 <td>{item.itemName}</td>
-//                 <td>{item.assetStatus}</td>
-//                 <td>{item.manufacturer}</td>
-//                 <td>{item.model}</td>
-//                 <td>{item.acquisitionDate}</td>
-//                 <td>{item.acquisitionPrice}</td>
-//                 <td>{item.registrant}</td>
-//               </tr>
-//             ))
-//           )}
-//         </tbody>
-//       </table>
-//     </div>
-//   );
-// };
-
-// export default AuditLoad;
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Html5QrcodeScanner } from 'html5-qrcode';
-import { getAsset, saveItem, deleteItem, initDB } from '../../utils/db';
+import { getAsset, saveItem, deleteItem, initDB, saveLocation, getLocation } from '../../utils/db';
 import axios from 'axios';
 import './auditLoad.css';
 import barcodeIcon from '../../assets/img/scan.png';
@@ -174,6 +11,22 @@ const AuditLoad = () => {
   const [scannerVisible, setScannerVisible] = useState(false);
   const [registeredItems, setRegisteredItems] = useState([]);
   const scannerRef = useRef(null);
+
+  const [selectedCompany, setSelectedCompany] = useState('');
+  const [selectedDepartment, setSelectedDepartment] = useState('');
+  const [selectedLocation, setSelectedLocation] = useState('');
+
+  const LOCATION_DATA = {
+    '평택공장': {
+      '전산운영팀': ['전산실', '서버실'],
+      '회계팀': ['재무실']
+    },
+    '우신에너지': {
+      '자재관리': ['창고'],
+      '경영관리': ['본사 사무실']
+    }
+  };
+
 
   useEffect(() => {
     if (scannerVisible && !scannerRef.current) {
@@ -227,7 +80,16 @@ const AuditLoad = () => {
   //     console.error("QR 파싱 에러:", error);
   //   }
   // };
-  const [currentLocation, setCurrentLocation] = useState('전산실'); // 또는 로그인 시 저장된 위치 불러오기
+
+  const [currentLocation, setCurrentLocation] = useState('');
+
+  useEffect(() => {
+    const loadSavedLocation = async () => {
+      const saved = await getLocation();
+      setCurrentLocation(saved || '');
+    };
+    loadSavedLocation();
+  }, []);
 
   const onScanSuccess = async (decodedText) => {
     let parsedData;
@@ -239,8 +101,10 @@ const AuditLoad = () => {
   
     let newItem;
     const barcode = parsedData?.barcode || decodedText.trim(); // 둘 다 지원
-    const location = currentLocation; // 현재 실사 위치 (예: 전산실)
-  
+    //const location = currentLocation; // 현재 실사 위치 (예: 전산실)
+    const location = parsedData?.location || currentLocation || '';// QR에 있으면 쓰고, 없으면 비워둠
+
+
     if (parsedData) {
       // ✅ 자산 정보 전체 포함된 QR
       newItem = {
@@ -399,26 +263,75 @@ const AuditLoad = () => {
       <h2>실사 등록</h2>
 
       <div className="top-section">
-        <img
-          src={barcodeIcon}
-          alt="바코드 스캔"
-          className="barcode-icon"
-          onClick={handleBarcodeClick}
-        />
-        <div className="search-bar">
-          <input
-            type="text"
-            placeholder="바코드 번호"
-            value={searchBarcode}
-            onChange={(e) => setSearchBarcode(e.target.value)}
-          />
-        </div>
-        <div className="button-group">
-          <button className="delete-btn" onClick={handleDelete}>삭제하기</button>
-          <button className="verify-btn" onClick={handleVerify}>검증하기</button>
-          <button className="register-btn" onClick={handleRegister}>등록하기</button>
-        </div>
-      </div>
+  {/* 1줄: 실사 위치 (왼쪽 정렬) */}
+  <div className="location-wrapper">
+  <div className="location-select-3depth">
+    <label>📍 실사 위치:</label>
+
+    <select value={selectedCompany} onChange={(e) => {
+      const company = e.target.value;
+      setSelectedCompany(company);
+      setSelectedDepartment('');
+      setSelectedLocation('');
+    }}>
+      <option value="">-- 회사 선택 --</option>
+      {Object.keys(LOCATION_DATA).map(company => (
+        <option key={company} value={company}>{company}</option>
+      ))}
+    </select>
+
+    <select value={selectedDepartment} onChange={(e) => {
+      const dept = e.target.value;
+      setSelectedDepartment(dept);
+      setSelectedLocation('');
+    }} disabled={!selectedCompany}>
+      <option value="">-- 부서 선택 --</option>
+      {selectedCompany && Object.keys(LOCATION_DATA[selectedCompany]).map(dept => (
+        <option key={dept} value={dept}>{dept}</option>
+      ))}
+    </select>
+
+    <select value={currentLocation} onChange={async (e) => {
+      const location = e.target.value;
+      setCurrentLocation(location);
+      await saveLocation(location);
+    }} disabled={!selectedDepartment}>
+      <option value="">-- 세부위치 선택 --</option>
+      {selectedCompany && selectedDepartment &&
+        LOCATION_DATA[selectedCompany][selectedDepartment].map(loc => (
+          <option key={loc} value={loc}>{loc}</option>
+        ))}
+    </select>
+  </div>
+  </div>
+
+
+  {/* 2줄: 바코드 아이콘 + 입력창 (왼쪽), 버튼 3개 (오른쪽) */}
+  <div className="barcode-row-split">
+    <div className="barcode-left">
+      <img
+        src={barcodeIcon}
+        alt="바코드 스캔"
+        className="barcode-icon"
+        onClick={handleBarcodeClick}
+      />
+      <input
+        type="text"
+        placeholder="바코드 번호"
+        value={searchBarcode}
+        onChange={(e) => setSearchBarcode(e.target.value)}
+      />
+    </div>
+
+    <div className="barcode-buttons">
+      <button className="delete-btn" onClick={handleDelete}>삭제하기</button>
+      <button className="verify-btn" onClick={handleVerify}>검증하기</button>
+      <button className="register-btn" onClick={handleRegister}>등록하기</button>
+    </div>
+  </div>
+</div>
+
+
 
       <div id="reader" className="qr-reader" style={{ display: scannerVisible ? 'block' : 'none' }}></div>
 

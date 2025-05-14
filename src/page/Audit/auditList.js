@@ -491,7 +491,7 @@ export default function AuditSearch() {
           <input type="date" className="audit-search-simple" value={startDate} onChange={e => setStartDate(e.target.value)} />
           <span>~</span>
           <input type="date" className="audit-search-simple" value={endDate} onChange={e => setEndDate(e.target.value)} />
-          <button className="audit-search-btn" onClick={handleSearch}><FaSearch /> 조회</button>
+          <button className="audit-search-btn" onClick={handleSearch}>🔍  조회</button>
           <button className="audit-search-btn reset" onClick={handleReset}>↺ 초기화</button>
         </div>
       </div>

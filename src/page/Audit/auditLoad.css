@@ -1,99 +1,142 @@
 .audit-container {
-    padding: 20px;
-    font-family: Arial, sans-serif;
-  }
-  
-  .top-section {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 20px;
-  }
-  
-  .barcode-icon {
-    width: 50px;
-    height: 50px;
-    cursor: pointer;
-    transition: transform 0.2s;
-  }
-  
-  .barcode-icon:hover {
-    transform: scale(1.1);
-  }
-  
-  .search-bar {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  
-  .search-bar input {
-    width: 100%;
-    padding: 8px;
-    font-size: 14px;
-  }
-  
-  .button-group {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap; /* 👉 버튼이 한 줄에 다 못 들어가면 자동 줄바꿈 */
-  }
-  
-  .delete-btn,
-  .register-btn {
-    padding: 8px 16px;
-    font-size: 14px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-  
-  .delete-btn {
-    background-color: #f44336;
-    color: white;
-  }
-  
-  .register-btn {
-    background-color: #4caf50;
-    color: white;
-  }
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
 
-  .verify-btn {
-    background-color: #3b82f6;
-    color: white;
-    padding: 8px 16px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-  }
-  
-  .audit-table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-  
-  .audit-table th,
-  .audit-table td {
-    border: 1px solid #ccc;
-    padding: 8px;
-    text-align: center;
-    font-size: 13px;
-  }
-  
-  .audit-table thead {
-    background-color: #f5f5f5;
-  }
-  
-  .no-data {
-    text-align: center;
-    padding: 20px;
-    font-size: 14px;
-    color: #888;
-  }
-  
-  .qr-reader {
-    width: 300px;
-    margin: 20px auto;
-  }
-  
+.top-section {
+  display: flex;
+  flex-direction: column; /* ✅ 세로 정렬 */
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+/* 실사 위치 선택 (회사 > 부서 > 세부위치) */
+.location-select-3depth {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  margin-bottom: 8px; /* ✅ 거리감 주는 핵심 */
+}
+
+/* 바코드 입력 & 버튼 줄 */
+.barcode-action-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* 바코드 이미지 */
+.barcode-icon {
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+
+}
+
+.barcode-icon:hover {
+  transform: scale(1.1);
+}
+
+/* 바코드 입력창 */
+.barcode-action-row input {
+  height: 36px;
+  padding: 0 8px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  min-width: 180px;
+}
+
+/* 버튼 그룹 */
+.button-group,
+.delete-btn,
+.register-btn,
+.verify-btn {
+  font-size: 14px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.delete-btn {
+  background-color: #f44336;
+  color: white;
+}
+
+.verify-btn {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.register-btn {
+  background-color: #4caf50;
+  color: white;
+}
+
+/* 테이블 영역 */
+.audit-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.audit-table th,
+.audit-table td {
+  border: 1px solid #ccc;
+  padding: 8px;
+  text-align: center;
+  font-size: 13px;
+}
+
+.audit-table thead {
+  background-color: #f5f5f5;
+}
+
+.no-data {
+  text-align: center;
+  padding: 20px;
+  font-size: 14px;
+  color: #888;
+}
+
+/* QR 영역 */
+.qr-reader {
+  width: 300px;
+  margin: 20px auto;
+}
+
+.barcode-row-split {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  width: 100%; /* ✅ 필수: 전체 너비 확보 */
+}
+
+.barcode-left,
+.barcode-buttons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  flex-shrink: 0; /* ✅ 줄어들지 않도록 고정 */
+}
+
+.barcode-left input {
+  height: 36px;
+  padding: 0 8px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  min-width: 200px; /* ✅ 줄어들지 않도록 */
+}
+
+/* ✅ 실사위치를 감싸는 래퍼: 왼쪽에 고정 */
+.location-wrapper {
+  display: flex;
+  justify-content: flex-start;
+  width: 100%;
+}
