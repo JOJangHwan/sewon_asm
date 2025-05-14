@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
+import useMediaQuery from '../../utils/hooks/useMediaQuery';
+import { renderRentCardList } from './components/MobileAssetCardView';
 
 export default function AssetReturnListPage() {
   const loginUser = '홍길동';
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   const [checkedItems, setCheckedItems] = useState([]);
   const [assets, setAssets] = useState([
@@ -94,21 +97,21 @@ export default function AssetReturnListPage() {
         <h2>자산 반납 신청 목록</h2>
       </div>
 
-      {renderTable(
-        '내가 반납 신청한 자산',
-        내가신청한반납,
-        <button className="primary-btn" onClick={handleCancelReturn} style={{ backgroundColor: '#fee2e2' }}>
-          반납 취소
-        </button>
-      )}
+      {isMobile
+        ? renderRentCardList(내가신청한반납, '내가 반납 신청한 자산', checkedItems, handleCheck)
+        : renderTable('내가 반납 신청한 자산', 내가신청한반납, (
+          <button className="primary-btn" onClick={handleCancelReturn} style={{ backgroundColor: '#fee2e2' }}>
+            반납 취소
+          </button>
+        ))}
 
-      {renderTable(
-        '상대방이 내 자산에 반납 신청한 자산',
-        내자산에들어온반납,
-        <button className="primary-btn" onClick={handleApprove}>
-          승인
-        </button>
-      )}
+      {isMobile
+        ? renderRentCardList(내자산에들어온반납, '반납 신청한 자산', checkedItems, handleCheck)
+        : renderTable('반납 신청한 자산', 내자산에들어온반납, (
+          <button className="primary-btn" onClick={handleApprove} style={{ backgroundColor: '#facc15' }}>
+            승인
+          </button>
+        ))}
     </div>
   );
 }

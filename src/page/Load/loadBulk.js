@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import * as XLSX from 'xlsx';
 import './loadBulk.css';
+import useMediaQuery from '../../utils/hooks/useMediaQuery';
 
 const TABLE_HEADERS = [
   '회사구분', '부서구분', '세부위치', '취득구분', '자산분류',
@@ -9,6 +10,8 @@ const TABLE_HEADERS = [
 
 const EXCEL_HEADERS = TABLE_HEADERS.slice(0, -1); // 등록자 제외
 const LOGIN_USER = '홍길동';
+
+
 
 // 날짜 숫자 → yyyy-mm-dd 변환
 const convertExcelDate = (value) => {
@@ -25,7 +28,7 @@ const convertExcelDate = (value) => {
 // 예시 회사/부서/세부위치
 const COMPANY_MAP = {
   '평택공장': {
-    '전산운영P': ['전산실', '서버실'],
+    '전산운영': ['전산실', '서버실'],
     '회계팀': ['재무실'],
   },
   '우신에너지': {
@@ -46,6 +49,8 @@ const LoadBulk = () => {
   const [selectedRows, setSelectedRows] = useState([]);
   const [rowErrors, setRowErrors] = useState([]);
   const [isValid, setIsValid] = useState(true);
+
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -116,6 +121,19 @@ const LoadBulk = () => {
 
     reader.readAsBinaryString(file);
   };
+  //양식초기화
+  const handleReset = () => {
+    setFileName('');
+    setTableData([]);
+    setSelectedRows([]);
+    setRowErrors([]);
+    setIsValid(true);
+  
+    // 파일 input 요소도 초기화 (선택된 파일 제거)
+    const input = document.getElementById('file-upload');
+    if (input) input.value = '';
+  };
+
 
   const handleSelectRow = (index) => {
     setSelectedRows((prev) =>
@@ -171,9 +189,10 @@ const LoadBulk = () => {
         <input id="file-upload" type="file" hidden onChange={handleFileChange} />
         <button className="btn danger" onClick={handleDelete}>삭제하기</button>
         <button className="btn success" onClick={handleRegister} disabled={!isValid}>등록하기</button>
+        <button className="btn" onClick={handleReset}>초기화</button>
       </div>
 
-      <table className="bulk-table">
+      {/* <table className="bulk-table">
         <thead>
           <tr>
             <th></th>
@@ -207,7 +226,79 @@ const LoadBulk = () => {
             ))
           )}
         </tbody>
-      </table>
+      </table> */}
+      {/* === 📋 테이블 (PC 전용) === */}
+{!isMobile && (
+  <table className="bulk-table">
+    <thead>
+      <tr>
+        <th></th>
+        {TABLE_HEADERS.map((header, idx) => <th key={idx}>{header}</th>)}
+        <th>에러 원인</th>
+      </tr>
+    </thead>
+    <tbody>
+      {tableData.length === 0 ? (
+        <tr>
+          <td colSpan="14">업로드된 데이터가 없습니다.</td>
+        </tr>
+      ) : (
+        tableData.map((row, idx) => (
+          <tr
+            key={idx}
+            className={`${isRowSelected(idx) ? 'selected' : ''} ${rowErrors[idx] ? 'row-error' : ''}`}
+          >
+            <td>
+              <input
+                type="checkbox"
+                checked={isRowSelected(idx)}
+                onChange={() => handleSelectRow(idx)}
+              />
+            </td>
+            {row.map((cell, i) => (
+              <td key={i}>{cell}</td>
+            ))}
+            <td className="error-text">{rowErrors[idx] || ''}</td>
+          </tr>
+        ))
+      )}
+    </tbody>
+  </table>
+)}
+
+{/* === 📱 카드형 목록 (모바일 전용) === */}
+{isMobile && (
+  <div className="bulk-card-list">
+    {tableData.length === 0 ? (
+      <p>업로드된 데이터가 없습니다.</p>
+    ) : (
+      tableData.map((row, idx) => (
+        <div key={idx} className={`bulk-card ${rowErrors[idx] ? 'row-error' : ''}`}>
+          <div className="card-header">
+            <input
+              type="checkbox"
+              checked={isRowSelected(idx)}
+              onChange={() => handleSelectRow(idx)}
+            />
+            <strong>등록자:</strong> {row[11]}
+          </div>
+          {TABLE_HEADERS.slice(0, -1).map((header, i) => (
+            <div key={i} className="card-row">
+              <strong>{header}:</strong> {row[i]}
+            </div>
+          ))}
+          {rowErrors[idx] && (
+            <div className="error-text">⚠️ {rowErrors[idx]}</div>
+          )}
+        </div>
+      ))
+    )}
+  </div>
+)}
+
+
+
+
     </div>
   );
 };

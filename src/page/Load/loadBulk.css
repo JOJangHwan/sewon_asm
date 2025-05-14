@@ -17,6 +17,11 @@
     cursor: pointer;
     border-radius: 4px;
     font-weight: bold;
+    background-color: #9e9e9e;
+    color: white;
+  }
+  .btn:hover {
+    background-color: #7e7e7e;
   }
   
   .primary {
@@ -28,6 +33,8 @@
     background-color: #42a5f5;
     color: #fff;
   }
+
+  
   
   .danger {
     background-color: #ef5350;
@@ -84,4 +91,105 @@
     color: #b00020;
     font-size: 0.9em;
     white-space: pre-wrap;
+  }
+
+  @media (max-width: 480px) {
+    .bulk-container {
+      padding: 16px;
+    }
+  
+    .bulk-top-controls {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px; /* 버튼 간격 살짝 넓힘 */
+    }
+  
+    .btn {
+      width: 100%;
+      font-size: 14px;
+      padding: 12px 0;        /* 버튼 크기 확대 */
+      border-radius: 6px;
+    }
+  
+    .file-name-input {
+      width: 100%;
+      font-size: 14px;
+      padding: 10px;
+      height: 44px;            /* 버튼 높이와 맞춤 */
+      box-sizing: border-box;
+    }
+  
+    .bulk-table th,
+    .bulk-table td {
+      font-size: 13px;
+      padding: 8px;
+    }
+  
+    .error-summary {
+      font-size: 13px;
+      padding: 10px;
+    }
+
+    label.btn.upload {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 44px;            /* 버튼과 동일 */
+      padding: 12px 14px;      /* 버튼과 동일 */
+      font-size: 14px;
+      font-weight: bold;
+      border-radius: 4px;
+      background-color: #42a5f5;
+      color: white;
+      width: 100%;
+      box-sizing: border-box;
+      line-height: 1;          /* 기본 line-height 차이 방지 */
+    }
+
+    .bulk-card {
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 12px;
+      background-color: #fff;
+      margin-top: 16px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+  
+    .card-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #eee;
+      font-size: 14px;
+    }
+  
+    .card-row:last-child {
+      border-bottom: none;
+    }
+  
+    .label {
+      font-weight: bold;
+      color: #333;
+      width: 40%;
+      white-space: nowrap;
+    }
+  
+    .value {
+      width: 60%;
+      text-align: right;
+      color: #444;
+      word-break: break-word;
+    }
+  
+    /* 등록자 영역 스타일 보완 */
+    .card-header {
+      font-weight: bold;
+      font-size: 14px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+
   }
