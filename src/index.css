@@ -41,12 +41,15 @@ body {
   gap: 1.5rem;
 }
 
+/* 기본 햄버거 버튼 스타일 (PC에서는 숨김) */
 .hamburger {
+  display: none; /* PC에서는 숨김 */
   background: none;
   border: none;
   cursor: pointer;
-  display: flex;
-  align-items: center;
+  padding: 8px;
+  border-radius: 6px;
+  transition: background-color 0.2s;
 }
 
 .hamburger svg {
@@ -368,6 +371,42 @@ body {
     flex-direction: row;
     height: 60px;
     padding: 0 1rem;
+  }
+  .hamburger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #fff8e1;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  .hamburger:hover {
+    background-color: #ffecb3;
+  }
+
+  .hamburger-icon {
+    width: 24px;
+    height: 2px;
+    background-color: #333;
+    position: relative;
+    transition: all 0.3s ease;
+  }
+
+  .hamburger-icon::before,
+  .hamburger-icon::after {
+    content: '';
+    position: absolute;
+    width: 24px;
+    height: 2px;
+    background-color: #333;
+    transition: all 0.3s ease;
+  }
+
+  .hamburger-icon::before {
+    top: -8px;
+  }
+
+  .hamburger-icon::after {
+    bottom: -8px;
   }
 
   .header-left {

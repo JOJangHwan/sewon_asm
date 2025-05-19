@@ -385,6 +385,47 @@ const AuditLoad = () => {
           )}
         </tbody>
       </table>
+
+      {/* ✅ 모바일 카드형 목록 (PC에서는 안 보임) */}
+<div className="audit-card-list">
+  {items.map((item, index) => (
+    <div
+      key={index}
+      className="audit-card"
+      style={{
+        backgroundColor: item.new
+          ? '#fffacd'
+          : item.verified
+          ? item.matched
+            ? '#e0ffe0'
+            : '#ffe0e0'
+          : 'white'
+      }}
+    >
+      <div className="audit-card-header">
+        <span className="barcode">{item.barcode}</span>
+        <input
+          type="checkbox"
+          checked={item.selected || false}
+          onChange={() => handleSelectItem(index)}
+        />
+      </div>
+      <div className="audit-card-row"><strong>회사:</strong> {item.company}</div>
+      <div className="audit-card-row"><strong>부서:</strong> {item.department}</div>
+      <div className="audit-card-row"><strong>위치:</strong> {item.location}</div>
+      <div className="audit-card-row"><strong>취득구분:</strong> {item.acquisitionType}</div>
+      <div className="audit-card-row"><strong>자산분류:</strong> {item.assetCategory}</div>
+      <div className="audit-card-row"><strong>품목:</strong> {item.itemName}</div>
+      <div className="audit-card-row"><strong>상태:</strong> {item.assetStatus}</div>
+      <div className="audit-card-row"><strong>제조사:</strong> {item.manufacturer}</div>
+      <div className="audit-card-row"><strong>모델:</strong> {item.model}</div>
+      <div className="audit-card-row"><strong>취득일:</strong> {item.acquisitionDate}</div>
+      <div className="audit-card-row"><strong>취득가:</strong> {item.acquisitionPrice}</div>
+      <div className="audit-card-row"><strong>등록자:</strong> {item.registrant}</div>
+    </div>
+  ))}
+</div>
+
     </div>
   );
 };

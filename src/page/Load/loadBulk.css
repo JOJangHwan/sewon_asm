@@ -89,8 +89,8 @@
   
   .error-text {
     color: #b00020;
-    font-size: 0.9em;
-    white-space: pre-wrap;
+    font-size: 13px;
+    margin-top: 8px;
   }
 
   @media (max-width: 480px) {
@@ -146,22 +146,27 @@
       line-height: 1;          /* 기본 line-height 차이 방지 */
     }
 
-    .bulk-card {
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      padding: 12px;
-      background-color: #fff;
-      margin-top: 16px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-    }
+   /* 카드 개별 요소를 가로로 나열 */
+   .bulk-card {
+    flex: 0 0 auto;
+    width: 260px;
+    min-height: 320px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 12px;
+    background-color: #fff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    scroll-snap-align: start;
+  }
   
-    .card-row {
-      display: flex;
-      justify-content: space-between;
-      padding: 8px 0;
-      border-bottom: 1px solid #eee;
-      font-size: 14px;
-    }
+ 
+  .card-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+    font-size: 14px;
+  }
   
     .card-row:last-child {
       border-bottom: none;
@@ -190,6 +195,16 @@
       align-items: center;
       gap: 8px;
     }
+
+      /* 카드 목록 전체를 가로 스크롤 가능하게 설정 */
+  .bulk-card-list {
+    display: flex;
+    overflow-x: auto;
+    padding: 12px 0;
+    gap: 12px;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
 
 
   }

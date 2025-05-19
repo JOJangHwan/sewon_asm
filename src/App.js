@@ -36,7 +36,7 @@ const LanguageInitializer = ({ children }) => {
 
 const AppRoutes = () => (
   <Routes>
-    <Route path="/login" element={<LoginPage />} />
+    <Route path="/" element={<LoginPage />} />
     <Route path="/join" element={<RegisterPage />} />
     <Route element={<Layout />}>
       <Route path="/main" element={<HomePage />} />

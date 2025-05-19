@@ -1,40 +1,200 @@
-/* 모달 배경 */
+/* ✅ 모달 배경 */
 .modal-background {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-  }
-  
-  /* 모달 콘텐츠 */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* ✅ 모달 콘텐츠 영역 */
+.modal-content {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ✅ 모달 상단 (제목 + 닫기 버튼) */
+.modal-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-top h3 {
+  font-size: 20px;
+  font-weight: bold;
+  margin: 0;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #555;
+}
+
+.close-btn:hover {
+  color: #e55353;
+}
+
+/* ✅ 공통 행 구성 */
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 15px;
+}
+
+.row span:first-child,
+.row label {
+  font-weight: bold;
+  white-space: nowrap;
+  min-width: 100px;
+}
+
+.row input,
+.row span:last-child,
+.row button {
+  flex: 1;
+}
+
+/* ✅ 자산찾기 아이콘 버튼 */
+.icon-btn {
+  background-color: #facc15;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.icon-btn:hover {
+  background-color: #fbbf24;
+}
+
+/* ✅ 대여기간 영역 */
+.date-range {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.calendar-icon {
+  color: #888;
+  font-size: 16px;
+}
+
+/* ✅ 제출 버튼 */
+.submit-btn {
+  background-color: #facc15;
+  padding: 12px;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-top: 12px;
+}
+
+.submit-btn:hover {
+  background-color: #fbbf24;
+}
+
+/* ✅ 반응형 - 태블릿 이하 */
+@media (max-width: 768px) {
   .modal-content {
-    background: white;
-    padding: 30px;
-    border-radius: 12px;
-    width: 600px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+    width: 95%;
+    padding: 20px;
+    border-radius: 10px;
+    gap: 14px;
   }
-  
-  /* 모달 상단 */
+
   .modal-top {
-    display: flex;
+    flex-direction: row;
     justify-content: space-between;
     align-items: center;
   }
-  
-  /* 닫기 버튼 */
-  .close-btn {
-    background: none;
-    border: none;
-    font-size: 20px;
-    cursor: pointer;
+
+  .row {
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
   }
+
+  .row span:first-child,
+  .row label {
+    min-width: 90px;
+    font-size: 14px;
+  }
+
+  .row input,
+  .row span:last-child,
+  .row button {
+    flex: 1;
+    width: auto;
+  }
+
+  .submit-btn {
+    width: 100%;
+    font-size: 15px;
+  }
+
+  .date-range {
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .calendar-icon {
+    display: inline;
+  }
+}
+
+/* ✅ 반응형 - 모바일 */
+
+@media (max-width: 480px) {
+  .modal-content {
+    width: 95%;
+    padding: 16px;
+    gap: 12px;
+  }
+
+  .close-btn {
+    font-size: 20px;
+  }
+
+  .row span:first-child,
+  .row label {
+    font-size: 13px;
+  }
+
+  .row input {
+    font-size: 13px;
+    padding: 6px 8px;
+  }
+
+  .submit-btn {
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  .icon-btn {
+    font-size: 13px;
+    padding: 6px 8px;
+  }
+}

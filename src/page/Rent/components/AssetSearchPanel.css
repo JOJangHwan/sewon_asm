@@ -12,6 +12,7 @@
   flex-direction: column;
   padding: 24px;
   overflow-y: auto;
+  transition: transform 0.3s ease;
 }
 
 .panel-header {
@@ -24,6 +25,7 @@
 .panel-header h3 {
   font-size: 20px;
   font-weight: bold;
+  margin: 0;
 }
 
 .close-btn {
@@ -42,27 +44,50 @@
 
 .filters select {
   width: 100%;
-  padding: 8px;
-  margin-bottom: 8px;
+  padding: 10px;
   border-radius: 6px;
   border: 1px solid #ccc;
+  font-size: 14px;
 }
 
 .search-box {
   display: flex;
-  gap: 8px;
+  gap: 0;
+  flex-direction: row;
+  border-radius: 6px;
+  overflow: hidden;
 }
 
 .search-box input {
   flex: 1;
-  padding: 8px;
-  border-radius: 6px;
+  padding: 10px;
   border: 1px solid #ccc;
+  border-right: none;
+  border-radius: 6px 0 0 6px;
+  font-size: 14px;
+}
+
+.search-box button {
+  background-color: #facc15;
+  border: 1px solid #ccc;
+  border-left: none;
+  padding: 0 16px;
+  cursor: pointer;
+  border-radius: 0 6px 6px 0;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.search-box button:hover {
+  background-color: #fbbf24;
 }
 
 .asset-table {
   width: 100%;
   border-collapse: collapse;
+  font-size: 14px;
 }
 
 .asset-table th,
@@ -78,7 +103,85 @@
   padding: 6px 12px;
   border-radius: 8px;
   cursor: pointer;
+  font-size: 14px;
 }
+
 .select-btn:hover {
   background-color: #fbbf24;
+}
+
+@media (max-width: 768px) {
+  .slide-panel {
+    width: 100vw;
+    height: 100vh;
+    padding: 16px;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    border-radius: 0;
+  }
+
+  .panel-header h3 {
+    font-size: 18px;
+  }
+
+  .close-btn {
+    font-size: 22px;
+  }
+
+  .filters select {
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  .search-box {
+    flex-direction: row;
+  }
+
+  .search-box input {
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  .search-box button {
+    font-size: 16px;
+    padding: 0 14px;
+  }
+
+  .asset-table th,
+  .asset-table td {
+    font-size: 13px;
+    padding: 8px;
+  }
+
+  .select-btn {
+    font-size: 13px;
+    padding: 6px 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .filters select {
+    font-size: 13px;
+  }
+
+  .panel-header h3 {
+    font-size: 16px;
+  }
+
+  .search-box button {
+    font-size: 14px;
+  }
+
+  .asset-table th,
+  .asset-table td {
+    font-size: 12px;
+    padding: 6px;
+  }
+
+  .select-btn {
+    font-size: 12px;
+    padding: 5px 10px;
+  }
 }

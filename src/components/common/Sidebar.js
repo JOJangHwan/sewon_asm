@@ -46,7 +46,10 @@ function Sidebar({ isSidebarOpen, toggleSidebar }) {
             key={idx}
             className={`sidebar-item ${location.pathname === item.path ? 'active' : ''}`}
             onClick={() => {
-              if (item.path) navigate(item.path);
+              if (item.path) {
+                navigate(item.path);
+                if (isMobile) toggleSidebar(); // ✅ 모바일에서 클릭 시 닫힘
+              }
             }}
             onMouseEnter={() => setHoveredMenu(item.label)}
             onMouseLeave={() => setHoveredMenu(null)}
@@ -63,7 +66,10 @@ function Sidebar({ isSidebarOpen, toggleSidebar }) {
                   <div
                     key={subIdx}
                     className="submenu-item"
-                    onClick={() => navigate(subItem.path)}
+                    onClick={() => {
+                      navigate(subItem.path);
+                      if (isMobile) toggleSidebar(); // ✅ 모바일에서 클릭 시 닫힘
+                    }}
                   >
                     {subItem.label}
                   </div>

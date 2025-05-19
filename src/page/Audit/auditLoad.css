@@ -5,19 +5,19 @@
 
 .top-section {
   display: flex;
-  flex-direction: column; /* ✅ 세로 정렬 */
+  flex-direction: column;
   gap: 12px;
   margin-bottom: 20px;
 }
 
-/* 실사 위치 선택 (회사 > 부서 > 세부위치) */
+/* 실사 위치 선택 */
 .location-select-3depth {
   display: flex;
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
   justify-content: flex-start;
-  margin-bottom: 8px; /* ✅ 거리감 주는 핵심 */
+  margin-bottom: 8px;
 }
 
 /* 바코드 입력 & 버튼 줄 */
@@ -33,9 +33,7 @@
   width: 36px;
   height: 36px;
   cursor: pointer;
-
 }
-
 .barcode-icon:hover {
   transform: scale(1.1);
 }
@@ -50,7 +48,7 @@
   min-width: 180px;
 }
 
-/* 버튼 그룹 */
+/* 버튼 스타일 */
 .button-group,
 .delete-btn,
 .register-btn,
@@ -77,7 +75,7 @@
   color: white;
 }
 
-/* 테이블 영역 */
+/* 테이블 스타일 */
 .audit-table {
   width: 100%;
   border-collapse: collapse;
@@ -102,18 +100,20 @@
   color: #888;
 }
 
-/* QR 영역 */
+/* QR 스캐너 */
 .qr-reader {
   width: 300px;
   margin: 20px auto;
 }
 
+/* 바코드 줄 레이아웃 */
 .barcode-row-split {
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  width: 100%; /* ✅ 필수: 전체 너비 확보 */
+  width: 100%;
+  row-gap: 10px; /* ✅ 세로 간격 추가 */
 }
 
 .barcode-left,
@@ -122,7 +122,7 @@
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
-  flex-shrink: 0; /* ✅ 줄어들지 않도록 고정 */
+  flex-shrink: 0;
 }
 
 .barcode-left input {
@@ -131,12 +131,73 @@
   font-size: 14px;
   border: 1px solid #ccc;
   border-radius: 4px;
-  min-width: 200px; /* ✅ 줄어들지 않도록 */
+  min-width: 200px;
 }
 
-/* ✅ 실사위치를 감싸는 래퍼: 왼쪽에 고정 */
+/* 실사위치 래퍼 */
 .location-wrapper {
   display: flex;
   justify-content: flex-start;
   width: 100%;
+}
+
+/* 📱 모바일용 카드형 UI */
+@media (max-width: 768px) {
+  .audit-table {
+    display: none;
+  }
+
+  /* 📱 가로 스크롤 카드 리스트 */
+  .audit-card-list {
+    display: flex;
+    overflow-x: auto;
+    gap: 12px;
+    padding: 10px 0;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+
+
+  .audit-card {
+    flex: 0 0 auto;
+    width: 280px;
+    min-height: 340px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 12px;
+    background-color: #fff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    scroll-snap-align: start;
+  }
+
+  .audit-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+
+  .audit-card-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    padding: 6px 0;
+    border-bottom: 1px solid #eee;
+  }
+
+  .audit-card-row:last-child {
+    border-bottom: none;
+  }
+
+  .audit-card .barcode {
+    font-weight: bold;
+    color: #333;
+  }
+
+  .audit-card .error {
+    color: #b00020;
+    margin-top: 6px;
+    font-size: 13px;
+  }
 }
