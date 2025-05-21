@@ -1,89 +1,3 @@
-// import React, { useState } from 'react';
-// import './MyInfoModal.css';
-
-// const COMPANY_MAP = {
-//   '평택공장': ['전산운영팀', '회계팀'],
-//   '우신에너지': ['자재관리', '경영관리'],
-// };
-
-// const InfoEditModal = ({ userInfo, onClose, onSave }) => {
-//   const [company, setCompany] = useState(userInfo.company);
-//   const [department, setDepartment] = useState(userInfo.department);
-//   const [name, setName] = useState('');
-//   const [password, setPassword] = useState('');
-//   const [id, setId] = useState('');
-
-//   const handleCompanyChange = (e) => {
-//     const newCompany = e.target.value;
-//     setCompany(newCompany);
-//     setDepartment(COMPANY_MAP[newCompany][0]);
-//   };
-
-//   const handleSubmit = () => {
-//     onSave({
-//       ...userInfo,
-//       company,
-//       department,
-//       name: name || userInfo.name,
-//       password,
-//       id: id || userInfo.id,
-//     });
-//   };
-
-//   return (
-//     <div className="modal-background">
-//       <div className="modal-content">
-//         <h2>내정보 수정하기</h2>
-
-//         <label>회사구분</label>
-//         <select value={company} onChange={handleCompanyChange}>
-//           {Object.keys(COMPANY_MAP).map(comp => (
-//             <option key={comp} value={comp}>{comp}</option>
-//           ))}
-//         </select>
-
-//         <label>부서구분</label>
-//         <select value={department} onChange={e => setDepartment(e.target.value)}>
-//           {COMPANY_MAP[company].map(dept => (
-//             <option key={dept} value={dept}>{dept}</option>
-//           ))}
-//         </select>
-
-//         <label>이름</label>
-//         <input
-//           type="text"
-//           placeholder={userInfo.name}
-//           value={name}
-//           onChange={e => setName(e.target.value)}
-//         />
-
-//         <label>아이디</label>
-//         <input
-//           type="text"
-//           placeholder={userInfo.id}
-//           value={id}
-//           onChange={e => setId(e.target.value)}
-//         />
-
-//         <label>비밀번호</label>
-//         <input
-//           type="password"
-//           placeholder="********"
-//           value={password}
-//           onChange={e => setPassword(e.target.value)}
-//         />
-
-//         <div className="modal-actions">
-//           <button className="save-btn" onClick={handleSubmit}>수정하기</button>
-//           <button className="close-btn" onClick={onClose}>닫기</button>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default InfoEditModal;
-
 // MyInfoModal.js
 import React, { useState, useEffect } from 'react';
 import './MyInfoModal.css';
@@ -120,16 +34,54 @@ const InfoEditModal = ({ userInfo, onClose, onSave }) => {
     // department 는 useEffect 에서 자동 세팅됩니다
   };
 
-  const handleSubmit = () => {
-    onSave({
-      ...userInfo,
-      company,
-      department,
-      name,
-      id,
-      password: password || undefined, // 빈 문자열이면 전송하지 않음
-    });
+  const handleSubmit = async () => {
+    const current = { company, department, name, id, password };
+    const changed = {};
+  
+    if (current.company !== userInfo.company) changed.company = current.company;
+    if (current.department !== userInfo.department) changed.department = current.department;
+    if (current.name !== userInfo.name) changed.name = current.name;
+    if (current.id !== userInfo.id) changed.id = current.id;
+    if (current.password) changed.password = current.password;
+  
+    // 변경된 항목이 없다면
+    if (Object.keys(changed).length === 0) {
+      alert('변경된 내용이 없습니다.');
+      return;
+    }
+  
+    // ID 등 식별자는 항상 포함 (백엔드가 필요로 할 경우)
+    const payload = {
+      id: userInfo.id, // 기존 id로 식별
+      ...changed,
+    };
+  
+    console.log('📤 서버로 전송할 수정 항목:', payload);
+  
+    try {
+      const response = await fetch('http://localhost:8080/api/user/update', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+  
+      const result = await response.json(); // 1 또는 0
+  
+      if (result === 1) {
+        alert('✅ 정보 수정이 완료되었습니다.');
+        onClose(); // 모달 닫기
+      } else {
+        alert('❌ 수정 실패: 서버에서 실패 처리되었습니다.');
+      }
+    } catch (error) {
+      alert('🚨 서버 통신 실패');
+      console.error('수정 요청 오류:', error);
+    }
   };
+  
+
 
   return (
     <div className="modal-background">

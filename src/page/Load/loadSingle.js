@@ -82,7 +82,7 @@ const AssetRegister = () => {
     setFormData({ ...formData, totalStorage: total.toFixed(2) });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const requiredFields = [
       'company', 'department', 'location', 'acquisitionType', 'assetCategory', 'item', 'manufacturer', 'model', 'acquisitionDate', 'acquisitionCost'
@@ -101,8 +101,33 @@ const AssetRegister = () => {
       alert('대여 상태일 경우 대여자 및 대여일자를 입력해주세요.');
       return;
     }
-    alert('등록이 완료되었습니다!');
-    console.log('등록 데이터:', formData);
+      // 서버로 데이터 전송 전에 formData를 JSON 문자열로 변환하여 콘솔에 출력
+      console.log('Sending data:', JSON.stringify(formData));  // JSON 데이터 확인용
+        // 서버로 데이터 전송
+        try {
+          const response = await fetch('http://localhost:8080/api/asset/register', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json', // JSON 형식으로 데이터를 보냄
+            },
+            body: JSON.stringify(formData), // formData를 JSON으로 변환하여 전송
+          });
+    
+          const data = await response.json();
+          
+          if (data === 1) { // 성공 시 1 반환
+            alert('등록이 완료되었습니다!');
+            console.log('등록 데이터:', formData);
+          } else {
+            alert('❌ 등록 실패: 서버에서 실패 처리');
+          }
+        } catch (error) {
+          alert('🚨 서버와의 연결에 실패했습니다.');
+          console.error('Error:', error);
+        }
+    
+    // alert('등록이 완료되었습니다!');
+    // console.log('등록 데이터:', formData);
   };
 
   return (
@@ -189,7 +214,7 @@ const AssetRegister = () => {
     />
     <select
       name={`storage-unit`}
-      value={s.unit}
+      value={s.unit}ㄷㄷㄷㄷㄷㄷㄷㄷㄷㄷㄷㄷㄷㄷㄷㄷㄷㄷㄷㄷㄷㄷㄷㄷㄷㄷㄷㄷㄷㄷㄷ
       onChange={(e) => handleChange({ target: { name: 'storage-unit', value: e.target.value } }, idx)}
     >
       <option value="GB">GB</option>

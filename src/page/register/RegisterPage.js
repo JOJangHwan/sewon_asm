@@ -123,7 +123,7 @@ const SignupForm = () => {
   };
 
   // 회원가입 버튼 눌렀을 때
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     // 모든 필수 항목 체크
@@ -134,8 +134,47 @@ const SignupForm = () => {
 
     // 정상 회원가입 진행
     setErrorMessage('');
-    setIsAlertOpen(true);
+    //setIsAlertOpen(true);
+
+    const userData = {
+      id,
+      password,
+      name,
+      company,
+      department
+    };
+
+    // JSON 데이터 콘솔 출력
+    console.log("Sending data:", JSON.stringify(userData));  // JSON 데이터 확인용
+
+    try {
+      const response = await fetch('http://localhost:8080/api/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json', // JSON 형식으로 데이터를 보냄
+        },
+        body: JSON.stringify(userData), // JSON 형태로 변환해서 전송
+      });
+  
+      const data = await response.json();
+  
+      if (data === 1) { // 성공 시 1 반환
+        setIsAlertOpen(true);  // 회원가입 완료 후 모달 띄우기
+      } else if (data === 0) { // 실패 시 0 반환
+        setErrorMessage('❌ 회원가입 실패: 서버에서 실패 처리');
+      } else {
+        setErrorMessage('알 수 없는 오류가 발생했습니다.');
+      }
+    } catch (error) {
+      setErrorMessage('🚨 서버와의 연결에 실패했습니다.');
+      console.error('Error:', error);
+    }
+
+    
   };
+
+  
+  
 
   // 에러메세지 3초 후 자동 제거
   useEffect(() => {

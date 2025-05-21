@@ -4,7 +4,7 @@ import styles from './Home.css';
 const MainPage = () => {
   return (
     <div>
-      <h2>🏠 메인 페이지</h2>
+      <h2>🏠 Main Page</h2>
       <p>여기에 자산 관리 관련 콘텐츠를 넣으세요.</p>
     </div>
   );

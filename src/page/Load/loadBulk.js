@@ -154,14 +154,82 @@ const LoadBulk = () => {
     setSelectedRows([]);
   };
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     if (tableData.length === 0) {
       alert('등록할 데이터가 없습니다.');
       return;
     }
-    alert('등록이 완료되었습니다!');
-    // TODO: axios.post('/api/register', tableData);
-  };
+
+    // ✅ 어떤 데이터를 보낼지 결정 (선택된 행 또는 전체)
+    const rowsToRegister = selectedRows.length > 0
+    ? selectedRows.map((i) => tableData[i])
+    : tableData;
+      // JSON 데이터를 콘솔에 출력
+     //console.log('Sending data to the server:', JSON.stringify(tableData)); // 서버로 전송할 데이터 확인
+  // JSON 데이터를 콘솔에 출력
+    //console.log('Sending data to the server:', JSON.stringify(formatDataForJson(tableData))); // 서버로 전송할 데이터 확인
+
+     // ✅ 콘솔로 확인
+  if (selectedRows.length > 0) {
+    console.log(`✅ 선택된 ${selectedRows.length}건만 등록합니다.`);
+  } else {
+    console.log(`✅ 선택된 행이 없어 전체 ${tableData.length}건을 등록합니다.`);
+  }
+
+  // ✅ 최종 JSON 확인
+  const finalJson = formatDataForJson(rowsToRegister);
+  console.log('📤 전송 JSON 데이터:', JSON.stringify(finalJson, null, 2));
+
+     // 서버로 데이터 전송
+  try {
+    const response = await fetch('http://localhost:8080/api/asset/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json', // 서버에 JSON 데이터를 전송
+      },
+      body: JSON.stringify(formatDataForJson(tableData)), // tableData를 JSON으로 변환하여 전송
+    });
+
+    const data = await response.json(); // 응답 데이터 받기
+
+    if (data === 1) { // 서버에서 1을 응답 받으면 등록 완료
+      alert('등록이 완료되었습니다!');
+      console.log('서버 응답 데이터:', data);
+    } else if (data === 0) { // 서버에서 0을 응답 받으면 등록 실패
+      alert('❌ 등록 실패: 서버에서 처리 중 오류 발생');
+    } else {
+      alert('알 수 없는 오류가 발생했습니다.');
+    }
+  } catch (error) {
+    alert('🚨 서버와의 연결에 실패했습니다.');
+    console.error('Error:', error);
+  }
+};
+
+// tableData를 JSON 형태로 변환하는 함수
+const formatDataForJson = (data) => {
+  const mappedList = data.map((row) => {
+    return {
+      company: row[0], // 회사구분
+      department: row[1], // 부서구분
+      location: row[2], // 세부위치
+      acquisitionType: row[3], // 취득구분
+      assetCategory: row[4], // 자산분류
+      item: row[5], // 품목
+      assetStatus: row[6], // 자산상태
+      manufacturer: row[7], // 제조사
+      model: row[8], // 모델
+      acquisitionDate: row[9], // 취득일자
+      acquisitionCost: row[10], // 취득가
+      registrant: row[11], // 등록자
+    };
+  });
+
+  // ✅ 바깥에 list 키로 묶어서 반환
+  return { list: mappedList };
+};
+
+
 
   const handleDownloadTemplate = () => {
     const worksheet = XLSX.utils.aoa_to_sheet([EXCEL_HEADERS]);
