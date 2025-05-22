@@ -84,9 +84,16 @@ const AssetRegister = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const appendSeconds = (datetime) => {
+      if (!datetime) return '';
+      return datetime.length === 16 ? datetime + ':00' : datetime;
+    };
+    
     const requiredFields = [
       'company', 'department', 'location', 'acquisitionType', 'assetCategory', 'item', 'manufacturer', 'model', 'acquisitionDate', 'acquisitionCost'
     ];
+    
     for (let field of requiredFields) {
       if (!formData[field]) {
         alert(`필수 입력값이 누락되었습니다: ${field}`);
@@ -100,9 +107,20 @@ const AssetRegister = () => {
     if (formData.assetStatus === '대여' && (!formData.renter || !formData.rentalDate)) {
       alert('대여 상태일 경우 대여자 및 대여일자를 입력해주세요.');
       return;
+
+
     }
-      // 서버로 데이터 전송 전에 formData를 JSON 문자열로 변환하여 콘솔에 출력
-      console.log('Sending data:', JSON.stringify(formData));  // JSON 데이터 확인용
+    
+ // ✅ 날짜에 초(:00) 붙여서 전송할 데이터 구성
+ const formattedData = {
+  ...formData,
+  acquisitionDate: appendSeconds(formData.acquisitionDate),
+  rentalDate: appendSeconds(formData.rentalDate),
+};
+
+console.log('✅ 변환된 날짜 확인:', formattedData.acquisitionDate);
+console.log('Sending data:', JSON.stringify(formattedData));
+
         // 서버로 데이터 전송
         try {
           const response = await fetch('http://localhost:8080/api/asset/register', {
@@ -282,7 +300,12 @@ const AssetRegister = () => {
         </div>
         <div className="form-row">
           <label>취득일자</label>
-          <input type="date" name="acquisitionDate" value={formData.acquisitionDate} onChange={handleChange} />
+          <input
+  type="datetime-local"
+  name="acquisitionDate"
+  value={formData.acquisitionDate}
+  onChange={handleChange}
+/>
         </div>
         <div className="form-row">
           <label>취득가</label>
