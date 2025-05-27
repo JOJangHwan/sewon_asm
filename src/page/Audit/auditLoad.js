@@ -44,42 +44,6 @@ const AuditLoad = () => {
     setScannerVisible(true);
   };
 
-  // const onScanSuccess = async (decodedText) => {
-  //   try {
-  //     const parsedData = JSON.parse(decodedText);
-
-  //     const newItem = {
-  //       barcode: parsedData.barcode || '',
-  //       company: parsedData.company || '',
-  //       department: parsedData.department || '',
-  //       location: parsedData.location || '',
-  //       acquisitionType: parsedData.acquisitionType || '구매자산',
-  //       assetCategory: parsedData.assetCategory || '',
-  //       itemName: parsedData.itemName || '',
-  //       assetStatus: parsedData.assetStatus || '',
-  //       manufacturer: parsedData.manufacturer || '',
-  //       model: parsedData.model || '',
-  //       acquisitionDate: parsedData.acquisitionDate || '',
-  //       acquisitionPrice: parsedData.acquisitionPrice?.toLocaleString?.() || parsedData.acquisitionPrice || '',
-  //       registrant: parsedData.registrant || '',
-  //       selected: false
-  //     };
-  //     // ① 화면에 추가
-  //     setItems(prev => [...prev, newItem]);
-
-  //     // ② IndexedDB에도 저장
-  //     await saveItem(newItem);
-
-  //     setScannerVisible(false);
-  //     if (scannerRef.current) {
-  //       scannerRef.current.clear();
-  //       scannerRef.current = null;
-  //     }
-  //   } catch (error) {
-  //     alert("QR 코드 데이터가 유효한 JSON 형식이 아닙니다.");
-  //     console.error("QR 파싱 에러:", error);
-  //   }
-  // };
 
   const [currentLocation, setCurrentLocation] = useState('');
 

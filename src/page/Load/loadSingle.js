@@ -104,38 +104,40 @@ const AssetRegister = () => {
       alert('총 저장공간을 계산해주세요.');
       return;
     }
-    if (formData.assetStatus === '대여' && (!formData.renter || !formData.rentalDate)) {
-      alert('대여 상태일 경우 대여자 및 대여일자를 입력해주세요.');
-      return;
 
 
-    }
+    const statusMap = {
+      '사용': 0,
+      '미사용': 1,
+    };
     
  // ✅ 날짜에 초(:00) 붙여서 전송할 데이터 구성
  const formattedData = {
   ...formData,
   acquisitionDate: appendSeconds(formData.acquisitionDate),
   rentalDate: appendSeconds(formData.rentalDate),
+  assetStatus: statusMap[formData.assetStatus] // ✅ 숫자로 변환
 };
-
+const { storageList, ...dataToSend } = formattedData;
 console.log('✅ 변환된 날짜 확인:', formattedData.acquisitionDate);
 console.log('Sending data:', JSON.stringify(formattedData));
+console.log('📦 최종 전송 데이터:', dataToSend); // 서버로 보낼 데이터 확인
+
 
         // 서버로 데이터 전송
         try {
           const response = await fetch('http://localhost:8080/api/asset/register', {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json', // JSON 형식으로 데이터를 보냄
+              'Content-Type': 'application/json',
             },
-            body: JSON.stringify(formData), // formData를 JSON으로 변환하여 전송
+            body: JSON.stringify(dataToSend), // ✅ 여기만 바뀜!
           });
-    
+        
           const data = await response.json();
-          
-          if (data === 1) { // 성공 시 1 반환
+        
+          if (data === 1) {
             alert('등록이 완료되었습니다!');
-            console.log('등록 데이터:', formData);
           } else {
             alert('❌ 등록 실패: 서버에서 실패 처리');
           }
@@ -232,7 +234,7 @@ console.log('Sending data:', JSON.stringify(formattedData));
     />
     <select
       name={`storage-unit`}
-      value={s.unit}ㄷㄷㄷㄷㄷㄷㄷㄷㄷㄷㄷㄷㄷㄷㄷㄷㄷㄷㄷㄷㄷㄷㄷㄷㄷㄷㄷㄷㄷㄷㄷ
+      value={s.unit}
       onChange={(e) => handleChange({ target: { name: 'storage-unit', value: e.target.value } }, idx)}
     >
       <option value="GB">GB</option>
@@ -270,26 +272,14 @@ console.log('Sending data:', JSON.stringify(formattedData));
         <div className="form-row">
           <label>자산상태</label>
           <div className="radio-group">
-            {['사용', '미사용', '대여'].map(status => (
+          {['사용', '미사용'].map(status => ( // ✅ '대여' 제거
               <label key={status}>
-                <input type="radio" name="assetStatus" value={status} checked={formData.assetStatus === status} onChange={handleChange} />
-                {status}
-              </label>
+              <input type="radio" name="assetStatus" value={status} checked={formData.assetStatus === status} onChange={handleChange} />
+              {status}
+            </label>
             ))}
           </div>
         </div>
-        {formData.assetStatus === '대여' && (
-          <>
-            <div className="form-row">
-              <label>대여자</label>
-              <input type="text" name="renter" value={formData.renter} onChange={handleChange} />
-            </div>
-            <div className="form-row">
-              <label>대여일자</label>
-              <input type="date" name="rentalDate" value={formData.rentalDate} onChange={handleChange} />
-            </div>
-          </>
-        )}
         <div className="form-row">
           <label>제조사</label>
           <input type="text" name="manufacturer" value={formData.manufacturer} onChange={handleChange} />

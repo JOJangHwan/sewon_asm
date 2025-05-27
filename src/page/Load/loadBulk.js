@@ -5,10 +5,15 @@ import useMediaQuery from '../../utils/hooks/useMediaQuery';
 
 const TABLE_HEADERS = [
   '회사구분', '부서구분', '세부위치', '취득구분', '자산분류',
-  '품목', '자산상태', '제조사', '모델', '취득일자', '취득가', '등록자'
+  '품목', '자산상태', '제조사', '모델', '취득일자', '취득가', '등록자',
+  'CPU', '메모리', '그래픽카드', '총 저장공간(GB)' // ✅ 추가됨
 ];
-
-const EXCEL_HEADERS = TABLE_HEADERS.slice(0, -1); // 등록자 제외
+//const EXCEL_HEADERS = TABLE_HEADERS.slice(0, -1); // 등록자 제외
+const EXCEL_HEADERS = [
+  '회사구분', '부서구분', '세부위치', '취득구분', '자산분류',
+  '품목', '자산상태', '제조사', '모델', '취득일자', '취득가', '등록자',
+  'CPU', '메모리', '그래픽카드', '총 저장공간(GB)'
+];
 const LOGIN_USER = '홍길동';
 
 
@@ -28,12 +33,37 @@ const convertExcelDate = (value) => {
 // 예시 회사/부서/세부위치
 const COMPANY_MAP = {
   '평택공장': {
-    '전산운영': ['전산실', '서버실'],
-    '회계팀': ['재무실'],
+    '전산운영P': ['전산실', '서버실'],
+    '노무총무P': [],
+    '품질보증P': [],
+    '기술P': [],
+    '개발P': [],
+    '생산관리P': [],
+    '영업P': [],
+  },
+  '서울사무소':{
+    '감사인사P':[],
+    '회계P':[],
+    '원가P':[],
   },
   '우신에너지': {
-    '경영관리': ['본사 사무실'],
-    '자재관리': ['창고'],
+    '경영관리P': ['본사 사무실'],
+    '구매관리P': ['본사 사무실'],
+    '자재관리P': ['창고'],
+  },
+  '경산공장장': {
+    '경영관리P': ['본사 사무실'],
+  },
+  '우신비나': {
+    '1공장': ['본사 사무실'],
+    '2공장': ['본사 사무실'],
+    '3공장': ['본사 사무실'],
+  },
+  '위해': {
+    '경영관리P': ['본사 사무실'],
+  },
+  '덕주': {
+    '경영관리P': ['본사 사무실'],
   },
 };
 
@@ -71,8 +101,9 @@ const LoadBulk = () => {
 
       const validated = content.map((row, i) => {
         const newRow = [...row];
-        newRow.length = 12;
-        newRow[11] = LOGIN_USER;
+        newRow.length = 16;
+        //newRow[11] = LOGIN_USER;
+        if (i !== 0) newRow[11] = LOGIN_USER; // 인덱스 0 = 엑셀의 2번째 줄
 
         // 날짜 셀 처리
         newRow[9] = convertExcelDate(newRow[9]);
@@ -178,7 +209,8 @@ const LoadBulk = () => {
 
   // ✅ 최종 JSON 확인
   const finalJson = formatDataForJson(rowsToRegister);
-  console.log('📤 전송 JSON 데이터:', JSON.stringify(finalJson, null, 2));
+  console.log('📦 전송될 최종 JSON 데이터 ↓');
+  console.log(JSON.stringify(finalJson, null, 2));
 
      // 서버로 데이터 전송
   try {
@@ -209,7 +241,7 @@ const LoadBulk = () => {
 // tableData를 JSON 형태로 변환하는 함수
 const formatDataForJson = (data) => {
   const mappedList = data.map((row) => {
-    return {
+    const base = {
       company: row[0], // 회사구분
       department: row[1], // 부서구분
       location: row[2], // 세부위치
@@ -222,7 +254,15 @@ const formatDataForJson = (data) => {
       acquisitionDate: row[9], // 취득일자
       acquisitionCost: row[10], // 취득가
       registrant: row[11], // 등록자
+      cpu: row[12] || '',
+      memory: row[13] || '',
+      gpu: row[14] || '',
+      totalStorage: row[15] || ''
     };
+
+
+        return base;
+
   });
 
   // ✅ 바깥에 list 키로 묶어서 반환
@@ -232,7 +272,33 @@ const formatDataForJson = (data) => {
 
 
   const handleDownloadTemplate = () => {
-    const worksheet = XLSX.utils.aoa_to_sheet([EXCEL_HEADERS]);
+    const exampleRow = [
+      '예시: 평택공장',        // 회사구분
+      '예시: 전산운영P',        // 부서구분
+      '예시: 전산실',          // 세부위치
+      '예시: 구매자산(자산)',    // 취득구분
+      '예시: IT',             // 자산분류
+      '예시: 노트북',          // 품목
+      '예시: 사용',            // 자산상태
+      '예시: 삼성',            // 제조사
+      '예시: NT500R5W',       // 모델
+      '예시: 2024-01-15',     // 취득일자
+      '예시: 1200000',        // 취득가
+      '예시: 홍길동',          // 등록자
+      '예시: i5-1135G7',      // ✅ CPU
+      '예시: 16GB',           // ✅ 메모리
+      '예시: Intel Iris Xe',  // ✅ 그래픽카드
+      '예시: 512'             // ✅ 저장공간(GB)
+    ];
+
+    const warningRow = ['⚠️ 이 줄은 예시입니다. 업로드 전에 반드시 삭제해주세요.'];
+    
+    
+    const worksheet = XLSX.utils.aoa_to_sheet([
+      EXCEL_HEADERS,   // 1행: 헤더
+      exampleRow,      // 2행: 예시
+      warningRow       // 3행: 안내 멘트 (한 셀만 채우고 나머지는 공백)
+    ]);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Template');
     XLSX.writeFile(workbook, 'asset_template.xlsx');
@@ -298,13 +364,13 @@ const formatDataForJson = (data) => {
       {/* === 📋 테이블 (PC 전용) === */}
 {!isMobile && (
   <table className="bulk-table">
-    <thead>
-      <tr>
-        <th></th>
-        {TABLE_HEADERS.map((header, idx) => <th key={idx}>{header}</th>)}
-        <th>에러 원인</th>
-      </tr>
-    </thead>
+<thead>
+  <tr>
+    <th></th>
+    {TABLE_HEADERS.slice(0, 12).map((header, idx) => <th key={idx}>{header}</th>)}
+    <th>에러 원인</th>
+  </tr>
+</thead>
     <tbody>
       {tableData.length === 0 ? (
         <tr>
@@ -323,7 +389,7 @@ const formatDataForJson = (data) => {
                 onChange={() => handleSelectRow(idx)}
               />
             </td>
-            {row.map((cell, i) => (
+            {row.slice(0, 12).map((cell, i) => (
               <td key={i}>{cell}</td>
             ))}
             <td className="error-text">{rowErrors[idx] || ''}</td>
@@ -350,9 +416,9 @@ const formatDataForJson = (data) => {
             />
             <strong>등록자:</strong> {row[11]}
           </div>
-          {TABLE_HEADERS.slice(0, -1).map((header, i) => (
+          {TABLE_HEADERS.slice(0, 12).map((header, i) => (
             <div key={i} className="card-row">
-              <strong>{header}:</strong> {row[i]}
+            <strong>{header}:</strong> {row[i]}
             </div>
           ))}
           {rowErrors[idx] && (
