@@ -1,69 +1,67 @@
-.label-print-page {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr); /* A4 기준 가로 2개 */
-    gap: 20px;
-    padding: 20px;
-  }
-  
-  .label-box {
-    display: flex;
-    align-items: center;
-    border: 2px solid #ccc;
-    border-radius: 10px;
-    padding: 20px;
+.label-print-container {
+  display: grid;
+  grid-template-columns: repeat(3, 45mm);
+  grid-auto-rows: 15mm;
+  gap: 2mm;
+  padding: 5mm;
+  border: 0.3mm solid #000;
+}
+
+.label-print-box {
+  border: 0.3mm solid black;
+  border-radius: 1.5mm;
+  padding: 1mm;
+  width: 45mm;
+  height: 15mm;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.label-print-qr {
+  flex: 0 0 11mm;
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+.label-print-qr canvas {
+  width: 11mm !important;
+  height: 11mm !important;
+}
+
+.label-print-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* ← 텍스트도 세로 가운데 */
+  margin-left: 2mm;         /* ← QR 코드와 간격 */
+  text-align: left;
+}
+
+.label-print-logo {
+  height: 4mm !important;
+  width: auto !important;
+  object-fit: contain;
+  display: block;
+  margin-bottom: 0.5mm;
+}
+
+.label-print-line {
+  font-size: 2mm;
+  line-height: 1.2;
+  margin-top: 0.2mm;
+}
+
+@media print {
+  body {
+    margin: 0;
     background: white;
-    width: 380px;
-    height: 180px;
-    box-sizing: border-box;
   }
-  
-  .qr-area {
-    margin-right: 20px;
+
+  .label-print-container {
+    padding: 0;
+    gap: 2mm;
   }
-  
-  .info-area {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+  .label-print-box {
+    border: 0.3mm solid black !important;  /* ← 중요 */
   }
-  
-  .label-logo {
-    width: 100px;
-    margin-bottom: 8px;
-  }
-  
-  .location {
-    font-size: 14px;
-    font-weight: bold;
-    margin-bottom: 4px;
-  }
-  
-  .barcode {
-    font-size: 18px;
-    font-weight: bold;
-    margin: 8px 0;
-  }
-  
-  .item-name {
-    font-size: 16px;
-    font-weight: bold;
-  }
-  
-  /* 인쇄 전용 */
-  @media print {
-    body {
-      background: white;
-    }
-    .label-print-page {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-      padding: 0;
-    }
-    .label-box {
-      page-break-inside: avoid;
-      border: none;
-    }
-  }
-  
+}
