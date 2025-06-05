@@ -204,6 +204,176 @@
   font-size: 16px;
 }
 
+/* === 실사위치 선택 관련 스타일 === */
+.location-select-3depth {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  margin-bottom: 8px;
+}
+
+/* 실사위치 래퍼 */
+.location-wrapper {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+/* 실사위치 레이블 */
+.location-wrapper label {
+  font-weight: 500;
+  font-size: 14px;
+  color: #333;
+}
+
+/* 세부위치 드롭다운 스타일 */
+.location-wrapper select {
+  padding: 6px 10px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #fff;
+  color: #333;
+  transition: border-color 0.2s ease;
+  min-width: 200px;
+  /* 기본 브라우저 화살표 제거 */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  /* 오른쪽 공간 확보 */
+  padding-right: 32px;
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTQiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDE0IDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPHBhdGggZD0iTTEuNzEyIDAuMjgyTDcgNS44ODRiNS4yODktNS42MDIgNC4yODktNC4yODlMNyA1Ljg4NEwxLjcxMiAwLjI4MloiIGZpbGw9IiM2NjY2NjYiLz4KPC9zdmc+");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 10px 6px;
+}
+
+.location-wrapper select:focus {
+  outline: none;
+  border-color: #409eff;
+  box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
+}
+
+/* placeholder 옵션(값이 없는 기준 option) 스타일 */
+.location-wrapper select option[value=""] {
+  color: #999;
+}
+
+/* === 바코드 입력 & 버튼 줄 === */
+.barcode-action-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* 바코드 이미지 */
+.barcode-icon {
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+}
+.barcode-icon:hover {
+  transform: scale(1.1);
+}
+
+/* 바코드 입력창 */
+.barcode-action-row input {
+  height: 36px;
+  padding: 0 8px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  min-width: 180px;
+}
+
+/* 버튼 스타일 */
+.button-group,
+.delete-btn,
+.register-btn,
+.verify-btn {
+  font-size: 14px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.delete-btn {
+  background-color: #f44336;
+  color: white;
+}
+
+.verify-btn {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.register-btn {
+  background-color: #4caf50;
+  color: white;
+}
+
+/* === QR 스캐너 === */
+.qr-reader {
+  width: 300px;
+  margin: 20px auto;
+}
+
+/* === 바코드 줄 레이아웃 === */
+.barcode-row-split {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  width: 100%;
+  row-gap: 10px; /* 세로 간격 추가 */
+}
+
+.barcode-left,
+.barcode-buttons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.barcode-left input {
+  height: 36px;
+  padding: 0 8px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  min-width: 200px;
+}
+
+/* 아이템 리스트 절단선 (테이블 하단 여백 조정) */
+.audit-table tr:last-child td {
+  border-bottom: none;
+}
+
+.asset-table tr.overdue td {
+
+  background-color: #ffe5e5;      /* 연체된 행 배경 보조 색상 */
+}
+
+.card.overdue {
+  background-color: #ffe5e5;      /* 배경도 연하게 빨간색 */
+}
+
+/* 제목 옆 연체 알림 텍스트 */
+.overdue-text {
+  color: #e53e3e;
+  font-size: 14px;
+  margin-left: 12px;
+}
+
 /* === 반응형 - 태블릿 === */
 @media (max-width: 768px) {
   .page-header h2 {
@@ -290,5 +460,13 @@
 
   .card-row {
     font-size: 12px;
+  }
+
+  /* 모바일용 카드형 UI 숨김 */
+  .asset-table {
+    display: none;
+  }
+  .card-list {
+    display: flex;
   }
 }

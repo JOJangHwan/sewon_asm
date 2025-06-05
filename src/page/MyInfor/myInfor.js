@@ -180,9 +180,20 @@ export default function MyInfoPage() {
     const printWindow = window.open('', '_blank', 'width=900,height=700');
     if (!printWindow) return alert('팝업 차단을 해제해주세요.');
 
-    printWindow.document.write('<div id="print-root"></div>');
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>라벨 인쇄</title>
+          <link rel="stylesheet" href="${window.location.origin}/page/MyInfor/labelPrint.css">
+        </head>
+        <body>
+          <div id="print-root"></div>
+        </body>
+      </html>
+    `);
     printWindow.document.close();
-
+  
     const interval = setInterval(() => {
       const container = printWindow.document.getElementById('print-root');
       if (container) {

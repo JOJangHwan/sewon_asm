@@ -1,67 +1,90 @@
-.label-print-container {
-  display: grid;
-  grid-template-columns: repeat(3, 45mm);
-  grid-auto-rows: 15mm;
-  gap: 2mm;
-  padding: 5mm;
-  border: 0.3mm solid #000;
+/* ─────────────────────────────────────────────────────────────────────────
+   1) @page 설정 (용지 크기: 450mm × 150mm, 여백 0)
+───────────────────────────────────────────────────────────────────────── */
+@page {
+  size: 450mm 150mm;
+  margin: 0;
 }
 
-.label-print-box {
-  border: 0.3mm solid black;
-  border-radius: 1.5mm;
-  padding: 1mm;
-  width: 45mm;
-  height: 15mm;
+/* ─────────────────────────────────────────────────────────────────────────
+   2) 라벨 박스 전체
+───────────────────────────────────────────────────────────────────────── */
+.label-print-wrapper { }
+
+.label-box {
+  width: 450mm;
+  height: 150mm;
+  page-break-after: always;
   display: flex;
-  align-items: center;
-  box-sizing: border-box;
+  flex-direction: row;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  overflow: hidden;
+  margin: 0 auto;
+  padding: 0;
 }
 
-.label-print-qr {
-  flex: 0 0 11mm;
+/* ─────────────────────────────────────────────────────────────────────────
+   3) 왼쪽 QR 섹션 (너비 40mm로 축소)
+───────────────────────────────────────────────────────────────────────── */
+.qr-section {
+  width: 40mm;       
+  height: 150mm;     
   display: flex;
-  justify-content: flex-start;
-  align-items: flex-start;
-}
-.label-print-qr canvas {
-  width: 11mm !important;
-  height: 11mm !important;
+  justify-content: center;
+  align-items: flex-start;  /* 위쪽 정렬 후 padding-top으로 띄움 */
+  background-color: #ffffff;
+  padding-top: 5mm;  /* 위쪽 여백 5mm */
 }
 
-.label-print-info {
+/* ─────────────────────────────────────────────────────────────────────────
+   4) QR canvas 크기 (40mm × 40mm로 강제)
+───────────────────────────────────────────────────────────────────────── */
+.qr-canvas {
+  width: 40mm !important;
+  height: 40mm !important;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   5) 오른쪽 정보 섹션 (로고 + 텍스트)
+───────────────────────────────────────────────────────────────────────── */
+.info-section {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center; /* ← 텍스트도 세로 가운데 */
-  margin-left: 2mm;         /* ← QR 코드와 간격 */
-  text-align: left;
+  justify-content: flex-start;
+  align-items: flex-start;
+  padding: 10mm;
+  background-color: #ffffff;
 }
 
-.label-print-logo {
-  height: 4mm !important;
-  width: auto !important;
+.logo-container {
+  margin-bottom: 4mm;
+}
+.logo-container img {
+  height: 30mm;
+  width: auto;
   object-fit: contain;
-  display: block;
-  margin-bottom: 0.5mm;
 }
 
-.label-print-line {
-  font-size: 2mm;
-  line-height: 1.2;
-  margin-top: 0.2mm;
+.text-line {
+  font-family: 'Arial', sans-serif;
+  color: #000;
+  line-height: 1.1;
+  margin-bottom: 2mm;
 }
 
-@media print {
-  body {
-    margin: 0;
-    background: white;
-  }
+.main-location {
+  font-size: 3mm;
+  font-weight: 500;
+}
 
-  .label-print-container {
-    padding: 0;
-    gap: 2mm;
-  }
-  .label-print-box {
-    border: 0.3mm solid black !important;  /* ← 중요 */
-  }
+.barcode-text {
+  font-size: 4mm;
+  font-weight: bold;
+}
+
+.item-name {
+  font-size: 3.5mm;
 }

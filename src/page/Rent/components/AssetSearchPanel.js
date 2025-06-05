@@ -64,7 +64,7 @@ export default function AssetSearchPanel({ isOpen, onClose, onSelect }) {
           </select>
         </div>
         <div className="search-box">
-          <input type="text" placeholder="품목 검색" value={search} onChange={(e) => setSearch(e.target.value)} />
+          <input type="text" placeholder="바코드 검색" value={search} onChange={(e) => setSearch(e.target.value)} />
           <button onClick={handleSearch}>🔍</button>
         </div>
         <table className="asset-table">

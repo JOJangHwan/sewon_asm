@@ -1,62 +1,283 @@
-/* .layout {
-    display: flex;
-    height: 100vh;
-  } */
-  
-  /* .sidebar {
-    width: 200px;
-    background-color: #fff8e1;
-    border-right: 1px solid #ccc;
-  } */
-  
-  /* .main-content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-  } */
-  
-  /* .header {
-    height: 60px;
-    background-color: #fff;
-    border-bottom: 1px solid #ccc;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 20px;
-  } */
-  
-  /* .page-content {
-    flex: 1;
-    padding: 20px;
-  } */
+/* =============================================================================
+   home.css
 
-  
+   - “.home-content” 내부에만 적용되도록 모든 셀렉터 앞에 “.home-content”를 붙였습니다.
+   - 검색/바코드 입력 섹션 관련 스타일 모두 삭제되었습니다.
+   ============================================================================= */
 
-/* .sidebar{
-  display: flex;
-  flex-direction: row;
-  border: 3px solid green;
-}
-
-.header{
-  display: flex;
-
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  border: 1px solid red;
-}
-
-  .main-content{
-    display: flex;
-    flex-direction: row;
-    border: 1px solid blue;
-    height: 100%;
-    width: 100%;
+/* ===========================
+   1. 홈 페이지 전체 콘텐츠 영역
+   =========================== */
+   .home-content {
+    padding: 24px;
+    background-color: #f5f5f5;
+    min-height: 100vh;
   }
-   */
+  
+  /* ===========================
+     2. 헤더 타이틀
+     =========================== */
+  .home-content .home-header {
+    margin-bottom: 24px;
+  }
+  
+  .home-content .home-header h1 {
+    margin: 0;
+    color: #FFB300; /* 노란색 강조 */
+    font-size: 1.5rem;
+  }
+  
+  .home-content .home-subtext {
+    margin-top: 4px;
+    font-size: 0.95rem;
+    color: #666;
+  }
+  
+  /* ===========================
+     3. Dashboard Cards
+     =========================== */
+  .home-content .dashboard-cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  
+  .home-content .card {
+    background-color: #fff;
+    border: 1px solid #FFE082;
+    border-radius: 8px;
+    padding: 16px;
+    flex: 1 1 calc(20% - 16px);
+    min-width: 220px;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  
+  .home-content .card:hover {
+    border-color: #FFC107;
+    box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
+  }
+  
+  .home-content .card h3 {
+    margin: 0 0 12px;
+    font-size: 1.1rem;
+    color: #FFA000;
+  }
+  
+  .home-content .card p {
+    margin: 4px 0;
+    font-size: 0.95rem;
+    color: #333;
+  }
+  
+  /* 재고 부족 리스트 */
+  .home-content .low-stock-list,
+  .home-content .notice-list {
+    list-style: none;
+    padding: 0;
+    margin: 8px 0 0 0;
+  }
+  
+  .home-content .low-stock-list li,
+  .home-content .notice-list li {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 4px;
+  }
+  
+  /* 소형 버튼 */
+  .home-content .btn-small {
+    margin-top: 8px;
+    padding: 6px 12px;
+    background-color: #FFC107; /* 노란색 버튼 */
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .home-content .btn-small:hover {
+    background-color: #FFB300;
+  }
+  
+  /* 실사 진행 현황 프로그레스 바 */
+  .home-content .progress-bar {
+    width: 100%;
+    height: 8px;
+    background-color: #f0f0f0;
+    border-radius: 4px;
+    margin: 8px 0;
+    overflow: hidden;
+  }
+  
+  .home-content .progress-filled {
+    height: 100%;
+    background-color: #FFC107;
+    border-radius: 4px 0 0 4px;
+  }
+  
+  /* ===========================
+     4. Activity Log
+     =========================== */
+  .home-content .activity-log {
+    background-color: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 24px;
+  }
+  
+  .home-content .activity-log h3 {
+    margin-top: 0;
+    font-size: 1.1rem;
+    color: #FFB300; /* 노란색 제목 */
+    margin-bottom: 12px;
+  }
+  
+  .home-content .log-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .home-content .log-table th,
+  .home-content .log-table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 0.95rem;
+  }
+  
+  .home-content .log-table th {
+    text-align: left;
+    background-color: #f9f9f9;
+    color: #333;
+  }
+  
+  .home-content .log-table tr:hover {
+    background-color: #fafafa;
+  }
+  
+  .home-content .btn-more {
+    margin-top: 12px;
+    padding: 6px 12px;
+    font-size: 0.9rem;
+    background-color: #FFB300; /* 노란색 버튼 */
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .home-content .btn-more:hover {
+    background-color: #FFC107;
+  }
+  
+  /* ===========================
+     5. 차트 섹션(플레이스홀더)
+     =========================== */
+  .home-content .charts-section {
+    background-color: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 24px;
+  }
+  
+  .home-content .charts-section h3 {
+    margin-top: 0;
+    font-size: 1.1rem;
+    color: #FFB300; /* 노란색 제목 */
+    margin-bottom: 12px;
+  }
+  
+  .home-content .charts-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  
+  .home-content .chart-placeholder {
+    flex: 1 1 calc(33% - 16px);
+    min-width: 200px;
+    height: 180px;
+    background-color: #fafafa;
+    border: 1px dashed #ccc;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    font-size: 0.95rem;
+  }
 
+  /* ===================================================================
+   Charts 관련 레이아웃 (home.css에 추가)
+   =================================================================== */
 
+/* charts-section 내부 */
+.home-content .charts-section {
+  margin-top: 24px;
+  margin-bottom: 24px;
+}
 
+/* charts-container: 3개 차트를 가로로 나란히 */
+.home-content .charts-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
 
+/* chart-card: 각 차트 컴포넌트(파이, 바, 도넛)를 담는 박스 */
+.home-content .chart-card {
+  flex: 1 1 calc(33.33% - 16px);
+  min-width: 240px;
+  background-color: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* 차트 위 제목 */
+.home-content .chart-title {
+  margin: 0 0 8px 0;
+  font-size: 1rem;
+  color: #FFB300;
+  text-align: center;
+}
+
+/* 화면이 좁아질 때: 차트 하나씩 세로로 쌓기 */
+@media screen and (max-width: 900px) {
+  .home-content .charts-container {
+    flex-direction: column;
+  }
+}
+
+  
+  /* ===========================
+     6. 반응형 (Responsive)
+     =========================== */
+  @media screen and (max-width: 1200px) {
+    .home-content .dashboard-cards .card {
+      flex: 1 1 calc(33.33% - 16px);
+    }
+    .home-content .charts-container .chart-placeholder {
+      flex: 1 1 calc(50% - 16px);
+    }
+  }
+  
+  @media screen and (max-width: 768px) {
+    .home-content {
+      padding: 16px;
+    }
+    .home-content .dashboard-cards .card {
+      flex: 1 1 100%;
+    }
+    .home-content .charts-container .chart-placeholder {
+      flex: 1 1 100%;
+    }
+  }
   

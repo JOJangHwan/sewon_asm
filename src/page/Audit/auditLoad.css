@@ -4,55 +4,46 @@
 }
 
 .top-section {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
   margin-bottom: 20px;
 }
 
-/* 실사 위치 선택 */
-.location-select-3depth {
+/* 바코드 + 버튼 영역 */
+.barcode-row-split {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  justify-content: flex-start;
-  margin-bottom: 8px;
+  gap: 10px;
+  margin-bottom: 16px;
 }
 
-/* 바코드 입력 & 버튼 줄 */
-.barcode-action-row {
+.barcode-left {
   display: flex;
   align-items: center;
   gap: 10px;
-  flex-wrap: wrap;
 }
 
-/* 바코드 이미지 */
 .barcode-icon {
   width: 36px;
   height: 36px;
   cursor: pointer;
 }
+
 .barcode-icon:hover {
   transform: scale(1.1);
 }
 
-/* 바코드 입력창 */
-.barcode-action-row input {
+.barcode-left input {
   height: 36px;
   padding: 0 8px;
   font-size: 14px;
   border: 1px solid #ccc;
   border-radius: 4px;
-  min-width: 180px;
+  min-width: 200px;
 }
 
-/* 버튼 스타일 */
-.button-group,
+/* 버튼 스타일(삭제/등록) */
 .delete-btn,
-.register-btn,
-.verify-btn {
+.register-btn {
   font-size: 14px;
   padding: 8px 16px;
   border: none;
@@ -65,17 +56,12 @@
   color: white;
 }
 
-.verify-btn {
-  background-color: #3b82f6;
-  color: white;
-}
-
 .register-btn {
   background-color: #4caf50;
   color: white;
 }
 
-/* 테이블 스타일 */
+/* === PC용 테이블 === */
 .audit-table {
   width: 100%;
   border-collapse: collapse;
@@ -86,11 +72,15 @@
   border: 1px solid #ccc;
   padding: 8px;
   text-align: center;
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .audit-table thead {
   background-color: #f5f5f5;
+}
+
+.audit-table tr.selected-row {
+  background-color: #c8e6c9; /* 선택된 행은 연두색 배경 */
 }
 
 .no-data {
@@ -100,54 +90,16 @@
   color: #888;
 }
 
-/* QR 스캐너 */
-.qr-reader {
-  width: 300px;
-  margin: 20px auto;
+/* === 모바일용 카드형 리스트 === */
+.audit-card-list {
+  display: none; /* PC 미디어쿼리 해제 시 아래에서 활성화 */
 }
 
-/* 바코드 줄 레이아웃 */
-.barcode-row-split {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  width: 100%;
-  row-gap: 10px; /* ✅ 세로 간격 추가 */
-}
-
-.barcode-left,
-.barcode-buttons {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  flex-shrink: 0;
-}
-
-.barcode-left input {
-  height: 36px;
-  padding: 0 8px;
-  font-size: 14px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  min-width: 200px;
-}
-
-/* 실사위치 래퍼 */
-.location-wrapper {
-  display: flex;
-  justify-content: flex-start;
-  width: 100%;
-}
-
-/* 📱 모바일용 카드형 UI */
 @media (max-width: 768px) {
   .audit-table {
-    display: none;
+    display: none; /* 모바일에서는 테이블 숨기기 */
   }
 
-  /* 📱 가로 스크롤 카드 리스트 */
   .audit-card-list {
     display: flex;
     overflow-x: auto;
@@ -157,11 +109,9 @@
     -webkit-overflow-scrolling: touch;
   }
 
-
   .audit-card {
     flex: 0 0 auto;
-    width: 280px;
-    min-height: 340px;
+    width: 260px;
     border: 1px solid #ccc;
     border-radius: 8px;
     padding: 12px;
@@ -189,15 +139,10 @@
   .audit-card-row:last-child {
     border-bottom: none;
   }
+}
 
-  .audit-card .barcode {
-    font-weight: bold;
-    color: #333;
-  }
-
-  .audit-card .error {
-    color: #b00020;
-    margin-top: 6px;
-    font-size: 13px;
-  }
+/* QR 스캐너 영역 */
+.qr-reader {
+  width: 300px;
+  margin: 20px auto;
 }
