@@ -296,6 +296,24 @@ import React, { useState, useEffect } from "react";
 import { FaSearch } from "react-icons/fa";
 import "./auditList.css";
 
+const COLUMN_LABELS = [
+  { key: "barcode", label: "바코드" },
+  { key: "company", label: "회사" },
+  { key: "department", label: "부서" },
+  { key: "location", label: "위치" },
+  { key: "acquisitionType", label: "취득구분" },
+  { key: "assetCategory", label: "자산분류" },
+  { key: "itemName", label: "품목" },
+  { key: "assetStatus", label: "상태" },
+  { key: "manufacturer", label: "제조사" },
+  { key: "model", label: "모델" },
+  { key: "acquisitionDate", label: "취득일자" },
+  { key: "acquisitionPrice", label: "취득가" },
+  { key: "registrant", label: "등록자" },
+  { key: "inspectionStatus", label: "실사상태" },
+];
+
+
 const companyData = {
   "평택 공장": {
     "전산운영P": ["전산실", "서버실"],
@@ -329,8 +347,8 @@ function FullPageDetail({ item, onClose }) {
       <button className="detail-back" onClick={onClose}>← 뒤로</button>
       <h2>자산 상세</h2>
       <ul>
-        {Object.entries(item).map(([key, value]) => (
-          <li key={key}><strong>{key}:</strong> {value}</li>
+        {COLUMN_LABELS.map(col => (
+          <li key={col.key}><strong>{col.label}:</strong> {item[col.key]}</li>
         ))}
       </ul>
     </div>
@@ -345,14 +363,15 @@ function SideDrawerDetail({ item, onClose }) {
         <button className="drawer-close" onClick={onClose}>×</button>
         <h2>자산 상세</h2>
         <ul>
-          {Object.entries(item).map(([key, value]) => (
-            <li key={key}><strong>{key}:</strong> {value}</li>
+          {COLUMN_LABELS.map(col => (
+            <li key={col.key}><strong>{col.label}:</strong> {item[col.key]}</li>
           ))}
         </ul>
       </div>
     </>
   );
 }
+
 
 function DetailWrapper({ item, onClose }) {
   const isMobile = useMediaQuery("(max-width: 768px)");

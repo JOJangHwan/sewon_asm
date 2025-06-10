@@ -136,10 +136,13 @@ const AuditLoad = () => {
   // 등록하기: 선택된 항목만 백엔드로 전송, JSON에 barcode, location, registrant 만 포함
   const handleRegister = async () => {
     const selectedItems = items.filter((item) => item.selected);
-    if (selectedItems.length === 0) {
-      alert('등록할 항목을 선택하세요.');
+    const itemsToRegister = selectedItems.length === 0 ? items : selectedItems;
+    
+    if (itemsToRegister.length === 0) {
+      alert('등록할 항목이 없습니다.');
       return;
     }
+    
 
     // payload 구성
     const payload = {
