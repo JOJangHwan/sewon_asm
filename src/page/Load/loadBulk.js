@@ -102,19 +102,18 @@ const LoadBulk = () => {
       const validated = content.map((row, i) => {
         const newRow = [...row];
         newRow.length = 16;
-        //newRow[11] = LOGIN_USER;
         if (i !== 0) newRow[11] = LOGIN_USER; // 인덱스 0 = 엑셀의 2번째 줄
-
+      
         // 날짜 셀 처리
         newRow[9] = convertExcelDate(newRow[9]);
-
+      
         const rowError = [];
-
+      
         const [company, department, location] = [newRow[0], newRow[1], newRow[2]];
         const [category, item] = [newRow[4], newRow[5]];
-
+      
         if (!newRow[5]) rowError.push('품목 누락');
-
+      
         if (!(company in COMPANY_MAP)) {
           rowError.push('회사구분 오류');
         } else if (!(department in COMPANY_MAP[company])) {
@@ -122,27 +121,36 @@ const LoadBulk = () => {
         } else if (!COMPANY_MAP[company][department].includes(location)) {
           rowError.push('세부위치 오류');
         }
-
+      
         if (!(category in ASSET_CATEGORY_MAP)) {
           rowError.push('자산분류 오류');
         } else if (!ASSET_CATEGORY_MAP[category].includes(item)) {
           rowError.push('품목 오류');
         }
-
+      
         if (!dateRegex.test(newRow[9]) || isNaN(Date.parse(newRow[9]))) {
           rowError.push('날짜 형식 오류');
         }
-
+      
         if (!/^\d+$/.test(newRow[10])) {
           rowError.push('취득가 숫자 아님');
         }
-
+      
+        // === 여기 추가! (노트북/컴퓨터일 때 CPU/메모리/그래픽카드 필수) ===
+        if (['노트북', '컴퓨터'].includes(item)) {
+          if (!newRow[12] || newRow[12].trim() === '') rowError.push('CPU 누락');
+          if (!newRow[13] || newRow[13].trim() === '') rowError.push('메모리 누락');
+          if (!newRow[14] || newRow[14].trim() === '') rowError.push('그래픽카드 누락');
+          if (!newRow[15] || newRow[15].toString().trim() === '') rowError.push('저장공간 누락');
+        }
+      
         if (rowError.length > 0) {
           errors[i] = rowError.join(', ');
         }
-
+      
         return newRow;
       });
+      
 
       setTableData(validated);
       setRowErrors(errors);
@@ -187,56 +195,41 @@ const LoadBulk = () => {
 
   const handleRegister = async () => {
     if (tableData.length === 0) {
-      alert('등록할 데이터가 없습니다.');
+      alert('양식 업로드 후 등록하기를 눌러주세요.');
       return;
     }
-
-    // ✅ 어떤 데이터를 보낼지 결정 (선택된 행 또는 전체)
     const rowsToRegister = selectedRows.length > 0
-    ? selectedRows.map((i) => tableData[i])
-    : tableData;
-      // JSON 데이터를 콘솔에 출력
-     //console.log('Sending data to the server:', JSON.stringify(tableData)); // 서버로 전송할 데이터 확인
-  // JSON 데이터를 콘솔에 출력
-    //console.log('Sending data to the server:', JSON.stringify(formatDataForJson(tableData))); // 서버로 전송할 데이터 확인
-
-     // ✅ 콘솔로 확인
-  if (selectedRows.length > 0) {
-    console.log(`✅ 선택된 ${selectedRows.length}건만 등록합니다.`);
-  } else {
-    console.log(`✅ 선택된 행이 없어 전체 ${tableData.length}건을 등록합니다.`);
-  }
-
-  // ✅ 최종 JSON 확인
-  const finalJson = formatDataForJson(rowsToRegister);
-  console.log('📦 전송될 최종 JSON 데이터 ↓');
-  console.log(JSON.stringify(finalJson, null, 2));
-
-     // 서버로 데이터 전송
-  try {
-    const response = await fetch('http://localhost:8080/api/asset/register', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json', // 서버에 JSON 데이터를 전송
-      },
-      body: JSON.stringify(formatDataForJson(tableData)), // tableData를 JSON으로 변환하여 전송
-    });
-
-    const data = await response.json(); // 응답 데이터 받기
-
-    if (data === 1) { // 서버에서 1을 응답 받으면 등록 완료
-      alert('등록이 완료되었습니다!');
-      console.log('서버 응답 데이터:', data);
-    } else if (data === 0) { // 서버에서 0을 응답 받으면 등록 실패
-      alert('❌ 등록 실패: 서버에서 처리 중 오류 발생');
-    } else {
-      alert('알 수 없는 오류가 발생했습니다.');
+      ? selectedRows.filter(idx => !rowErrors[idx]).map(i => tableData[i])
+      : tableData.filter((_, idx) => !rowErrors[idx]);
+  
+    const finalJson = formatDataForJson(rowsToRegister);
+  
+    try {
+      console.log('등록 버튼 눌림! 서버로 전송:', finalJson);
+      const response = await fetch('http://localhost:8080/api/asset/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(finalJson),
+      });
+  
+      const data = await response.json();
+  
+      if (data === 1) {
+        alert('등록이 완료되었습니다!');
+        handleReset();
+      } else if (data === 0) {
+        alert('❌ 등록 실패: 서버에서 처리 중 오류 발생');
+      } else {
+        alert('알 수 없는 오류가 발생했습니다.');
+      }
+    } catch (error) {
+      alert('🚨 서버와의 연결에 실패했습니다.');
+      console.error('서버 전송 에러:', error);
     }
-  } catch (error) {
-    alert('🚨 서버와의 연결에 실패했습니다.');
-    console.error('Error:', error);
-  }
-};
+  };
+  
 
 // tableData를 JSON 형태로 변환하는 함수
 const formatDataForJson = (data) => {
@@ -306,15 +299,25 @@ const formatDataForJson = (data) => {
 
   const isRowSelected = (index) => selectedRows.includes(index);
 
+// row를 항상 헤더 개수만큼 맞추고 빈 값은 ''로 채워주는 함수
+const getFixedRow = (row) => {
+  const arr = [...row];
+  arr.length = TABLE_HEADERS.length;
+  return arr.map(cell => cell === undefined ? '' : cell);
+};
+
+
+
   return (
     <div className="bulk-container">
       <h2>자산 일괄 등록</h2>
 
-      {rowErrors.length > 0 && (
-        <div className="error-summary">
-          ⚠️ 총 {rowErrors.length}건의 오류가 있습니다. 빨간 줄과 오른쪽 메시지를 확인하세요.
-        </div>
-      )}
+      {rowErrors.filter(e => !!e).length > 0 && (
+  <div className="error-summary">
+    ⚠️ 총 {rowErrors.filter(e => !!e).length}건의 오류가 있습니다. 빨간 줄과 오른쪽 메시지를 확인하세요.
+  </div>
+)}
+
 
       <div className="bulk-top-controls">
         <button className="btn primary" onClick={handleDownloadTemplate}>양식 내려받기</button>
@@ -322,8 +325,42 @@ const formatDataForJson = (data) => {
         <label htmlFor="file-upload" className="btn upload">양식 업로드</label>
         <input id="file-upload" type="file" hidden onChange={handleFileChange} />
         <button className="btn danger" onClick={handleDelete}>삭제하기</button>
-        <button className="btn success" onClick={handleRegister} disabled={!isValid}>등록하기</button>
-        <button className="btn" onClick={handleReset}>초기화</button>
+        
+        {/* // 등록버튼 활성/비활성 조건 */}
+<button
+  className={
+    `btn success` +
+    (
+      selectedRows.length > 0 &&
+      selectedRows.every(idx => !!rowErrors[idx])
+        ? ' btn-error-disabled' : ''
+    )
+  }
+  onClick={handleRegister}
+  disabled={
+    selectedRows.length > 0
+      ? selectedRows.every(idx => !!rowErrors[idx])
+      : !isValid
+  }
+>
+  등록하기
+</button>
+
+{selectedRows.length > 0 && selectedRows.every(idx => !!rowErrors[idx]) && (
+  <div className="register-error-alert">
+    ⚠️ 선택한 행에 모두 에러가 있습니다. 에러 없는 행만 등록할 수 있습니다.
+  </div>
+)}
+
+
+<button className="btn" onClick={handleReset}>초기화</button>
+        {/* 등록 버튼 위나 아래 아무 곳에! */}
+{selectedRows.length > 0 && selectedRows.some(idx => !!rowErrors[idx]) && (
+  <div className="register-error-alert">
+    ⚠️ 에러가 있는 행은 등록할 수 없습니다. 에러가 없는 행만 선택해주세요.
+  </div>
+)}
+
       </div>
 
       {/* <table className="bulk-table">
@@ -362,19 +399,20 @@ const formatDataForJson = (data) => {
         </tbody>
       </table> */}
       {/* === 📋 테이블 (PC 전용) === */}
-{!isMobile && (
+      {!isMobile && (
   <table className="bulk-table">
-<thead>
-  <tr>
-    <th></th>
-    {TABLE_HEADERS.slice(0, 12).map((header, idx) => <th key={idx}>{header}</th>)}
-    <th>에러 원인</th>
-  </tr>
-</thead>
+    <thead>
+      <tr>
+        <th></th>
+        {TABLE_HEADERS.map((header, idx) => <th key={idx}>{header}</th>)}
+        <th>에러 원인</th>
+      </tr>
+    </thead>
     <tbody>
+      {/* 실제 데이터만 출력 */}
       {tableData.length === 0 ? (
         <tr>
-          <td colSpan="14">업로드된 데이터가 없습니다.</td>
+          <td colSpan={TABLE_HEADERS.length + 2}>업로드된 데이터가 없습니다.</td>
         </tr>
       ) : (
         tableData.map((row, idx) => (
@@ -389,16 +427,24 @@ const formatDataForJson = (data) => {
                 onChange={() => handleSelectRow(idx)}
               />
             </td>
-            {row.slice(0, 12).map((cell, i) => (
+            {getFixedRow(row).map((cell, i) => (
               <td key={i}>{cell}</td>
             ))}
-            <td className="error-text">{rowErrors[idx] || ''}</td>
+            <td
+  className="error-text"
+  title={rowErrors[idx] || ''}
+>
+  {(rowErrors[idx] && rowErrors[idx].length > 25)
+    ? rowErrors[idx].slice(0, 25) + '...'
+    : (rowErrors[idx] || '')}
+</td>
           </tr>
         ))
       )}
     </tbody>
   </table>
 )}
+
 
 {/* === 📱 카드형 목록 (모바일 전용) === */}
 {isMobile && (

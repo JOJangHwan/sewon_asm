@@ -92,6 +92,33 @@
     font-size: 13px;
     margin-top: 8px;
   }
+  .register-error-alert {
+    margin-top: 14px;
+    margin-bottom: 10px;
+    padding: 12px;
+    background: #ffe2e2;
+    color: #ba1a1a;
+    border: 1px solid #ffaaaa;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 15px;
+    box-shadow: 0 2px 6px rgba(200,0,0,0.05);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-error-disabled {
+    background: #1b5e20 !important;     /* 진한 초록색 */
+    color: #fff !important;
+    border: 2px solid #388e3c !important;
+    opacity: 1 !important;
+    cursor: not-allowed !important;
+  }
+  
+  
+  
+
 
   @media (max-width: 480px) {
     .bulk-container {

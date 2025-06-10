@@ -163,7 +163,7 @@ const SignupForm = () => {
       } else if (data === 0) { // 실패 시 0 반환
         setErrorMessage('❌ 회원가입 실패: 서버에서 실패 처리');
       } else {
-        setErrorMessage('알 수 없는 오류가 발생했습니다.');
+        setErrorMessage('오류가 발생했습니다. 담당자한테 문의하세요');
       }
     } catch (error) {
       setErrorMessage('🚨 서버와의 연결에 실패했습니다.');

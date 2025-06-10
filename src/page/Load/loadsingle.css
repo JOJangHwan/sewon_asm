@@ -109,7 +109,6 @@ button[type="button"]:hover {
   width: 80px;
 }
 
-
 .add-btn,
 .remove-btn {
   height: 38px;
@@ -121,14 +120,17 @@ button[type="button"]:hover {
   border-radius: 6px;
   background-color: #ffc107;
   cursor: pointer;
-
-  /* 가운데 정렬 핵심 */
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
+/* 아래처럼 마지막에 마무리 */
 .add-btn:hover,
 .remove-btn:hover {
+  background-color: #e6ac00;
+}
+.submit-button:hover,
+.reset-button:hover {
   background-color: #e6ac00;
 }
