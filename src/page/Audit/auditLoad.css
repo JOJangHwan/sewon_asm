@@ -1,6 +1,13 @@
 .audit-container {
-  padding: 20px;
+  padding: 32px 24px;
   font-family: Arial, sans-serif;
+  width: 100%;
+  max-width: 100vw;
+  margin: 0;
+  background: none;
+  box-shadow: none;
+  border-radius: 0;
+  box-sizing: border-box;
 }
 
 .top-section {
@@ -10,6 +17,7 @@
 /* 바코드 + 버튼 영역 */
 .barcode-row-split {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
   gap: 10px;
@@ -20,11 +28,13 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-wrap: wrap;
+  min-width: 0;
 }
 
 .barcode-icon {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   cursor: pointer;
 }
 
@@ -32,23 +42,20 @@
   transform: scale(1.1);
 }
 
+/* 바코드 입력창 넓게 */
 .barcode-left input {
-  height: 36px;
-  padding: 0 8px;
-  font-size: 14px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  min-width: 200px;
+  width: 260px;
+  min-width: 180px;
+  max-width: 350px;
+  font-size: 16px;
+  height: 40px;
 }
 
 /* 버튼 스타일(삭제/등록) */
 .delete-btn,
 .register-btn {
-  font-size: 14px;
-  padding: 8px 16px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+  font-size: 15px;
+  padding: 10px 22px;
 }
 
 .delete-btn {
@@ -65,14 +72,15 @@
 .audit-table {
   width: 100%;
   border-collapse: collapse;
+  min-width: 800px;
 }
 
 .audit-table th,
 .audit-table td {
   border: 1px solid #ccc;
-  padding: 8px;
+  padding: 14px 10px;
   text-align: center;
-  font-size: 14px;
+  font-size: 16px;
 }
 
 .audit-table thead {
@@ -80,7 +88,7 @@
 }
 
 .audit-table tr.selected-row {
-  background-color: #c8e6c9; /* 선택된 행은 연두색 배경 */
+  background-color: #c8e6c9;
 }
 
 .no-data {
@@ -92,42 +100,59 @@
 
 /* === 모바일용 카드형 리스트 === */
 .audit-card-list {
-  display: none; /* PC 미디어쿼리 해제 시 아래에서 활성화 */
+  display: none;
+}
+.location-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 6px; /* 라벨-셀렉트 간격 */
 }
 
+.location-wrapper label {
+  white-space: nowrap;
+  font-size: 15px;
+}
+
+
 @media (max-width: 768px) {
-  .audit-table {
-    display: none; /* 모바일에서는 테이블 숨기기 */
+  .audit-container {
+    max-width: 100vw;
+    padding: 10px 4px;
+    margin: 0;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    border-radius: 12px;
   }
 
+  .audit-table {
+    display: none;
+  }
   .audit-card-list {
     display: flex;
-    overflow-x: auto;
-    gap: 12px;
+    flex-wrap: wrap;
+    gap: 10px;
     padding: 10px 0;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
+    justify-content: center;
+    width: 100%;
   }
-
   .audit-card {
-    flex: 0 0 auto;
-    width: 260px;
+    width: 95vw;
+    max-width: 340px;
+    min-width: 120px;
     border: 1px solid #ccc;
     border-radius: 8px;
-    padding: 12px;
+    padding: 10px;
     background-color: #fff;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-    scroll-snap-align: start;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.04);
   }
-
   .audit-card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     font-weight: bold;
     margin-bottom: 10px;
+    min-width: 0;
   }
-
   .audit-card-row {
     display: flex;
     justify-content: space-between;
@@ -135,14 +160,61 @@
     padding: 6px 0;
     border-bottom: 1px solid #eee;
   }
-
   .audit-card-row:last-child {
     border-bottom: none;
   }
+  /* 버튼 더 작게 */
+  .delete-btn,
+  .register-btn {
+    font-size: 13px;
+    padding: 6px 12px;
+  }
+  .barcode-left input {
+    width: 100px;
+    max-width: 120px;
+    font-size: 13px;
+    height: 28px;
+  }
 }
 
-/* QR 스캐너 영역 */
+/* QR 스캐너 영역 - 반응형 */
 .qr-reader {
-  width: 300px;
-  margin: 20px auto;
+  width: 100%;
+  max-width: 500px;
+  min-width: 200px;
+  margin: 24px auto;
+  box-sizing: border-box;
+}
+
+/* 예시: 헤더 우측 정보(로그아웃 등) 짤림 방지 추가 */
+.header-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  overflow-x: auto;
+  padding: 0 4px;
+  box-sizing: border-box;
+}
+
+.header-user-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  min-width: 0;
+  max-width: 100%;
+}
+.header-user-info * {
+  font-size: 13px;
+  white-space: nowrap;
+}
+@media (max-width: 480px) {
+  .header-user-info * {
+    font-size: 12px;
+  }
+  .audit-card {
+    width: 98vw;
+    max-width: 240px;
+  }
 }

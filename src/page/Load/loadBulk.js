@@ -346,13 +346,6 @@ const getFixedRow = (row) => {
   등록하기
 </button>
 
-{selectedRows.length > 0 && selectedRows.every(idx => !!rowErrors[idx]) && (
-  <div className="register-error-alert">
-    ⚠️ 선택한 행에 모두 에러가 있습니다. 에러 없는 행만 등록할 수 있습니다.
-  </div>
-)}
-
-
 <button className="btn" onClick={handleReset}>초기화</button>
         {/* 등록 버튼 위나 아래 아무 곳에! */}
 {selectedRows.length > 0 && selectedRows.some(idx => !!rowErrors[idx]) && (

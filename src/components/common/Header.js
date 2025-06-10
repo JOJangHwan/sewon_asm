@@ -79,9 +79,9 @@ function Header({ toggleSidebar, isSidebarOpen }) {
         <Link to="/rent" className="header-alarm">
           <img src={rentImg} alt="렌트" className="header-icon" />
         </Link>
-        <Link to="/scan" className="header-alarm">
+        {/* <Link to="/scan" className="header-alarm">
           <img src={ScanImg} alt="스캔" className="header-icon" />
-        </Link>
+        </Link> */}
 
         {/* 알림 */}
         <div className="header-alarm" onClick={toggleAlarm} style={{ position: 'relative' }}>

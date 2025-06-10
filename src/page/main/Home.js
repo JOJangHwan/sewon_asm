@@ -159,8 +159,8 @@ const Home = () => {
     <div className="home-content">
       {/* ====== 헤더 타이틀 ====== */}
       <header className="home-header">
-        <h1>🏠 Main Page</h1>
-        <p className="home-subtext">여기에 자산 관리 관련 콘텐츠를 넣으세요.</p>
+        <h1>🏠  Home</h1>
+        {/* <p className="home-subtext">여기에 자산 관리 관련 콘텐츠를 넣으세요.</p> */}
       </header>
 
       {/* ====== 요약 대시보드 카드 ====== */}
