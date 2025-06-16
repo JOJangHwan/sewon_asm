@@ -1,90 +1,77 @@
-/* ─────────────────────────────────────────────────────────────────────────
-   1) @page 설정 (용지 크기: 450mm × 150mm, 여백 0)
-───────────────────────────────────────────────────────────────────────── */
+/* 1) @page 설정 (라벨 크기 45mm × 15mm, 여백 0) */
 @page {
-  size: 450mm 150mm;
+  size: 45mm 15mm;
   margin: 0;
 }
 
-/* ─────────────────────────────────────────────────────────────────────────
-   2) 라벨 박스 전체
-───────────────────────────────────────────────────────────────────────── */
-/* .label-print-wrapper { } */
-
+/* 2) 라벨 박스 전체 */
 .label-box {
-  width: 450mm;
-  height: 150mm;
+  width: 45mm;
+  height: 15mm;
   page-break-after: always;
   display: flex;
   flex-direction: row;
   background-color: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
   overflow: hidden;
   margin: 0 auto;
   padding: 0;
 }
 
-/* ─────────────────────────────────────────────────────────────────────────
-   3) 왼쪽 QR 섹션 (너비 40mm로 축소)
-───────────────────────────────────────────────────────────────────────── */
+/* 3) 왼쪽 QR 섹션 */
 .qr-section {
-  width: 40mm;       
-  height: 150mm;     
+  width: 15mm;
+  height: 100%;
   display: flex;
   justify-content: center;
-  align-items: flex-start;  /* 위쪽 정렬 후 padding-top으로 띄움 */
-  background-color: #ffffff;
-  padding-top: 5mm;  /* 위쪽 여백 5mm */
+  align-items: center;
+  padding-left: 1mm;
 }
 
-/* ─────────────────────────────────────────────────────────────────────────
-   4) QR canvas 크기 (40mm × 40mm로 강제)
-───────────────────────────────────────────────────────────────────────── */
+/* 4) QR canvas 크기 고정 */
 .qr-canvas {
-  width: 40mm !important;
-  height: 40mm !important;
+  width: 12mm !important;
+  height: 12mm !important;
 }
 
-/* ─────────────────────────────────────────────────────────────────────────
-   5) 오른쪽 정보 섹션 (로고 + 텍스트)
-───────────────────────────────────────────────────────────────────────── */
+/* 5) 오른쪽 정보 섹션 */
 .info-section {
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
-  align-items: flex-start;
-  padding: 10mm;
-  background-color: #ffffff;
+  justify-content: center;
+  padding-left: 2mm;
+  padding-right: 1mm;
 }
 
-.logo-container {
-  margin-bottom: 4mm;
-}
-.logo-container img {
-  height: 30mm;
+/* 6) 로고 */
+.logo {
+  height: 3mm;
   width: auto;
-  object-fit: contain;
+  margin-bottom: 0.5mm;
 }
 
+/* 7) 텍스트 줄 */
 .text-line {
   font-family: 'Arial', sans-serif;
   color: #000;
-  line-height: 1.1;
-  margin-bottom: 2mm;
+  line-height: 1;
+  margin: 0;
+  padding: 0;
 }
 
 .main-location {
-  font-size: 3mm;
+  font-size: 2.2mm;
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .barcode-text {
-  font-size: 4mm;
+  font-size: 2.4mm;
   font-weight: bold;
+  white-space: nowrap;
 }
 
 .item-name {
-  font-size: 3.5mm;
+  font-size: 2.2mm;
+  white-space: nowrap;
 }
