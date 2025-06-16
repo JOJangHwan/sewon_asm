@@ -1,77 +1,71 @@
-/* 1) @page 설정 (라벨 크기 45mm × 15mm, 여백 0) */
 @page {
-  size: 45mm 15mm;
+  size: A4;
   margin: 0;
 }
 
-/* 2) 라벨 박스 전체 */
+.label-print-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;  /* 좌측 정렬 */
+  padding: 0;
+  margin: 0;
+}
+
+/* 라벨 박스 */
 .label-box {
   width: 45mm;
   height: 15mm;
-  page-break-after: always;
   display: flex;
   flex-direction: row;
-  background-color: #ffffff;
-  overflow: hidden;
-  margin: 0 auto;
+  align-items: center;
+  background: white;
+  page-break-after: always;
+
+  /* A4 좌측 상단 기준 위치 조정 */
+  margin-left: 10mm;  /* 좌측 여백 */
+  margin-top: 10mm;   /* 위쪽 여백 */
   padding: 0;
 }
 
-/* 3) 왼쪽 QR 섹션 */
+/* QR코드 영역 */
 .qr-section {
   width: 15mm;
   height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding-left: 1mm;
 }
 
-/* 4) QR canvas 크기 고정 */
 .qr-canvas {
   width: 12mm !important;
   height: 12mm !important;
 }
 
-/* 5) 오른쪽 정보 섹션 */
+/* 정보 영역 */
 .info-section {
   flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
   padding-left: 2mm;
-  padding-right: 1mm;
 }
 
-/* 6) 로고 */
 .logo {
   height: 3mm;
   width: auto;
-  margin-bottom: 0.5mm;
+  margin-bottom: 1mm;
 }
 
-/* 7) 텍스트 줄 */
 .text-line {
+  font-size: 2.2mm;
   font-family: 'Arial', sans-serif;
-  color: #000;
-  line-height: 1;
   margin: 0;
   padding: 0;
-}
-
-.main-location {
-  font-size: 2.2mm;
-  font-weight: 500;
   white-space: nowrap;
+  color: black;
 }
 
 .barcode-text {
-  font-size: 2.4mm;
+  font-size: 2.6mm;
   font-weight: bold;
-  white-space: nowrap;
-}
-
-.item-name {
-  font-size: 2.2mm;
-  white-space: nowrap;
 }

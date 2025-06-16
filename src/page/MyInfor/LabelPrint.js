@@ -101,9 +101,9 @@
 
 // export default LabelPrint;
 
+// src/page/MyInfor/LabelPrint.js
 import React, { useState, useEffect } from 'react';
 import { QRCodeCanvas } from 'qrcode.react';
-import './labelPrint.css';
 
 export default function LabelPrint({ selectedAssets, onAllImagesLoaded }) {
   const [loadedCount, setLoadedCount] = useState(0);
@@ -119,28 +119,31 @@ export default function LabelPrint({ selectedAssets, onAllImagesLoaded }) {
   }, [loadedCount, selectedAssets.length, onAllImagesLoaded]);
 
   return (
-    <div className="label-print-wrapper">
-      {selectedAssets.map((asset, idx) => (
-        <div className="label-box" key={idx}>
-          {/* 왼쪽: QR 코드 */}
-          <div className="qr-section">
-            <QRCodeCanvas value={asset.barcode} size={60} />
-          </div>
+<div className="label-print-wrapper">
+  {selectedAssets.map((asset, idx) => (
+    <div className="label-box" key={idx}>
+      <div className="qr-section">
+        <QRCodeCanvas
+          value={asset.barcode}
+          className="qr-canvas"
+        />
+      </div>
 
-          {/* 오른쪽: 로고 + 텍스트 */}
-          <div className="info-section">
-            <img
-              src="/img/sewon.jpg"
-              alt="sewon logo"
-              className="logo"
-              onLoad={handleLogoLoad}
-            />
-            <div className="text-line">{asset.company} {asset.department}</div>
-            <div className="text-line">{asset.barcode}</div>
-            <div className="text-line">{asset.itemName}</div>
-          </div>
-        </div>
-      ))}
+<div className="info-section">
+  <img
+    src="/img/sewon.jpg"
+    alt="sewon logo"
+    className="logo"
+    onLoad={handleLogoLoad}
+  />
+  <div className="text-line main-location">{asset.company} {asset.department} {asset.location}</div>
+  <div className="text-line barcode-text">{asset.barcode}</div>
+  <div className="text-line item-name">{asset.itemName}</div>
+</div>
+
+
     </div>
+  ))}
+</div>
   );
 }
