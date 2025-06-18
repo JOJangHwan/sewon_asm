@@ -246,14 +246,14 @@ export default function MyInfoPage() {
   object-fit: contain;
   margin: 0;
   padding: 0;
-  border: 1px solid red;
+
 }
 
 
 
 
           .text-line {
-            border: 1px dashed blue;
+
   font-size: 2.2mm;
   font-family: 'Arial', sans-serif;
   margin: 0;

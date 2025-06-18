@@ -1,317 +1,9 @@
-// import React, { useState } from 'react';
-// import './loadsingle.css';
 
-// const companyData = {
-//   '평택공장': {
-//     '전산운영P': ['전산실', '서버실'],
-//     '관리팀': ['총무실', '회의실']
-//   },
-//   '우신비나': {
-//     '자재팀': ['자재창고', '입출고구역'],
-//     '생산팀': ['라인1', '라인2']
-//   }
-// };
-
-// const assetCategoryData = {
-//   '가구': ['책상', '의자'],
-//   '전자제품': ['노트북','컴퓨터', '모니터']
-// };
-
-// const convertToGB = (value, unit) => {
-//   const num = parseFloat(value);
-//   switch (unit) {
-//     case 'TB': return num * 1024;
-//     case 'MB': return num / 1024;
-//     case 'GB': return num;
-//     default: return 0;
-//   }
-// };
-
-// const AssetRegister = () => {
-//   const [formData, setFormData] = useState({
-//     company: '',
-//     department: '',
-//     location: '',
-//     acquisitionType: '',
-//     assetCategory: '',
-//     item: '',
-//     assetStatus: '사용',
-//     manufacturer: '',
-//     model: '',
-//     acquisitionDate: '',
-//     acquisitionCost: '',
-//     renter: '',
-//     rentalDate: '',
-//     cpu: '',
-//     memory: '',
-//     gpu: '',
-//     storageList: [{ value: '', unit: 'GB' }],
-//     totalStorage: ''
-//   });
-
-//   const handleChange = (e, idx = null) => {
-//     const { name, value } = e.target;
-//     if (name === 'company') {
-//       setFormData({ ...formData, company: value, department: '', location: '' });
-//     } else if (name === 'department') {
-//       setFormData({ ...formData, department: value, location: '' });
-//     } else if (name === 'assetCategory') {
-//       setFormData({ ...formData, assetCategory: value, item: '' });
-//     } else if (name.startsWith('storage-') && idx !== null) {
-//       const updated = [...formData.storageList];
-//       const field = name.split('-')[1];
-//       updated[idx][field] = value;
-//       setFormData({ ...formData, storageList: updated });
-//     } else {
-//       setFormData({ ...formData, [name]: value });
-//     }
-//   };
-
-//   const addStorageField = () => {
-//     setFormData({
-//       ...formData,
-//       storageList: [...formData.storageList, { value: '', unit: 'GB' }]
-//     });
-//   };
-
-//   const handleStorageConvert = () => {
-//     const total = formData.storageList.reduce((sum, s) => {
-//       const value = s.value === '' ? 0 : s.value;
-//       return sum + convertToGB(value, s.unit);
-//     }, 0);
-//     setFormData({ ...formData, totalStorage: total.toFixed(2) });
-//   };
-
-//   const handleSubmit = async (e) => {
-//     e.preventDefault();
-
-//     const appendSeconds = (datetime) => {
-//       if (!datetime) return '';
-//       return datetime.length === 16 ? datetime + ':00' : datetime;
-//     };
-    
-//     const requiredFields = [
-//       'company', 'department', 'location', 'acquisitionType', 'assetCategory', 'item', 'manufacturer', 'model', 'acquisitionDate', 'acquisitionCost'
-//     ];
-    
-//     for (let field of requiredFields) {
-//       if (!formData[field]) {
-//         alert(`필수 입력값이 누락되었습니다: ${field}`);
-//         return;
-//       }
-//     }
-//     if ((formData.item === '노트북' || formData.item === '컴퓨터') && !formData.totalStorage) {
-//       alert('총 저장공간을 계산해주세요.');
-//       return;
-//     }
-
-
-//     const statusMap = {
-//       '사용': 0,
-//       '미사용': 1,
-//     };
-    
-//  // ✅ 날짜에 초(:00) 붙여서 전송할 데이터 구성
-//  const formattedData = {
-//   ...formData,
-//   acquisitionDate: appendSeconds(formData.acquisitionDate),
-//   rentalDate: appendSeconds(formData.rentalDate),
-//   assetStatus: statusMap[formData.assetStatus] // ✅ 숫자로 변환
-// };
-// const { storageList, ...dataToSend } = formattedData;
-// console.log('✅ 변환된 날짜 확인:', formattedData.acquisitionDate);
-// console.log('Sending data:', JSON.stringify(formattedData));
-// console.log('📦 최종 전송 데이터:', dataToSend); // 서버로 보낼 데이터 확인
-
-
-//         // 서버로 데이터 전송
-//         try {
-//           const response = await fetch('http://localhost:8080/api/asset/register', {
-//             method: 'POST',
-//             headers: {
-//               'Content-Type': 'application/json',
-//             },
-//             body: JSON.stringify(dataToSend), // ✅ 여기만 바뀜!
-//           });
-        
-//           const data = await response.json();
-        
-//           if (data === 1) {
-//             alert('등록이 완료되었습니다!');
-//           } else {
-//             alert('❌ 등록 실패: 서버에서 실패 처리');
-//           }
-//         } catch (error) {
-//           alert('🚨 서버와의 연결에 실패했습니다.');
-//           console.error('Error:', error);
-//         }
-    
-//     // alert('등록이 완료되었습니다!');
-//     // console.log('등록 데이터:', formData);
-//   };
-
-//   return (
-//     <div className="asset-register-page">
-//       <h2 className="asset-register-title">개별 자산 등록</h2>
-//       <form className="asset-register-form" onSubmit={handleSubmit}>
-//         <div className="form-row">
-//           <label>회사구분</label>
-//           <select name="company" value={formData.company} onChange={handleChange}>
-//             <option value="">선택</option>
-//             {Object.keys(companyData).map(c => <option key={c} value={c}>{c}</option>)}
-//           </select>
-//         </div>
-//         <div className="form-row">
-//           <label>부서구분</label>
-//           <select name="department" value={formData.department} onChange={handleChange}>
-//             <option value="">선택</option>
-//             {formData.company &&
-//               Object.keys(companyData[formData.company]).map(d => (
-//                 <option key={d} value={d}>{d}</option>
-//               ))}
-//           </select>
-//         </div>
-//         <div className="form-row">
-//           <label>세부위치</label>
-//           <select name="location" value={formData.location} onChange={handleChange}>
-//             <option value="">선택</option>
-//             {formData.company && formData.department &&
-//               companyData[formData.company][formData.department].map(l => (
-//                 <option key={l} value={l}>{l}</option>
-//               ))}
-//           </select>
-//         </div>
-//         <div className="form-row">
-//           <label>취득구분</label>
-//           <select name="acquisitionType" value={formData.acquisitionType} onChange={handleChange}>
-//             <option value="">선택</option>
-//             <option value="구매자산(자산)">구매자산(자산)</option>
-//           </select>
-//         </div>
-//         <div className="form-row">
-//           <label>자산분류</label>
-//           <select name="assetCategory" value={formData.assetCategory} onChange={handleChange}>
-//             <option value="">선택</option>
-//             {Object.keys(assetCategoryData).map(cat => (
-//               <option key={cat} value={cat}>{cat}</option>
-//             ))}
-//           </select>
-//         </div>
-//         <div className="form-row">
-//           <label>품목</label>
-//           <select name="item" value={formData.item} onChange={handleChange}>
-//             <option value="">선택</option>
-//             {formData.assetCategory &&
-//               assetCategoryData[formData.assetCategory].map(item => (
-//                 <option key={item} value={item}>{item}</option>
-//               ))}
-//           </select>
-//         </div>
-//         {(formData.item === '노트북' || formData.item === '컴퓨터') && (
-//           <>
-//             <div className="form-row">
-//               <label>CPU</label>
-//               <input type="text" name="cpu" value={formData.cpu} onChange={handleChange} />
-//             </div>
-//             <div className="form-row">
-//               <label>메모리</label>
-//               <input type="text" name="memory" value={formData.memory} onChange={handleChange} />
-//             </div>
-//             <div className="form-row">
-//               <label>그래픽카드</label>
-//               <input type="text" name="gpu" value={formData.gpu} onChange={handleChange} />
-//             </div>
-//             <div className="form-row">
-//   <label>데이터 변환기 (PC 저장공간만큼 추가하세요)</label>
-//   {formData.storageList.map((s, idx) => (
-//   <div key={idx} className="conversion-group">
-//     <input
-//       type="text"
-//       name={`storage-value`}
-//       value={s.value}
-//       onChange={(e) => handleChange({ target: { name: 'storage-value', value: e.target.value } }, idx)}
-//       placeholder="용량 입력"
-//     />
-//     <select
-//       name={`storage-unit`}
-//       value={s.unit}
-//       onChange={(e) => handleChange({ target: { name: 'storage-unit', value: e.target.value } }, idx)}
-//     >
-//       <option value="GB">GB</option>
-//       <option value="TB">TB</option>
-//       <option value="MB">MB</option>
-//     </select>
-
-//     {idx === 0 && (
-//       <button type="button" className="add-btn" onClick={addStorageField}>➕</button>
-//     )}
-//     {formData.storageList.length > 1 && (
-//       <button
-//         type="button"
-//         className="remove-btn"
-//         onClick={() => {
-//           if (window.confirm('이 항목을 삭제하시겠습니까?')) {
-//             const newList = [...formData.storageList];
-//             newList.splice(idx, 1);
-//             setFormData({ ...formData, storageList: newList });
-//           }
-//         }}
-//       >➖</button>
-//     )}
-//   </div>
-// ))}
-
-//   <button type="button" onClick={handleStorageConvert}>변환</button>
-// </div>
-//             <div className="form-row">
-//               <label>총 저장공간(GB기준)</label>
-//               <input type="text" name="totalStorage" value={formData.totalStorage} readOnly />
-//             </div>
-//           </>
-//         )}
-//         <div className="form-row">
-//           <label>자산상태</label>
-//           <div className="radio-group">
-//           {['사용', '미사용'].map(status => ( // ✅ '대여' 제거
-//               <label key={status}>
-//               <input type="radio" name="assetStatus" value={status} checked={formData.assetStatus === status} onChange={handleChange} />
-//               {status}
-//             </label>
-//             ))}
-//           </div>
-//         </div>
-//         <div className="form-row">
-//           <label>제조사</label>
-//           <input type="text" name="manufacturer" value={formData.manufacturer} onChange={handleChange} />
-//         </div>
-//         <div className="form-row">
-//           <label>모델</label>
-//           <input type="text" name="model" value={formData.model} onChange={handleChange} />
-//         </div>
-//         <div className="form-row">
-//           <label>취득일자</label>
-//           <input
-//   type="datetime-local"
-//   name="acquisitionDate"
-//   value={formData.acquisitionDate}
-//   onChange={handleChange}
-// />
-//         </div>
-//         <div className="form-row">
-//           <label>취득가</label>
-//           <input type="text" name="acquisitionCost" value={formData.acquisitionCost} onChange={handleChange} />
-//         </div>
-//         <button type="submit" className="submit-button">등록</button>
-//         <button type="button" className="reset-button" onClick={() => window.location.reload()}>초기화</button>
-// </form>
-//     </div>
-//   );
-// };
-
-// export default AssetRegister;
 
 import React, { useState } from 'react';
 import './loadsingle.css';
+import { createRoot } from 'react-dom/client';
+import LabelPrint from '../MyInfor/LabelPrint';  // 기존과 동일하게 구성된 컴포넌트
 
 const companyData = {
   '평택공장': {
@@ -434,20 +126,75 @@ const AssetRegister = () => {
     }
   };
 
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   const newErrors = {};
+
+  //   const required = [
+  //     'company', 'department', 'location', 'acquisitionType',
+  //     'assetCategory', 'item', 'manufacturer', 'model',
+  //     'acquisitionDate', 'acquisitionCost'
+  //   ];
+
+  //   required.forEach((field) => {
+  //     if (!formData[field]) newErrors[field] = getErrorMsg(field);
+  //   });
+
+  //   if (formData.item === '노트북' || formData.item === '컴퓨터') {
+  //     ['cpu', 'memory', 'gpu'].forEach((f) => {
+  //       if (!formData[f]) newErrors[f] = getErrorMsg(f);
+  //     });
+  //     if (!formData.totalStorage) {
+  //       newErrors.totalStorage = getErrorMsg('totalStorage');
+  //     }
+  //   }
+
+  //   if (Object.keys(newErrors).length) {
+  //     alert('빈칸을 모두 입력해주세요.');
+  //     setErrors(newErrors);
+  //     return;
+  //   }
+  //   setErrors({});
+
+  //   const appendSeconds = (dt) => (dt && dt.length === 16 ? dt + ':00' : dt);
+  //   const statusMap = { '사용': 0, '미사용': 1 };
+  //   const formatted = {
+  //     ...formData,
+  //     acquisitionDate: appendSeconds(formData.acquisitionDate),
+  //     rentalDate: appendSeconds(formData.rentalDate),
+  //     assetStatus: statusMap[formData.assetStatus],
+  //   };
+  //   const { storageList, ...dataToSend } = formatted;
+
+  //   try {
+  //     const res = await fetch('http://localhost:8080/api/asset/register', {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify(dataToSend),
+  //     });
+  //     const result = await res.json();
+  //     if (result === 1) alert('등록이 완료되었습니다!');
+  //     else alert('❌ 등록 실패');
+  //   } catch (err) {
+  //     alert('🚨 서버 연결 실패');
+  //     console.error(err);
+  //   }
+  // };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = {};
-
+  
     const required = [
       'company', 'department', 'location', 'acquisitionType',
       'assetCategory', 'item', 'manufacturer', 'model',
       'acquisitionDate', 'acquisitionCost'
     ];
-
+  
     required.forEach((field) => {
       if (!formData[field]) newErrors[field] = getErrorMsg(field);
     });
-
+  
     if (formData.item === '노트북' || formData.item === '컴퓨터') {
       ['cpu', 'memory', 'gpu'].forEach((f) => {
         if (!formData[f]) newErrors[f] = getErrorMsg(f);
@@ -456,14 +203,14 @@ const AssetRegister = () => {
         newErrors.totalStorage = getErrorMsg('totalStorage');
       }
     }
-
+  
     if (Object.keys(newErrors).length) {
       alert('빈칸을 모두 입력해주세요.');
       setErrors(newErrors);
       return;
     }
     setErrors({});
-
+  
     const appendSeconds = (dt) => (dt && dt.length === 16 ? dt + ':00' : dt);
     const statusMap = { '사용': 0, '미사용': 1 };
     const formatted = {
@@ -473,21 +220,174 @@ const AssetRegister = () => {
       assetStatus: statusMap[formData.assetStatus],
     };
     const { storageList, ...dataToSend } = formatted;
+  
+    const isElectronic = ['노트북', '컴퓨터'].includes(formData.item);
+    // const url = isElectronic
+    // ? 'http://192.168.0.220:8888/api/asset/electronic'
+    // : 'http://192.168.0.220:8888/api/asset';
+    const url = isElectronic
+  ? 'http://192.168.0.220:8888/assets/electronic'
+  : 'http://192.168.0.220:8888/assets';
 
+  
     try {
-      const res = await fetch('http://localhost:8080/api/asset/register', {
+      const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(dataToSend),
       });
+  
       const result = await res.json();
-      if (result === 1) alert('등록이 완료되었습니다!');
-      else alert('❌ 등록 실패');
+  
+      if (result && result.code === 200) {
+        const barcodeValue = result.data;
+        alert(`✅ 등록 완료! 바코드: ${barcodeValue}`);
+      
+        const asset = {
+          barcode: barcodeValue,
+          company: formData.company,
+          department: formData.department,
+          location: formData.location,
+          acquisitionType: formData.acquisitionType,
+          assetCategory: formData.assetCategory,
+          itemName: formData.item,
+          assetStatus: formData.assetStatus === 0 ? '사용' : '미사용',
+          manufacturer: formData.manufacturer,
+          model: formData.model,
+          acquisitionDate: formData.acquisitionDate.split('T')[0],
+          acquisitionPrice: Number(formData.acquisitionCost).toLocaleString(),
+        };
+      
+        openLabelPrintWindow(asset);  // ⬅️ 여기에서 라벨 프린트
+        window.location.reload();
+      } else {
+        alert('❌ 등록 실패');
+      }
+      
     } catch (err) {
       alert('🚨 서버 연결 실패');
       console.error(err);
     }
   };
+
+  const openLabelPrintWindow = (asset) => {
+    const printWindow = window.open('', '_blank', 'width=900,height=700');
+    if (!printWindow) return alert('팝업 차단을 해제해주세요.');
+  
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>라벨 인쇄</title>
+          <style>
+            @page {
+              size: A4;
+              margin: 0;
+            }
+    
+            body {
+              margin: 0;
+              padding: 0;
+            }
+    
+            .label-print-wrapper {
+              display: flex;
+              flex-direction: column;
+              align-items: flex-start;
+              padding: 0;
+              margin: 0;
+            }
+    
+            .label-box {
+              width: 45mm;
+              height: 15mm;
+              display: flex;
+              align-items: center;
+              background: white;
+              page-break-after: always;
+              margin-left: 10mm;
+              margin-top: 10mm;
+              padding: 0;
+            }
+    
+            .qr-section {
+              width: 13mm;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+            }
+    
+            .qr-canvas {
+              width: 11.5mm !important;
+              height: 11.5mm !important;
+            }
+    
+            .info-section {
+              display: flex;
+              flex-direction: column;
+              align-items: flex-start;
+              padding-left: 1.5mm;
+            }
+    
+            .logo-wrapper {
+              width: 100%;
+              display: flex;
+              justify-content: flex-start;
+              margin-bottom: 0.3mm;
+            }
+    
+            .logo {
+              display: block;
+              max-width: 32mm;
+              height: 5.5mm;
+              object-fit: contain;
+              margin: 0;
+              padding: 0;
+            }
+    
+            .text-line {
+              font-size: 2.2mm;
+              font-family: 'Arial', sans-serif;
+              margin: 0;
+              padding: 0;
+              white-space: nowrap;
+              color: black;
+            }
+    
+            .barcode-text {
+              font-size: 2.6mm;
+              font-weight: bold;
+            }
+          </style>
+        </head>
+        <body>
+          <div id="print-root"></div>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  
+    const checkInterval = setInterval(() => {
+      const container = printWindow.document.getElementById('print-root');
+      if (container) {
+        clearInterval(checkInterval);
+        const root = createRoot(container);
+        root.render(
+          <LabelPrint
+            selectedAssets={[asset]}  // 배열로 전달
+            onAllImagesLoaded={() => {
+              printWindow.focus();
+              printWindow.print();
+              printWindow.close();
+            }}
+          />
+        );
+      }
+    }, 100);
+  };
+  
+  
+  
+  
 
   return (
     <div className="asset-register-page">

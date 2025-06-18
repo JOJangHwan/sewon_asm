@@ -137,40 +137,37 @@ const AuditLoad = () => {
   const handleRegister = async () => {
     const selectedItems = items.filter((item) => item.selected);
     const itemsToRegister = selectedItems.length === 0 ? items : selectedItems;
-    
+  
     if (itemsToRegister.length === 0) {
       alert('등록할 항목이 없습니다.');
       return;
     }
-    
-
-    // payload 구성
+  
     const payload = {
-      list: selectedItems.map((item) => ({
+      list: itemsToRegister.map((item) => ({
         barcode: item.barcode,
         location: item.location,
-        registrant: item.registrant
+        registrant: item.registrant,
       }))
     };
-
+  
     try {
-      const response = await axios.post(
-        'http://localhost:3000/audit/upload',
-        payload
-      );
-      if (response.status === 200) {
-        // 성공 시, 해당 항목들 로컬 DB에서 삭제 & 화면 제거
-        for (const item of selectedItems) {
+      const response = await axios.post('http://localhost:3000/audit/upload', payload);
+  
+      if (response.data === 1) {
+        for (const item of itemsToRegister) {
           await deleteItem(item.barcode);
         }
         setItems(items.filter((item) => !item.selected));
-        alert('등록이 완료되었습니다.');
+        alert('✅ 등록이 완료되었습니다.');
+      } else if (response.data === 0) {
+        alert('❌ 등록 실패: 서버에서 실패 처리');
       } else {
-        alert('등록 실패: 서버 오류');
+        alert('⚠️ 등록 실패: 알 수 없는 응답');
       }
     } catch (err) {
       console.error('등록 오류:', err);
-      alert('등록 중 오류가 발생했습니다.');
+      alert('🚨 등록 중 오류가 발생했습니다. 담당자에게 문의하세요.');
     }
   };
 

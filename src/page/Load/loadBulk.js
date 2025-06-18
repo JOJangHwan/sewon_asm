@@ -2,6 +2,123 @@ import React, { useState } from 'react';
 import * as XLSX from 'xlsx';
 import './loadBulk.css';
 import useMediaQuery from '../../utils/hooks/useMediaQuery';
+import { createRoot } from 'react-dom/client';
+import LabelPrint from '../MyInfor/LabelPrint.js';
+
+const openLabelPrintWindow = (assets) => {
+  const printWindow = window.open('', '_blank', 'width=900,height=700');
+  if (!printWindow) return alert('팝업 차단을 해제해주세요.');
+
+  printWindow.document.write(`
+    <html>
+      <head>
+        <title>라벨 인쇄</title>
+        <style>
+          @page {
+            size: A4;
+            margin: 0;
+          }
+  
+          body {
+            margin: 0;
+            padding: 0;
+          }
+  
+          .label-print-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 0;
+            margin: 0;
+          }
+  
+          .label-box {
+            width: 45mm;
+            height: 15mm;
+            display: flex;
+            align-items: center;
+            background: white;
+            page-break-after: always;
+            margin-left: 10mm;
+            margin-top: 10mm;
+            padding: 0;
+          }
+  
+          .qr-section {
+            width: 13mm;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+          }
+  
+          .qr-canvas {
+            width: 11.5mm !important;
+            height: 11.5mm !important;
+          }
+  
+          .info-section {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            padding-left: 1.5mm;
+          }
+  
+          .logo-wrapper {
+            width: 100%;
+            display: flex;
+            justify-content: flex-start;
+            margin-bottom: 0.3mm;
+          }
+  
+          .logo {
+            display: block;
+            max-width: 32mm;
+            height: 5.5mm;
+            object-fit: contain;
+            margin: 0;
+            padding: 0;
+          }
+  
+          .text-line {
+            font-size: 2.2mm;
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            white-space: nowrap;
+            color: black;
+          }
+  
+          .barcode-text {
+            font-size: 2.6mm;
+            font-weight: bold;
+          }
+        </style>
+      </head>
+      <body>
+        <div id="print-root"></div>
+      </body>
+    </html>
+  `);
+  printWindow.document.close();
+
+  const interval = setInterval(() => {
+    const container = printWindow.document.getElementById('print-root');
+    if (container) {
+      clearInterval(interval);
+      const root = createRoot(container);
+      root.render(
+        <LabelPrint
+          selectedAssets={assets}
+          onAllImagesLoaded={() => {
+            printWindow.focus();
+            printWindow.print();
+            printWindow.close();
+          }}
+        />
+      );
+    }
+  }, 100);
+};
 
 const TABLE_HEADERS = [
   '회사구분', '부서구분', '세부위치', '취득구분', '자산분류',
@@ -198,37 +315,107 @@ const LoadBulk = () => {
       alert('양식 업로드 후 등록하기를 눌러주세요.');
       return;
     }
-    const rowsToRegister = selectedRows.length > 0
+  
+    const validRows = selectedRows.length > 0
       ? selectedRows.filter(idx => !rowErrors[idx]).map(i => tableData[i])
       : tableData.filter((_, idx) => !rowErrors[idx]);
   
-    const finalJson = formatDataForJson(rowsToRegister);
+    if (validRows.length === 0) {
+      alert('등록 가능한 데이터가 없습니다.');
+      return;
+    }
+  
+    // 분기: 전자/일반
+    const electronicRows = validRows.filter(row => ['노트북', '데스크탑'].includes(row[5]));
+    const generalRows    = validRows.filter(row => !['노트북', '데스크탑'].includes(row[5]));
+  
+    const assetListFromRow = (row) => ({
+      barcode: '', // 서버 생성
+      company: row[0],
+      department: row[1],
+      location: row[2],
+      acquisitionType: row[3],
+      assetCategory: row[4],
+      itemName: row[5],
+      assetStatus: row[6],
+      manufacturer: row[7],
+      model: row[8],
+      acquisitionDate: row[9],
+      acquisitionPrice: Number(row[10]).toLocaleString(),
+      registrant: row[11],
+      cpu: row[12] || '',
+      memory: row[13] || '',
+      gpu: row[14] || '',
+      totalStorage: row[15] || ''
+    });
   
     try {
-      console.log('등록 버튼 눌림! 서버로 전송:', finalJson);
-      const response = await fetch('http://localhost:8080/api/asset/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(finalJson),
-      });
+      const allRegisteredAssets = [];
   
-      const data = await response.json();
-  
-      if (data === 1) {
-        alert('등록이 완료되었습니다!');
-        handleReset();
-      } else if (data === 0) {
-        alert('❌ 등록 실패: 서버에서 처리 중 오류 발생');
-      } else {
-        alert('알 수 없는 오류가 발생했습니다.');
+      if (generalRows.length > 0) {
+        const res = await fetch('http://192.168.0.220:8888/api/asset/bulk', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ list: generalRows.map(mapRowToBackend) }),
+        });
+        const result = await res.json();
+        if (result.code === 200) {
+          const barcodes = result.data;
+          barcodes.forEach((barcode, i) => {
+            allRegisteredAssets.push({ ...assetListFromRow(generalRows[i]), barcode });
+          });
+        }
       }
-    } catch (error) {
-      alert('🚨 서버와의 연결에 실패했습니다.');
-      console.error('서버 전송 에러:', error);
+  
+      if (electronicRows.length > 0) {
+        const res = await fetch('http://192.168.0.220:8888/api/asset/electronic/bulk', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ list: electronicRows.map(mapRowToBackend) }),
+        });
+        const result = await res.json();
+        if (result.code === 200) {
+          const barcodes = result.data;
+          barcodes.forEach((barcode, i) => {
+            allRegisteredAssets.push({ ...assetListFromRow(electronicRows[i]), barcode });
+          });
+        }
+      }
+  
+      if (allRegisteredAssets.length > 0) {
+        alert(`✅ ${allRegisteredAssets.length}건 등록 완료!`);
+        openLabelPrintWindow(allRegisteredAssets);
+        handleReset();
+      } else {
+        alert('❌ 등록 실패: 바코드 없음');
+      }
+  
+    } catch (err) {
+      alert('🚨 서버 전송 실패');
+      console.error(err);
     }
   };
+
+  const mapRowToBackend = (row) => ({
+    company: row[0],
+    department: row[1],
+    location: row[2],
+    acquisitionType: row[3],
+    assetCategory: row[4],
+    item: row[5],
+    assetStatus: row[6],
+    manufacturer: row[7],
+    model: row[8],
+    acquisitionDate: row[9],
+    acquisitionCost: row[10],
+    registrant: row[11],
+    cpu: row[12] || '',
+    memory: row[13] || '',
+    gpu: row[14] || '',
+    totalStorage: row[15] || ''
+  });
+  
+  
   
 
 // tableData를 JSON 형태로 변환하는 함수
