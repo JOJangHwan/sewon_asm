@@ -136,19 +136,22 @@ const SignupForm = () => {
     setErrorMessage('');
     //setIsAlertOpen(true);
 
-    const userData = {
-      id,
-      password,
-      name,
-      company,
-      department
-    };
+const userData = {
+  username: id,            // ✅ 'id' → 'username'
+  password,
+  name,
+  corporation: company,    // ✅ 'company' → 'corporation'
+  department,
+  role: 1                  // ✅ 'role' 필드 추가
+};
+
 
     // JSON 데이터 콘솔 출력
     console.log("Sending data:", JSON.stringify(userData));  // JSON 데이터 확인용
 
     try {
-      const response = await fetch('http://localhost:8080/api/register', {
+      const response = await fetch('http://localhost:8080/account/register', {
+
         method: 'POST',
         headers: {
           'Content-Type': 'application/json', // JSON 형식으로 데이터를 보냄
@@ -158,7 +161,7 @@ const SignupForm = () => {
   
       const data = await response.json();
   
-      if (data === 1) { // 성공 시 1 반환
+      if (data.code === 1) { // 성공 시 1 반환
         setIsAlertOpen(true);  // 회원가입 완료 후 모달 띄우기
       } else if (data === 0) { // 실패 시 0 반환
         setErrorMessage('❌ 회원가입 실패: 서버에서 실패 처리');

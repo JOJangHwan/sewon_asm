@@ -213,13 +213,19 @@ const AssetRegister = () => {
   
     const appendSeconds = (dt) => (dt && dt.length === 16 ? dt + ':00' : dt);
     const statusMap = { '사용': 0, '미사용': 1 };
-    const formatted = {
-      ...formData,
-      acquisitionDate: appendSeconds(formData.acquisitionDate),
-      rentalDate: appendSeconds(formData.rentalDate),
-      assetStatus: statusMap[formData.assetStatus],
-    };
+  const formatted = {
+  ...formData,
+  division: 0, // 구매 자산 하드코딩
+  acquisitionDate: appendSeconds(formData.acquisitionDate),
+  rentalDate: appendSeconds(formData.rentalDate),
+  assetStatus: statusMap[formData.assetStatus],
+};
     const { storageList, ...dataToSend } = formatted;
+
+    if (formData.item === '노트북' || formData.item === '컴퓨터') {
+  dataToSend.ram = dataToSend.memory;
+  delete dataToSend.memory;
+}
   
     const isElectronic = ['노트북', '컴퓨터'].includes(formData.item);
     // const url = isElectronic
@@ -239,7 +245,7 @@ const AssetRegister = () => {
   
       const result = await res.json();
   
-      if (result && result.code === 200) {
+      if (result && result.code === 1) {
         const barcodeValue = result.data;
         alert(`✅ 등록 완료! 바코드: ${barcodeValue}`);
       
