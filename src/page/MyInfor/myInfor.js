@@ -180,98 +180,116 @@ export default function MyInfoPage() {
     const printWindow = window.open('', '_blank', 'width=900,height=700');
     if (!printWindow) return alert('팝업 차단을 해제해주세요.');
 
- printWindow.document.write(`
-    <html>
-      <head>
-        <title>라벨 인쇄</title>
-        <style>
-          @page {
-            size: A4;
-            margin: 0;
-          }
-
-          .label-print-wrapper {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            padding: 0;
-            margin: 0;
-          }
-
-.label-box {
-  width: 45mm;
-  height: 15mm;
-  display: flex;
-  align-items: center;
-  background: white;
-  page-break-after: always;
-  margin-left: 10mm;
-  margin-top: 10mm;
-  padding: 0;
-}
-
-
-.qr-section {
-  width: 13mm;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-.qr-canvas {
-  width: 11.5mm !important;
-  height: 11.5mm !important;
-}
-
-.info-section {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;  /* ← 글자와 로고 전부 왼쪽 정렬 */
-  padding-left: 1.5mm;
-}
-
-
-/* 로고를 감싸는 래퍼를 가운데 정렬 */
-.logo-wrapper {
-  width: 100%;
-  display: flex;
-  justify-content: flex-start; /* ← 왼쪽 정렬로 변경 */
-  margin-bottom: 0.3mm;
-}
-
-/* 실제 로고 이미지 */
-.logo {
-  display: block;
-  max-width: 32mm;     /* 너비는 유지 (텍스트 라인에 맞게) */
-  height: 5.5mm;       /* ✅ 기존보다 살짝 줄임 (6.5 → 5.5mm) */
-  object-fit: contain;
-  margin: 0;
-  padding: 0;
-
-}
-
-
-
-
-          .text-line {
-
-  font-size: 2.2mm;
-  font-family: 'Arial', sans-serif;
-  margin: 0;
-  padding: 0;
-  white-space: nowrap;
-  color: black;
-}
-.barcode-text {
-  font-size: 2.6mm;
-  font-weight: bold;
-}
-        </style>
-      </head>
-      <body>
-        <div id="print-root"></div>
-      </body>
-    </html>
-  `);
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>라벨 인쇄</title>
+          <style>
+            @page {
+              size: 45mm 15mm;
+              margin: 0;
+            }
+    
+            html, body {
+              width: 45mm;
+              height: 15mm;
+              margin: 0;
+              padding: 0;
+            }
+    
+  .label-print-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0;
+    margin: 0;
+    width: 45mm;
+  }
+    
+  .label-box {
+    width: 45mm;
+    height: 15mm;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    page-break-after: always;
+    box-sizing: border-box;
+  }
+    
+            .qr-section {
+              width: 13mm;
+              height: 13mm;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              margin-left: 1mm;
+            }
+    
+            .qr-canvas {
+              width: 11.5mm !important;
+              height: 11.5mm !important;
+            }
+    
+            .info-section {
+              display: flex;
+              flex-direction: column;
+              justify-content: center;
+              align-items: flex-start;
+              padding-left: 1.5mm;
+            }
+    
+            .logo-wrapper {
+              width: 100%;
+              display: flex;
+              justify-content: flex-start;
+              margin-bottom: 0.5mm;
+            }
+    
+            .logo {
+              max-width: 30mm;
+              height: 4.5mm;
+              object-fit: contain;
+            }
+    
+            .text-line {
+              font-size: 2.2mm;
+              font-family: 'Arial', sans-serif;
+              line-height: 2.6mm;
+              margin: 0;
+              padding: 0;
+              white-space: nowrap;
+              color: black;
+            }
+    
+            .barcode-text {
+              font-size: 2.6mm;
+              font-weight: bold;
+              margin-top: 0.5mm;
+            }
+          </style>
+        </head>
+        <body>
+          <div id="print-root" class="label-print-wrapper">
+            <div class="label-box">
+              <div class="qr-section">
+                <canvas class="qr-canvas"></canvas>
+              </div>
+              <div class="info-section">
+                <div class="logo-wrapper">
+                  <img src="로고URL" class="logo" />
+                </div>
+                <p class="text-line">평택공장 전산운영팀 전산실</p>
+                <p class="text-line barcode-text">200RSFFL1</p>
+                <p class="text-line">노트북</p>
+              </div>
+            </div>
+          </div>
+        </body>
+      </html>
+    `);
+    
+    
     printWindow.document.close();
   
     const interval = setInterval(() => {
