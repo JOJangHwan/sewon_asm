@@ -1,25 +1,10 @@
 
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './loadsingle.css';
 import { createRoot } from 'react-dom/client';
-import LabelPrint from '../MyInfor/LabelPrint';  // 기존과 동일하게 구성된 컴포넌트
-
-const companyData = {
-  '평택공장': {
-    '전산운영P': ['전산실', '서버실'],
-    '관리팀': ['총무실', '회의실'],
-  },
-  '우신비나': {
-    '자재팀': ['자재창고', '입출고구역'],
-    '생산팀': ['라인1', '라인2'],
-  },
-};
-
-const assetCategoryData = {
-  '가구': ['책상', '의자'],
-  '전자제품': ['노트북', '컴퓨터', '모니터'],
-};
+import LabelPrint from '../MyInfor/LabelPrint';
+import { authFetchWithRefresh } from '../../utils/authFetchWithRefresh'
 
 const convertToGB = (value, unit) => {
   const num = parseFloat(value) || 0;
@@ -58,7 +43,127 @@ const getErrorMsg = (name) => {
   return '';
 };
 
+// ✅ handleSubmit 함수 위쪽에 위치해야 함
+const openLabelPrintWindow = (asset) => {
+  const printWindow = window.open('', '_blank', 'width=900,height=700');
+  if (!printWindow) {
+    alert('팝업 차단을 해제해주세요.');
+    return;
+  }
+
+  const { company, department, location, barcode, itemName } = asset;
+  const fullLocation = `${company} ${department} ${location}`;
+  const logoUrl = 'http://localhost:3000/logo.png';
+
+  printWindow.document.write(`
+    <html>
+      <head>
+        <title>라벨 인쇄</title>
+        <style>
+          @page { size: 40mm 15mm; margin: 0; }
+          html, body {
+            width: 40mm;
+            height: 15mm;
+            margin: 0;
+            padding: 0;
+          }
+  
+          .label-print-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 0;
+            margin: 0;
+            width: 40mm;
+            height: 15mm;
+          }
+  
+          .label-box {
+            width: 40mm;
+            height: 15mm;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            box-sizing: border-box;
+          }
+  
+          .qr-section {
+            width: 11mm;
+            height: 11mm;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-left: 1mm;
+          }
+  
+          .qr-canvas {
+            width: 10.5mm !important;
+            height: 10.5mm !important;
+          }
+  
+          .info-section {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding-left: 1mm;
+          }
+  
+          .logo-wrapper {
+            display: flex;
+            justify-content: flex-start;
+            margin-bottom: 0.5mm;
+          }
+  
+          .logo {
+            max-width: 24mm;
+            height: 4mm;
+            object-fit: contain;
+          }
+  
+          .text-line {
+            font-size: 1.8mm;
+            font-family: 'Arial', sans-serif;
+            line-height: 2.2mm;
+            margin: 0;
+            padding: 0;
+            white-space: nowrap;
+            color: black;
+          }
+  
+          .barcode-text {
+            font-size: 2.2mm;
+            font-weight: bold;
+          }
+        </style>
+        <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+      </head>
+      <body onload="QRCode.toCanvas(document.getElementById('qr-canvas'), '${barcode}', { width: 100, margin: 0 }); window.print(); setTimeout(() => window.close(), 300);">
+        <div class="label-print-wrapper">
+          <div class="label-box">
+            <div class="qr-section">
+              <canvas id="qr-canvas" class="qr-canvas"></canvas>
+            </div>
+            <div class="info-section">
+              <div class="logo-wrapper">
+                <img src="${logoUrl}" class="logo" />
+              </div>
+              <p class="text-line">${fullLocation}</p>
+              <p class="text-line barcode-text">${barcode}</p>
+              <p class="text-line">${itemName}</p>
+            </div>
+          </div>
+        </div>
+      </body>
+    </html>
+  `);
+  
+
+  printWindow.document.close();
+};
+
+
 const AssetRegister = () => {
+  
   const [formData, setFormData] = useState({
     company: '',
     department: '',
@@ -80,7 +185,65 @@ const AssetRegister = () => {
     totalStorage: '',
   });
   const [errors, setErrors] = useState({});
+  const [companyList, setCompanyList] = useState([]);
+  const [companyMap, setCompanyMap] = useState({}); // ✅ 여기에 추가
+  const [companyData, setCompanyData] = useState({});
+  const [assetCategoryData, setAssetCategoryData] = useState({});
+  useEffect(() => {
+    const fetchCorporation = async () => {
+      try {
+        const res = await authFetchWithRefresh('http://192.168.0.220:8888/corporations');
+        const result = await res.json();
+  
+        if (result.code === 1 && result.data?.corporationList) {
+          const nestedData = {};
+          const names = [];
+  
+          result.data.corporationList.forEach(corp => {
+            const corpName = corp.name;
+            names.push(corpName); // 회사명 수집
+            nestedData[corpName] = {};
+            corp.affiliationList.forEach(aff => {
+              nestedData[corpName][aff.department] =
+                aff.locations.map(loc => loc.location);
+            });
+          });
+  
+          setCompanyData(nestedData);
+          setCompanyList(names); // ✅ 회사명 리스트 저장
+        } else {
+          alert(result.message || '법인 정보 조회 실패');
+        }
+              // 자산 유형 계층 정보 가져오기
+              const typeRes = await authFetchWithRefresh('http://192.168.0.220:8888/asset-types/hierarchy');
+              const typeResult = await typeRes.json();
+              
+              if (typeResult.code === 1 && typeResult.data?.parentList) {
+                const nestedAssetType = {};
+                console.log('자산 분류 데이터:', nestedAssetType);
+                typeResult.data.parentList.forEach(parent => {
+                  const parentName = parent.name;
+                  const children = Array.isArray(parent.childList) ? parent.childList : [];
+                  nestedAssetType[parentName] = children.map(child => child.name);
+                });
+                setAssetCategoryData(nestedAssetType);
+              } else {
+                alert(typeResult.message || '자산 유형 정보 조회 실패');
+              }
 
+
+
+
+
+    } catch (err) {
+      console.error('초기 데이터 조회 실패:', err);
+      alert('초기 데이터를 불러오지 못했습니다.');
+    }
+  };
+  
+    fetchCorporation();
+  }, []);
+  
   const handleChange = (e, idx = null) => {
     const { name, value } = e.target;
     if (errors[name]) {
@@ -126,64 +289,12 @@ const AssetRegister = () => {
     }
   };
 
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-  //   const newErrors = {};
-
-  //   const required = [
-  //     'company', 'department', 'location', 'acquisitionType',
-  //     'assetCategory', 'item', 'manufacturer', 'model',
-  //     'acquisitionDate', 'acquisitionCost'
-  //   ];
-
-  //   required.forEach((field) => {
-  //     if (!formData[field]) newErrors[field] = getErrorMsg(field);
-  //   });
-
-  //   if (formData.item === '노트북' || formData.item === '컴퓨터') {
-  //     ['cpu', 'memory', 'gpu'].forEach((f) => {
-  //       if (!formData[f]) newErrors[f] = getErrorMsg(f);
-  //     });
-  //     if (!formData.totalStorage) {
-  //       newErrors.totalStorage = getErrorMsg('totalStorage');
-  //     }
-  //   }
-
-  //   if (Object.keys(newErrors).length) {
-  //     alert('빈칸을 모두 입력해주세요.');
-  //     setErrors(newErrors);
-  //     return;
-  //   }
-  //   setErrors({});
-
-  //   const appendSeconds = (dt) => (dt && dt.length === 16 ? dt + ':00' : dt);
-  //   const statusMap = { '사용': 0, '미사용': 1 };
-  //   const formatted = {
-  //     ...formData,
-  //     acquisitionDate: appendSeconds(formData.acquisitionDate),
-  //     rentalDate: appendSeconds(formData.rentalDate),
-  //     assetStatus: statusMap[formData.assetStatus],
-  //   };
-  //   const { storageList, ...dataToSend } = formatted;
-
-  //   try {
-  //     const res = await fetch('http://localhost:8080/api/asset/register', {
-  //       method: 'POST',
-  //       headers: { 'Content-Type': 'application/json' },
-  //       body: JSON.stringify(dataToSend),
-  //     });
-  //     const result = await res.json();
-  //     if (result === 1) alert('등록이 완료되었습니다!');
-  //     else alert('❌ 등록 실패');
-  //   } catch (err) {
-  //     alert('🚨 서버 연결 실패');
-  //     console.error(err);
-  //   }
-  // };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = {};
+
+    
   
     const required = [
       'company', 'department', 'location', 'acquisitionType',
@@ -213,184 +324,108 @@ const AssetRegister = () => {
   
     const appendSeconds = (dt) => (dt && dt.length === 16 ? dt + ':00' : dt);
     const statusMap = { '사용': 0, '미사용': 1 };
+    const divisionMap = {
+      '구매자산(자산)': 0,
+      '대여자산(비품)': 1
+    };
+    
   const formatted = {
   ...formData,
-  division: 0, // 구매 자산 하드코딩
+  division: divisionMap[formData.acquisitionType],
   acquisitionDate: appendSeconds(formData.acquisitionDate),
   rentalDate: appendSeconds(formData.rentalDate),
   assetStatus: statusMap[formData.assetStatus],
 };
-    const { storageList, ...dataToSend } = formatted;
 
-    if (formData.item === '노트북' || formData.item === '컴퓨터') {
-  dataToSend.ram = dataToSend.memory;
-  delete dataToSend.memory;
-}
   
     const isElectronic = ['노트북', '컴퓨터'].includes(formData.item);
-    // const url = isElectronic
-    // ? 'http://192.168.0.220:8888/api/asset/electronic'
-    // : 'http://192.168.0.220:8888/api/asset';
+
     const url = isElectronic
   ? 'http://192.168.0.220:8888/assets/electronic'
   : 'http://192.168.0.220:8888/assets';
 
-  
-    try {
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(dataToSend),
-      });
-  
-      const result = await res.json();
-  
-      if (result && result.code === 1) {
-        const barcodeValue = result.data;
-        alert(`✅ 등록 완료! 바코드: ${barcodeValue}`);
-      
-        const asset = {
-          barcode: barcodeValue,
-          company: formData.company,
-          department: formData.department,
-          location: formData.location,
-          acquisitionType: formData.acquisitionType,
-          assetCategory: formData.assetCategory,
-          itemName: formData.item,
-          assetStatus: formData.assetStatus === 0 ? '사용' : '미사용',
-          manufacturer: formData.manufacturer,
-          model: formData.model,
-          acquisitionDate: formData.acquisitionDate.split('T')[0],
-          acquisitionPrice: Number(formData.acquisitionCost).toLocaleString(),
-        };
-      
-        openLabelPrintWindow(asset);  // ⬅️ 여기에서 라벨 프린트
-        window.location.reload();
-      } else {
-        alert('❌ 등록 실패');
-      }
-      
-    } catch (err) {
-      alert('🚨 서버 연결 실패');
-      console.error(err);
-    }
+  const dataToSend = isElectronic ? {
+    corporation: formData.company,
+    department: formData.department,
+    location: formData.location,
+    division: 0,
+    parentType: formData.assetCategory,
+    childType: formData.item,
+    status: formData.assetStatus === '사용' ? 0 : 1,
+    manufacturer: formData.manufacturer,
+    model: formData.model,
+    acquisitionDate: appendSeconds(formData.acquisitionDate),
+    acquisitionPrice: Number(formData.acquisitionCost),
+    cpu: formData.cpu,
+    gpu: formData.gpu,
+    ram: Number(formData.memory),
+    storage: Number(formData.totalStorage),
+  } : {
+    corporation: formData.company,
+    department: formData.department,
+    location: formData.location,
+    division: 0,
+    parentType: formData.assetCategory,
+    childType: formData.item,
+    status: formData.assetStatus === '사용' ? 0 : 1,
+    manufacturer: formData.manufacturer,
+    model: formData.model,
+    acquisitionDate: appendSeconds(formData.acquisitionDate),
+    acquisitionPrice: Number(formData.acquisitionCost),
   };
 
-  const openLabelPrintWindow = (asset) => {
-    const printWindow = window.open('', '_blank', 'width=900,height=700');
-    if (!printWindow) return alert('팝업 차단을 해제해주세요.');
   
-    printWindow.document.write(`
-      <html>
-        <head>
-          <title>라벨 인쇄</title>
-          <style>
-            @page {
-              size: A4;
-              margin: 0;
-            }
-    
-            body {
-              margin: 0;
-              padding: 0;
-            }
-    
-            .label-print-wrapper {
-              display: flex;
-              flex-direction: column;
-              align-items: flex-start;
-              padding: 0;
-              margin: 0;
-            }
-    
-            .label-box {
-              width: 45mm;
-              height: 15mm;
-              display: flex;
-              align-items: center;
-              background: white;
-              page-break-after: always;
-              margin-left: 10mm;
-              margin-top: 10mm;
-              padding: 0;
-            }
-    
-            .qr-section {
-              width: 13mm;
-              display: flex;
-              justify-content: center;
-              align-items: center;
-            }
-    
-            .qr-canvas {
-              width: 11.5mm !important;
-              height: 11.5mm !important;
-            }
-    
-            .info-section {
-              display: flex;
-              flex-direction: column;
-              align-items: flex-start;
-              padding-left: 1.5mm;
-            }
-    
-            .logo-wrapper {
-              width: 100%;
-              display: flex;
-              justify-content: flex-start;
-              margin-bottom: 0.3mm;
-            }
-    
-            .logo {
-              display: block;
-              max-width: 32mm;
-              height: 5.5mm;
-              object-fit: contain;
-              margin: 0;
-              padding: 0;
-            }
-    
-            .text-line {
-              font-size: 2.2mm;
-              font-family: 'Arial', sans-serif;
-              margin: 0;
-              padding: 0;
-              white-space: nowrap;
-              color: black;
-            }
-    
-            .barcode-text {
-              font-size: 2.6mm;
-              font-weight: bold;
-            }
-          </style>
-        </head>
-        <body>
-          <div id="print-root"></div>
-        </body>
-      </html>
-    `);
-    printWindow.document.close();
+  try {
+    const res = await authFetchWithRefresh(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(dataToSend),
+    });
+
+    const result = await res.json();
+
+    if (result.code === 1) {
+      const barcodeValue = result.data;
+      alert(`✅ 등록 완료! 바코드: ${barcodeValue}`);
+
+      const asset = {
+        barcode: barcodeValue,
+        company: formData.company,
+        department: formData.department,
+        location: formData.location,
+        acquisitionType: formData.acquisitionType,
+        assetCategory: formData.assetCategory,
+        itemName: formData.item,
+        assetStatus: formData.assetStatus,
+        manufacturer: formData.manufacturer,
+        model: formData.model,
+        acquisitionDate: formData.acquisitionDate.split('T')[0],
+        acquisitionPrice: Number(formData.acquisitionCost).toLocaleString(),
+      };
+
+      openLabelPrintWindow(asset);
+      window.location.reload();
+      
+       // ✅ 인쇄창 생성 및 React 라벨 출력
+
+       
+      
   
-    const checkInterval = setInterval(() => {
-      const container = printWindow.document.getElementById('print-root');
-      if (container) {
-        clearInterval(checkInterval);
-        const root = createRoot(container);
-        root.render(
-          <LabelPrint
-            selectedAssets={[asset]}  // 배열로 전달
-            onAllImagesLoaded={() => {
-              printWindow.focus();
-              printWindow.print();
-              printWindow.close();
-            }}
-          />
-        );
-      }
-    }, 100);
-  };
-  
+      //openLabelPrintWindow([asset]);
+
+      window.location.reload();
+    } else {
+      alert(`❌ 등록 실패: ${result.message || '서버 오류'}`);
+    }
+  } catch (err) {
+    alert('🚨 서버 연결 실패');
+    console.error(err);
+  }
+};
+
+
   
   
   
@@ -403,35 +438,58 @@ const AssetRegister = () => {
         <div className="form-row">
           <label>회사구분</label>
           <select name="company" value={formData.company} onChange={handleChange}>
-            <option value="">선택</option>
-            {Object.keys(companyData).map((c) => (
-              <option key={c} value={c}>{c}</option>
-            ))}
-          </select>
+  <option value="">선택</option>
+  {companyList.map((corp) => (
+    <option key={corp} value={corp}>{corp}</option>
+  ))}
+</select>
           {errors.company && (<div style={{ color: 'red', fontSize: '12px' }}>{errors.company}</div>)}
         </div>
-        {/* 부서구분 */}
-        <div className="form-row">
-          <label>부서구분</label>
-          <select name="department" value={formData.department} onChange={handleChange}>
-            <option value="">선택</option>
-            {formData.company && Object.keys(companyData[formData.company]).map((d) => (
-              <option key={d} value={d}>{d}</option>
-            ))}
-          </select>
-          {errors.department && (<div style={{ color: 'red', fontSize: '12px' }}>{errors.department}</div>)}
-        </div>
-        {/* 세부위치 */}
-        <div className="form-row">
-          <label>세부위치</label>
-          <select name="location" value={formData.location} onChange={handleChange}>
-            <option value="">선택</option>
-            {formData.company && formData.department && companyData[formData.company][formData.department].map((l) => (
-              <option key={l} value={l}>{l}</option>
-            ))}
-          </select>
-          {errors.location && (<div style={{ color: 'red', fontSize: '12px' }}>{errors.location}</div>)}
-        </div>
+{/* 부서구분 */}
+<div className="form-row">
+  <label>부서구분</label>
+  <select
+    name="department"
+    value={formData.department}
+    onChange={handleChange}
+    disabled={!formData.company}
+  >
+    <option value="">선택</option>
+    {formData.company &&
+      Object.keys(companyData[formData.company] || {}).map((dept) => (
+        <option key={dept} value={dept}>
+          {dept}
+        </option>
+      ))}
+  </select>
+  {errors.department && (
+    <div style={{ color: 'red', fontSize: '12px' }}>{errors.department}</div>
+  )}
+</div>
+
+{/* 세부위치 */}
+<div className="form-row">
+  <label>세부위치</label>
+  <select
+    name="location"
+    value={formData.location}
+    onChange={handleChange}
+    disabled={!formData.company || !formData.department}
+  >
+    <option value="">선택</option>
+    {formData.company &&
+      formData.department &&
+      companyData[formData.company]?.[formData.department]?.map((loc) => (
+        <option key={loc} value={loc}>
+          {loc}
+        </option>
+      ))}
+  </select>
+  {errors.location && (
+    <div style={{ color: 'red', fontSize: '12px' }}>{errors.location}</div>
+  )}
+</div>
+
         {/* 취득구분 */}
         <div className="form-row">
           <label>취득구분</label>
@@ -441,28 +499,44 @@ const AssetRegister = () => {
           </select>
           {errors.acquisitionType && (<div style={{ color: 'red', fontSize: '12px' }}>{errors.acquisitionType}</div>)}
         </div>
-        {/* 자산분류 */}
-        <div className="form-row">
-          <label>자산분류</label>
-          <select name="assetCategory" value={formData.assetCategory} onChange={handleChange}>
-            <option value="">선택</option>
-            {Object.keys(assetCategoryData).map((cat) => (
-              <option key={cat} value={cat}>{cat}</option>
-            ))}
-          </select>
-          {errors.assetCategory && (<div style={{ color: 'red', fontSize: '12px' }}>{errors.assetCategory}</div>)}
-        </div>
-        {/* 품목 */}
-        <div className="form-row">
-          <label>품목</label>
-          <select name="item" value={formData.item} onChange={handleChange}>
-            <option value="">선택</option>
-            {formData.assetCategory && assetCategoryData[formData.assetCategory].map((it) => (
-              <option key={it} value={it}>{it}</option>
-            ))}
-          </select>
-          {errors.item && (<div style={{ color: 'red', fontSize: '12px' }}>{errors.item}</div>)}
-        </div>
+{/* 자산분류 */}
+<div className="form-row">
+  <label>자산분류</label>
+  <select
+    name="assetCategory"
+    value={formData.assetCategory}
+    onChange={handleChange}
+  >
+    <option value="">선택</option>
+    {Object.keys(assetCategoryData).map(parent => (
+      <option key={parent} value={parent}>{parent}</option>
+    ))}
+  </select>
+  {errors.assetCategory && (
+    <div style={{ color: 'red', fontSize: '12px' }}>{errors.assetCategory}</div>
+  )}
+</div>
+
+{/* 품목 */}
+<div className="form-row">
+  <label>품목</label>
+  <select
+    name="item"
+    value={formData.item}
+    onChange={handleChange}
+    disabled={!formData.assetCategory}
+  >
+    <option value="">선택</option>
+    {
+      assetCategoryData[formData.assetCategory]?.map((child) => (
+        <option key={child} value={child}>{child}</option>
+      ))
+    }
+  </select>
+  {errors.item && (
+    <div style={{ color: 'red', fontSize: '12px' }}>{errors.item}</div>
+  )}
+</div>
         {/* 노트북/컴퓨터일 때 PC스펙 입력 */}
         {(formData.item === '노트북' || formData.item === '컴퓨터') && (
           <>

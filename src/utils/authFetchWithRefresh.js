@@ -16,7 +16,7 @@ export const authFetchWithRefresh = async (url, options = {}) => {
 
   // 만료된 경우 재발급 시도
   if (response.status === 401 || response.status === 403) {
-    const refreshRes = await fetch('http://localhost:8080/account/auth/token-refresh', {
+    const refreshRes = await fetch('http://192.168.0.220:8888/account/auth/token-refresh', {
       method: 'POST',
       headers: {
         'Authorization-a': accessToken,
@@ -43,7 +43,15 @@ export const authFetchWithRefresh = async (url, options = {}) => {
       // ❌ 갱신 실패 → 로그아웃 처리
       clearTokens();
       window.location.href = '/';
+      return; // 추가
     }
+  }
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    const error = new Error(errorData.message || '요청 실패');
+    error.response = { status: response.status, data: errorData };
+    throw error;
   }
 
   return response;

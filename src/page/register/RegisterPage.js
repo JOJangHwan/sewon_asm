@@ -5,28 +5,37 @@ import AlertModal from '../../components/common/AlertModal.js';
 import './Register.css';
 
 // 회사 및 부서 데이터
-const companyData = {
-  경영기획팀: ['회계', '감사인사', '원가', '전산운영'],
-  관리팀: ['노무총무', '품질보증'],
-  기술개발팀: ['기술', '개발'],
-  생산운영팀: ['생산관리', '영업'],
-  경산공장: [],
-  우신에너지: ['경영관리', '자재관리', '구매관리'],
-  덕주파니타: [],
-  위해풍국: [],
-  우신비나: ['1공장','2공장','3공장'],
-};
+// const companyData = {
+//   경영기획팀: ['회계', '감사인사', '원가', '전산운영'],
+//   관리팀: ['노무총무', '품질보증'],
+//   기술개발팀: ['기술', '개발'],
+//   생산운영팀: ['생산관리', '영업'],
+//   경산공장: [],
+//   우신에너지: ['경영관리', '자재관리', '구매관리'],
+//   덕주파니타: [],
+//   위해풍국: [],
+//   우신비나: ['1공장','2공장','3공장'],
+// };
+
+
+
+
+
 
 const SignupForm = () => {
   const navigate = useNavigate();
+
+  const [corporationMap, setCorporationMap] = useState({});
+const [company, setCompany] = useState('');
+const [department, setDepartment] = useState('');
 
   // 입력값 상태 관리
   const [id, setId] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [name, setName] = useState('');
-  const [company, setCompany] = useState('');
-  const [department, setDepartment] = useState('');
+  //const [company, setCompany] = useState('');
+  //const [department, setDepartment] = useState('');
 
   // 유효성 검사 결과 상태
   const [idCheck, setidCheck] = useState(false);
@@ -150,7 +159,7 @@ const userData = {
     console.log("Sending data:", JSON.stringify(userData));  // JSON 데이터 확인용
 
     try {
-      const response = await fetch('http://localhost:8080/account/register', {
+      const response = await fetch('http://192.168.0.220:8888/account/register', {
 
         method: 'POST',
         headers: {
@@ -166,11 +175,13 @@ const userData = {
       } else if (data === 0) { // 실패 시 0 반환
         setErrorMessage('❌ 회원가입 실패: 서버에서 실패 처리');
       } else {
-        setErrorMessage('오류가 발생했습니다. 담당자한테 문의하세요');
+        console.error('❌ 서버 실패 메시지:', data.message); // ← 콘솔에 출력
+        setErrorMessage(data.message || '❌ 회원가입 실패: 알 수 없는 오류');
       }
     } catch (error) {
-      setErrorMessage('🚨 서버와의 연결에 실패했습니다.');
+      setErrorMessage(error?.message || '🚨 서버와의 연결에 실패했습니다.');
       console.error('Error:', error);
+
     }
 
     
@@ -181,11 +192,43 @@ const userData = {
 
   // 에러메세지 3초 후 자동 제거
   useEffect(() => {
+    // ✅ 기존 타이머 제거 로직
     if (errorMessage) {
       const timer = setTimeout(() => setErrorMessage(''), 3000);
       return () => clearTimeout(timer);
     }
-  }, [errorMessage]);
+  
+    // ✅ 🔽 추가: 법인 목록 불러오기
+    const fetchCorporations = async () => {
+      try {
+        const res = await fetch('http://192.168.0.220:8888/corporations', {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+          },
+        });
+        const result = await res.json();
+  
+        if (result.code === 1 && result.data?.corporationList) {
+          const newMap = {};
+          result.data.corporationList.forEach((corp) => {
+            const companyName = corp.name;
+            const departments = corp.affiliationList.map((aff) => aff.department);
+            newMap[companyName] = departments;
+          });
+          setCorporationMap(newMap);
+        } else {
+          console.error('법인 응답 오류:', result);
+          setErrorMessage(result.message || '❌ 알 수 없는 오류가 발생했습니다.');
+        }
+      } catch (err) {
+        console.error('법인 조회 실패:', err);
+        setErrorMessage(err?.message || '🚨 서버 요청 중 오류가 발생했습니다.');
+      }
+    };
+  
+    fetchCorporations();
+  }, [errorMessage]);  // ← 기존과 동일한 dependency 유지
+  
 
   return (
     <div className="from_wrap">
@@ -214,22 +257,40 @@ const userData = {
         {nameMessage && <p style={{ color: nameCheck ? 'green' : 'red' }}>{nameMessage}</p>}
 
         {/* 회사 선택 */}
-        <label htmlFor="company">회사구분:</label>
+        {/* <label htmlFor="company">회사구분:</label>
         <select id="company" value={company} onChange={(e) => { setCompany(e.target.value); setDepartment(''); }} className="input-field__input">
           <option value="">회사 선택</option>
           {Object.keys(companyData).map((comp) => (
             <option key={comp} value={comp}>{comp}</option>
           ))}
-        </select>
+        </select> */}
+
+<label htmlFor="company">회사구분:</label>
+<select id="company" value={company} onChange={(e) => {
+  setCompany(e.target.value);
+  setDepartment('');
+}} className="input-field__input">
+  <option value="">회사 선택</option>
+  {Object.keys(corporationMap).map((corp) => (
+    <option key={corp} value={corp}>{corp}</option>
+  ))}
+</select>
 
         {/* 부서 선택 */}
-        <label htmlFor="department">부서구분:</label>
+        {/* <label htmlFor="department">부서구분:</label>
         <select id="department" value={department} onChange={(e) => setDepartment(e.target.value)} disabled={!company} className="input-field__input">
           <option value="">부서 선택</option>
           {company && companyData[company].map((dept) => (
             <option key={dept} value={dept}>{dept}</option>
           ))}
-        </select>
+        </select> */}
+        <label htmlFor="department">부서구분:</label>
+<select id="department" value={department} onChange={(e) => setDepartment(e.target.value)} disabled={!company} className="input-field__input">
+  <option value="">부서 선택</option>
+  {company && corporationMap[company]?.map((dept) => (
+    <option key={dept} value={dept}>{dept}</option>
+  ))}
+</select>
 
         {/* 에러메세지 출력 */}
         {errorMessage && <p className="error-message">{errorMessage}</p>}
