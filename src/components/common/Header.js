@@ -8,6 +8,8 @@ import logoImg from '../../assets/img/sewon.jpg';
 function Header({ toggleSidebar, isSidebarOpen }) {
   const [isAlarmOpen, setIsAlarmOpen] = useState(false);
   const [showUnreadOnly, setShowUnreadOnly] = useState(false);
+  const [name, setName] = useState('');
+  const [department, setDepartment] = useState('');
   const [notifications, setNotifications] = useState([
     { id: 1, text: '[공지] 서버 점검 예정', read: false, time: '2024-04-22 10:30' },
     { id: 2, text: '[알림] 신규 자산 등록됨', read: false, time: '2024-04-22 11:00' },
@@ -25,10 +27,18 @@ function Header({ toggleSidebar, isSidebarOpen }) {
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
+  
+    // ✅ 여기 먼저 실행되게 해야 함!
+    const savedUsername = localStorage.getItem('name');
+    const savedDepartment = localStorage.getItem('department');
+    if (savedUsername) setName(savedUsername);
+    if (savedDepartment) setDepartment(savedDepartment);
+  
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+  
 
   const toggleAlarm = () => setIsAlarmOpen(prev => !prev);
 
@@ -131,19 +141,19 @@ function Header({ toggleSidebar, isSidebarOpen }) {
           </div>
         )}
 
-        <div className="header-user">
-          <div className="user-name">이름: 홍길동</div>
-          <div className="user-dept">소속: 전산운영팀</div>
-          <button
-            className="logout-button"
-            onClick={() => {
-              // 로그인 세션 초기화 등 필요 시 여기 추가
-              window.location.href = '/';
-            }}
-          >
-            로그아웃
-          </button>
-        </div>
+<div className="header-user">
+  <div className="user-name">이름: {name || '로그인을 하시오'}</div>
+  <div className="user-dept">소속: {department || '로그인을 하시오'}</div>
+  <button
+    className="logout-button"
+    onClick={() => {
+      localStorage.clear(); // 로그아웃 시 정보 삭제
+      window.location.href = '/';
+    }}
+  >
+    로그아웃
+  </button>
+</div>
       </div>
     </header>
   );

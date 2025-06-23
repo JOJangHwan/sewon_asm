@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import "./Search.css";
+import { authFetchWithRefresh } from "../../utils/authFetchWithRefresh";  // 인증 포함 fetch 함수 사용
 
 export default function Search() {
   const [companyData, setCompanyData] = useState({});
@@ -18,25 +19,145 @@ export default function Search() {
   const [sortField, setSortField] = useState("");
   const [sortOrder, setSortOrder] = useState("asc");
   const [viewCount, setViewCount] = useState(30);
+    const [companyList, setCompanyList] = useState([]);
+    const [companyIdMap, setCompanyIdMap] = useState({});  // ✅ ID 매핑용
+
+    const [parentTypeId, setParentTypeId] = useState(null);  // 자산 분류 ID
+    const [assetCategoryMap, setAssetCategoryMap] = useState({});
+
+    const [childTypeId, setChildTypeId] = useState(null);    // ✅ 이 줄 추가!
+
+    
+
+
+    const [corporationId, setCorporationId] = useState(null);
+const [affiliationId, setAffiliationId] = useState(null);
+const [locationId, setLocationId] = useState(null);
 
   useEffect(() => {
-    const fetchLookups = async () => {
+    const fetchCorporation = async () => {
       try {
-        const res1 = await fetch("http://localhost:8080/api/lookups/companies");
-        const company = await res1.json();
-        setCompanyData(company);
+        const res = await authFetchWithRefresh('http://192.168.0.220:8888/corporations');
+        const result = await res.json();
+    
+        console.log("📦 corporations API 응답 전체 (JSON 형태):");//자산 찍는 부분분
+        //console.log(JSON.stringify(result, null, 2));
+    
+        if (result.code === 1 && result.data?.corporationList) {
+          const nestedData = {};      // UI용: {회사명: {부서명: [위치명]}}
+          const idMap = {};           // ID 추적용: {회사명: {id, departments: {...}}}
+          const names = [];
+    
+          result.data.corporationList.forEach(corp => {
+            const corpName = corp.name;
+            const corpId = corp.corporationId;
+            names.push(corpName);
+    
+            nestedData[corpName] = {};
+            idMap[corpName] = {
+              id: corpId,
+              departments: {},
+            };
+    
+            corp.affiliationList.forEach(aff => {
+              const deptName = aff.department;
+              const deptId = aff.affiliationId;  // ✅ 수정
+              const locationList = aff.locations.map(loc => loc.location);
+              const locationMap = {};
+    
+              aff.locations.forEach(loc => {
+                //locationMap[loc.location] = loc.id;
+                locationMap[loc.location] = loc.locationId;  // ✅ 수정
+              });
+    
+              nestedData[corpName][deptName] = locationList;
+              idMap[corpName].departments[deptName] = {
+                id: deptId,
+                locations: locationMap,
+              };
+            });
+          });
+  
+          setCompanyData(nestedData);
+          setCompanyList(names); // ✅ 회사명 리스트 저장
+          setCompanyIdMap(idMap);  // ✅ ID 매핑까지 저장
+        } else {
+          alert(result.message || '법인 정보 조회 실패');
+        }
+              // 자산 유형 계층 정보 가져오기
+              const typeRes = await authFetchWithRefresh('http://192.168.0.220:8888/asset-types/hierarchy');
+              const typeResult = await typeRes.json();
 
-        const res2 = await fetch("http://localhost:8080/api/lookups/categories");
-        const category = await res2.json();
-        setAssetCategoryData(category);
-      } catch (err) {
-        console.error("lookup 불러오기 실패", err);
-      }
-    };
-    fetchLookups();
+              //console.log("📦 부서 API 응답 전체 (JSON 형태):");
+             // console.log(JSON.stringify(typeResult, null, 2));
+              
+              if (typeResult.code === 1 && typeResult.data?.parentList) {
+                const nestedAssetType = {};
+                const typeIdMap = {};
+                console.log('자산 분류 데이터:', nestedAssetType);
+                typeResult.data.parentList.forEach(parent => {
+                  const parentName = parent.name;
+                  const parentId = parent.parentId;
+
+                  const children = Array.isArray(parent.childList) ? parent.childList : [];
+                  nestedAssetType[parentName] = children.map(child => child.name);
+                  typeIdMap[parentName] = {
+                    id: parentId,
+                    children: {},
+                  };
+
+                  
+                  children.forEach(child => {
+                    typeIdMap[parentName].children[child.name] = child.childId;
+                  });
+
+                });
+                setAssetCategoryData(nestedAssetType);
+                setAssetCategoryMap(typeIdMap); // ✅ ID map 저장
+              } else {
+                alert(typeResult.message || '자산 유형 정보 조회 실패');
+              }
+
+
+
+
+
+    } catch (err) {
+      console.error('초기 데이터 조회 실패:', err);
+      alert('초기 데이터를 불러오지 못했습니다.');
+    }
+  };
+  
+    fetchCorporation();
   }, []);
 
-  useEffect(() => { setDepartment(""); setLocation(""); }, [company]);
+
+
+  // useEffect(() => {
+  //   const fetchLookups = async () => {
+  //     try {
+  //       const res1 = await fetch("http://localhost:8080/api/lookups/companies");
+  //       const company = await res1.json();
+  //       setCompanyData(company);
+
+  //       const res2 = await fetch("http://localhost:8080/api/lookups/categories");
+  //       const category = await res2.json();
+  //       setAssetCategoryData(category);
+  //     } catch (err) {
+  //       console.error("lookup 불러오기 실패", err);
+  //     }
+  //   };
+  //   fetchLookups();
+  // }, []);
+
+  useEffect(() => {
+    if (company) {
+      const deptKeys = Object.keys(companyIdMap[company]?.departments || {});
+      if (deptKeys.length === 0) {
+        console.warn("⚠️ 회사에 연결된 부서가 없습니다:", company);
+      }
+    }
+  }, [company]);
   useEffect(() => { setLocation(""); }, [department]);
   useEffect(() => { setItemName(""); }, [assetCategory]);
 
@@ -49,31 +170,79 @@ export default function Search() {
       let result = [];
   
       if (barcode.trim()) {
-        const res = await fetch(`http://localhost:8080/api/assets/${barcode}`);
+        const res = await fetch(`http://192.168.0.220:8888/assets/${barcode}`);
         const data = await res.json();
   
-        if (data === 0 || !data) {
+        if (!data || data === 0) {
           alert("❌ 바코드 조회 실패: 데이터가 없습니다.");
           setItems([]);
           setSearched(true);
           return;
         }
   
-        result = [data]; // 1건이라도 있으면 배열로 넣기
+        result = [data];
       } else {
-        const res = await fetch("http://localhost:8080/api/assets/search", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
+        // ✅ ID가 전부 있어야 검색 가능
+        if (!corporationId || !affiliationId || !locationId) {
+          console.warn("❗ ID 누락 확인", {
             company, department, location,
-            assetCategory, itemName, startDate, endDate,
-            sortField, sortOrder,
-          }),
+            corporationId, affiliationId, locationId
+          });
+          alert("회사, 부서, 세부위치를 모두 선택해야 검색할 수 있습니다.");
+          return;
+        }
+
+        if (!locationId) {
+          console.warn("❗ 세부위치 ID 누락:", {
+            company, department, location, locationId
+          });
+          alert("세부위치를 선택해야 검색할 수 있습니다.");
+          return;
+        }
+  
+        // ✅ GET 방식 쿼리스트링 구성
+        const queryParams = new URLSearchParams();
+        queryParams.append("locationId", locationId);
+
+
+
+        if (location) queryParams.append("location", location);       // 세부위치 이름
+        //if (assetCategory) queryParams.append("parentType", assetCategory); // 자산 대분류
+        //if (itemName) queryParams.append("childType", itemName);      // 자산 중분류
+        if (parentTypeId) queryParams.append("parentTypeId", parentTypeId);
+        if (childTypeId) queryParams.append("childTypeId", childTypeId);
+        if (startDate) queryParams.append("after", startDate);        // 시작일
+        if (endDate) queryParams.append("before", endDate);           // 종료일
+        if (sortField) queryParams.append("sortField", sortField);    // 정렬 필드
+        queryParams.append("size", viewCount || 30);                  // 페이지당 개수
+  
+        const url = `http://192.168.0.220:8888/assets/paged?${queryParams.toString()}`;
+        console.log("📤 최종 전송 URL:", url);
+        console.log("📦 검색 조건 요약:", {
+          locationId,
+          parentTypeId,
+          childTypeId,
+          startDate,
+          endDate,
+          sortField,
+          sortOrder,
+          viewCount,
         });
   
-        const data = await res.json();
+        const res = await authFetchWithRefresh(url);
+        const resData = await res.json();
+
+        // ✅ 응답 전체 로그 출력
+//console.log("✅ 응답 전체:", JSON.stringify(resData, null, 2));
+
+const data = resData.data?.list || [];
+
+
+
+
+
   
-        if (data === 0 || !Array.isArray(data)) {
+        if (!Array.isArray(data) || data.length === 0) {
           alert("❌ 자산 검색 실패: 조건에 맞는 항목이 없습니다.");
           setItems([]);
           setSearched(true);
@@ -83,13 +252,14 @@ export default function Search() {
         result = data;
       }
   
-      setItems(viewCount > 0 ? result.slice(0, viewCount) : result);
+      setItems(result);
       setSearched(true);
     } catch (err) {
       console.error("❌ 검색 중 예외 발생:", err);
       alert("🚨 서버와의 연결에 실패했습니다. 담당자에게 문의하세요.");
     }
   };
+  
   
 
   const handleReset = () => {
@@ -105,26 +275,85 @@ export default function Search() {
 
       <div className="search-bar-wrapper">
         <div className="search-bar top-bar">
-          <select className="search-input" value={company} onChange={e => setCompany(e.target.value)}>
+          <select className="search-input" value={company} onChange={e => {
+  const selected = e.target.value;
+  setCompany(selected);
+  const corpId = companyIdMap[selected]?.id;
+  setCorporationId(corpId || null);
+}}>
             <option value="">회사구분</option>
             {Object.keys(companyData).map(c => <option key={c} value={c}>{c}</option>)}
           </select>
-          <select className="search-input" value={department} onChange={e => setDepartment(e.target.value)}>
+          <select className="search-input" value={department} onChange={e => {
+  const selected = e.target.value;
+  setDepartment(selected);
+
+  const companyEntry = companyIdMap[company];
+  if (companyEntry) {
+    const deptEntry = companyEntry.departments?.[selected];
+    if (deptEntry) {
+      console.log("✅ 부서 ID 찾음:", deptEntry.id);
+      setAffiliationId(deptEntry.id);
+    } else {
+      console.warn("❌ 부서 ID 찾을 수 없음");
+      setAffiliationId(null);
+    }
+  } else {
+    console.warn("❌ 회사 ID 매핑 없음:", company);
+    setAffiliationId(null);
+  }
+}}>
+
             <option value="">부서구분</option>
             {Object.keys(companyData[company] || {}).map(d => <option key={d} value={d}>{d}</option>)}
           </select>
-          <select className="search-input" value={location} onChange={e => setLocation(e.target.value)}>
-            <option value="">세부위치</option>
-            {(companyData[company]?.[department] || []).map(l => <option key={l} value={l}>{l}</option>)}
-          </select>
-          <select className="search-input" value={assetCategory} onChange={e => setAssetCategory(e.target.value)}>
-            <option value="">자산분류</option>
-            {Object.keys(assetCategoryData).map(a => <option key={a} value={a}>{a}</option>)}
-          </select>
-          <select className="search-input" value={itemName} onChange={e => setItemName(e.target.value)}>
-            <option value="">품목</option>
-            {(assetCategoryData[assetCategory] || []).map(i => <option key={i} value={i}>{i}</option>)}
-          </select>
+          <select className="search-input" value={location} onChange={e => {
+  const selected = e.target.value;
+  setLocation(selected);
+  const locId = companyIdMap[company]?.departments?.[department]?.locations?.[selected];
+  console.log("세부위치 선택:", selected, "→ ID:", locId);
+  setLocationId(locId || null);
+}}>
+  <option value="">세부위치</option>
+  {(companyData[company]?.[department] || []).map(l => (
+    <option key={l} value={l}>{l}</option>
+  ))}
+</select>
+
+
+
+
+<select
+  className="search-input"
+  value={assetCategory}
+  onChange={(e) => {
+    const selected = e.target.value;
+    setAssetCategory(selected);
+    setParentTypeId(assetCategoryMap[selected]?.id || null); // ✅ parentTypeId 설정
+    setItemName(""); // 하위 분류 초기화
+    setChildTypeId(null);
+  }}
+>
+<option value="">자산분류</option>
+  {Object.keys(assetCategoryData).map(a => (
+    <option key={a} value={a}>{a}</option>
+  ))}
+</select>
+<select
+  className="search-input"
+  value={itemName}
+  onChange={(e) => {
+    const selected = e.target.value;
+    setItemName(selected);
+    const childId = assetCategoryMap[assetCategory]?.children?.[selected] || null;
+    setChildTypeId(childId); // ✅ childTypeId 설정
+  }}
+>
+  <option value="">품목</option>
+  {(assetCategoryData[assetCategory] || []).map(i => (
+    <option key={i} value={i}>{i}</option>
+  ))}
+</select>
           <input
             type="number"
             className="search-input view-count"
@@ -166,10 +395,18 @@ export default function Search() {
             <tbody>
               {items.map((item, idx) => (
                 <tr key={idx}>
-                  <td>{item.barcode}</td><td>{item.company}</td><td>{item.department}</td><td>{item.location}</td>
-                  <td>{item.assetCategory}</td><td>{item.itemName}</td><td>{item.assetStatus}</td>
-                  <td>{item.manufacturer}</td><td>{item.model}</td><td>{item.acquisitionDate}</td>
-                  <td>{Number(item.acquisitionPrice).toLocaleString()}</td><td>{item.registrant}</td>
+                  <td>{item.barcode}</td>
+<td>{item.corporation}</td>
+<td>{item.department}</td>
+<td>{item.location}</td>
+<td>{item.parentCategory}</td>
+<td>{item.childCategory}</td>
+<td>{item.status}</td>
+<td>{item.manufacturer}</td>
+<td>{item.model}</td>
+<td>{item.acquisitionDate}</td>
+<td>{Number(item.acquisitionPrice).toLocaleString()}</td>
+<td>{item.registerName}</td>
                 </tr>
               ))}
             </tbody>

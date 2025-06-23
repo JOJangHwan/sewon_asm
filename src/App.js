@@ -23,6 +23,9 @@ import Layout from './components/layout/Layout';
 
 import './index';
 
+// 개발: process.env, Docker: window._env_ 둘 다 지원하고 싶다면
+const apiUrl = window._env_?.REACT_APP_API_URL || process.env.REACT_APP_API_URL;
+
 // 언어 설정 적용 (URL 없이 헤더 기반)
 const LanguageInitializer = ({ children }) => {
   useEffect(() => {

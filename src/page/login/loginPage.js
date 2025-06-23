@@ -167,6 +167,7 @@ function LoginPage() {
   const navigate = useNavigate();
   const { i18n, t } = useTranslation('login');
 
+  
   const [userId, setUserId] = useState('');
   const [password, setPassword] = useState('');
   const [rememberId, setRememberId] = useState(false);
@@ -202,10 +203,11 @@ function LoginPage() {
       const result = await res.json();
 
       if (result.code === 1) {
-        const { accessToken, refreshToken, id, username, department } = result.data;
+        const { accessToken, refreshToken,name, id, username, department } = result.data;
 
         // ✅ 토큰 및 사용자 정보 저장
         saveTokens({ accessToken, refreshToken });
+        localStorage.setItem('name', name);
         localStorage.setItem('userId', id);
         localStorage.setItem('username', username);
         localStorage.setItem('department', department);
