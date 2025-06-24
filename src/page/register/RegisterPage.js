@@ -19,9 +19,9 @@ import './Register.css';
 
 
 
+const API_BASE = window._env_?.REACT_APP_API_URL|| 'http://localhost:8888';
 
-
-
+console.log("환경변수확인 :", API_BASE);
 const SignupForm = () => {
   const navigate = useNavigate();
 
@@ -61,8 +61,9 @@ const [department, setDepartment] = useState('');
 
   // 아이디 유효성 검사
   const validateId = (value) => {
-    const hasLetter = /[a-zA-Z]/.test(value);
-    const hasNumber = /[0-9]/.test(value);
+    // const hasLetter = /[a-zA-Z]/.test(value);
+    // const hasNumber = /[0-9]/.test(value);
+    const hasLetterOrNumber = /^[a-zA-Z0-9]+$/.test(value);
 
     if (!value) {
       setIdMessage('아이디를 입력해주세요');
@@ -73,10 +74,10 @@ const [department, setDepartment] = useState('');
     } else if (value.length > 15) {
       setIdMessage('아이디를 15자 이하로 입력해주세요');
       setidCheck(false);
-    } else if (!(hasLetter && hasNumber)) {
-      setIdMessage('아이디에는 영문자와 숫자가 모두 포함되어야 합니다.');
-      setidCheck(false);
-    } else {
+} else if (!hasLetterOrNumber) {
+  setIdMessage('아이디는 영문자와 숫자만 사용할 수 있습니다.');
+  setidCheck(false);
+} else {
       setIdMessage('사용 가능한 아이디입니다.');
       setidCheck(true);
     }
@@ -87,8 +88,8 @@ const [department, setDepartment] = useState('');
     if (!value) {
       setPasswordLenghtMessage('비밀번호를 입력해주세요');
       setpasswordLenghtCheck(false);
-    } else if (value.length < 10) {
-      setPasswordLenghtMessage('비밀번호는 10자 이상 입력하세요');
+    } else if (value.length < 5) {
+      setPasswordLenghtMessage('비밀번호는 5자 이상 입력하세요');
       setpasswordLenghtCheck(false);
     } else if (value.length > 20) {
       setPasswordLenghtMessage('비밀번호를 20자 이내로 입력하세요');
@@ -101,7 +102,7 @@ const [department, setDepartment] = useState('');
 
   // 비밀번호와 비밀번호 확인 일치 여부 검사
   const validatePasswordMatch = (passwordValue, confirmPasswordValue) => {
-    if (passwordValue.length >= 10 && passwordValue.length <= 20 && confirmPasswordValue.length > 0) {
+    if (passwordValue.length >= 5 && passwordValue.length <= 20 && confirmPasswordValue.length > 0) {
       if (passwordValue === confirmPasswordValue) {
         setPasswordMessage('비밀번호가 일치합니다.');
         setPasswordCheck(true);
@@ -159,7 +160,8 @@ const userData = {
     console.log("Sending data:", JSON.stringify(userData));  // JSON 데이터 확인용
 
     try {
-      const response = await fetch('http://192.168.0.220:8888/account/register', {
+      // const response = await fetch('http://192.168.0.220:8888/account/register', {
+        const response = await fetch(`${API_BASE}/account/register`, {
 
         method: 'POST',
         headers: {
@@ -201,7 +203,8 @@ const userData = {
     // ✅ 🔽 추가: 법인 목록 불러오기
     const fetchCorporations = async () => {
       try {
-        const res = await fetch('http://192.168.0.220:8888/corporations', {
+        // const res = await fetch('http://192.168.0.220:8888/corporations', {
+          const res = await fetch(`${API_BASE}/corporations`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
           },

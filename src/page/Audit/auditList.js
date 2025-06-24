@@ -267,6 +267,9 @@ import React, { useState, useEffect } from "react";
 import { FaSearch } from "react-icons/fa";
 import "./auditList.css";
 
+// ✅ 환경변수에서 API URL 사용 추가
+const API_BASE = window._env_?.REACT_APP_API_URL|| 'http://localhost:8080';
+
 const COLUMN_LABELS = [
   { key: "barcode", label: "바코드" },
   { key: "company", label: "회사" },
@@ -359,10 +362,12 @@ export default function AuditSearch() {
   useEffect(() => {
     const fetchLookups = async () => {
       try {
-        const res1 = await fetch("http://localhost:8080/api/lookups/companies");
+        // const res1 = await fetch("http://localhost:8080/api/lookups/companies");
+        const res1 = await fetch(`${API_BASE}/api/lookups/companies`);
         const comp = await res1.json();
         setCompanyData(comp);
-        const res2 = await fetch("http://localhost:8080/api/lookups/categories");
+        // const res2 = await fetch("http://localhost:8080/api/lookups/categories");
+        const res2 = await fetch(`${API_BASE}/api/lookups/categories`);
         const cat = await res2.json();
         setAssetCategoryData(cat);
       } catch (err) {
@@ -385,7 +390,8 @@ export default function AuditSearch() {
     try {
       let result = [];
       if (barcodeKeyword.trim()) {
-        const res = await fetch(`http://localhost:8080/api/assets/${barcodeKeyword}`);
+        // const res = await fetch(`http://localhost:8080/api/assets/${barcodeKeyword}`);
+        const res = await fetch(`${API_BASE}/api/assets/${barcodeKeyword}`);
         const data = await res.json();
         if (data === 0 || !data) {
           alert("❌ 바코드로 조회된 자산이 없습니다.");
@@ -395,7 +401,8 @@ export default function AuditSearch() {
         }
         result = [data];
       } else {
-        const res = await fetch("http://localhost:8080/api/assets/search", {
+        // const res = await fetch("http://localhost:8080/api/assets/search", {
+          const res = await fetch(`${API_BASE}/api/assets/search`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

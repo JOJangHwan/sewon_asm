@@ -6,6 +6,9 @@ import { createRoot } from 'react-dom/client';
 import LabelPrint from '../MyInfor/LabelPrint.js';
 import { authFetchWithRefresh } from '../../utils/authFetchWithRefresh';
 
+// ✅ API 주소 상수 정의
+const API_BASE = window._env_?.REACT_APP_API_URL || 'http://localhost:8888';
+
 const openLabelPrintWindow = (assets) => {
   const printWindow = window.open('', '_blank', 'width=900,height=700');
   if (!printWindow) return alert('팝업 차단을 해제해주세요.');
@@ -349,7 +352,8 @@ const LoadBulk = () => {
       let lastResponseMessage = '';
   
       if (generalRows.length > 0) {
-        const res = await authFetchWithRefresh('http://192.168.0.220:8888/assets/bulk', {
+        // const res = await authFetchWithRefresh('http://192.168.0.220:8888/assets/bulk', {
+          const res = await authFetchWithRefresh(`${API_BASE}/assets/bulk`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ list: generalRows.map(mapRowToBackend) }),
@@ -380,7 +384,8 @@ const LoadBulk = () => {
         };
           // 🔍 전송 데이터 로그 출력
   console.log('🚀 전자자산 전송 리스트:', JSON.stringify(payload, null, 2));
-        const res = await authFetchWithRefresh('http://192.168.0.220:8888/assets/electronic/bulk', {
+        // const res = await authFetchWithRefresh('http://192.168.0.220:8888/assets/electronic/bulk', {
+          const res = await authFetchWithRefresh(`${API_BASE}/assets/electronic/bulk`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),

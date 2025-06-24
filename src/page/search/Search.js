@@ -2,6 +2,9 @@ import React, { useEffect, useState } from "react";
 import "./Search.css";
 import { authFetchWithRefresh } from "../../utils/authFetchWithRefresh";  // 인증 포함 fetch 함수 사용
 
+const API_BASE_URL = window._env_?.REACT_APP_API_URL || "http://localhost:8888";
+
+
 export default function Search() {
   const [companyData, setCompanyData] = useState({});
   const [assetCategoryData, setAssetCategoryData] = useState({});
@@ -37,7 +40,8 @@ const [locationId, setLocationId] = useState(null);
   useEffect(() => {
     const fetchCorporation = async () => {
       try {
-        const res = await authFetchWithRefresh('http://192.168.0.220:8888/corporations');
+        // const res = await authFetchWithRefresh('http://192.168.0.220:8888/corporations');
+        const res = await authFetchWithRefresh(`${API_BASE_URL}/corporations`);
         const result = await res.json();
     
         console.log("📦 corporations API 응답 전체 (JSON 형태):");//자산 찍는 부분분
@@ -85,7 +89,8 @@ const [locationId, setLocationId] = useState(null);
           alert(result.message || '법인 정보 조회 실패');
         }
               // 자산 유형 계층 정보 가져오기
-              const typeRes = await authFetchWithRefresh('http://192.168.0.220:8888/asset-types/hierarchy');
+              // const typeRes = await authFetchWithRefresh('http://192.168.0.220:8888/asset-types/hierarchy');
+              const typeRes = await authFetchWithRefresh(`${API_BASE_URL}/asset-types/hierarchy`);
               const typeResult = await typeRes.json();
 
               //console.log("📦 부서 API 응답 전체 (JSON 형태):");
@@ -170,7 +175,8 @@ const [locationId, setLocationId] = useState(null);
       let result = [];
   
       if (barcode.trim()) {
-        const res = await fetch(`http://192.168.0.220:8888/assets/${barcode}`);
+        // const res = await fetch(`http://192.168.0.220:8888/assets/${barcode}`);
+        const res = await fetch(`${API_BASE_URL}/assets/${barcode}`);
         const data = await res.json();
   
         if (!data || data === 0) {
@@ -216,7 +222,8 @@ const [locationId, setLocationId] = useState(null);
         if (sortField) queryParams.append("sortField", sortField);    // 정렬 필드
         queryParams.append("size", viewCount || 30);                  // 페이지당 개수
   
-        const url = `http://192.168.0.220:8888/assets/paged?${queryParams.toString()}`;
+        // const url = `http://192.168.0.220:8888/assets/paged?${queryParams.toString()}`;
+        const url = `${API_BASE_URL}/assets/paged?${queryParams.toString()}`;
         console.log("📤 최종 전송 URL:", url);
         console.log("📦 검색 조건 요약:", {
           locationId,

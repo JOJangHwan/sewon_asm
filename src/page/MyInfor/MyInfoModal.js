@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import './MyInfoModal.css';
 
+const API_BASE = window._env_?.REACT_APP_API_URL || 'http://localhost:8080';
+
 const COMPANY_MAP = {
   '평택공장': ['전산운영팀', '회계팀'],
   '우신에너지': ['자재관리', '경영관리'],
@@ -59,7 +61,8 @@ const InfoEditModal = ({ userInfo, onClose, onSave }) => {
     console.log('📤 서버로 전송할 수정 항목:', payload);
   
     try {
-      const response = await fetch('http://localhost:8080/api/user/update', {
+      // const response = await fetch('http://localhost:8080/api/user/update', {
+        const response = await fetch(`${API_BASE}/api/user/update`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

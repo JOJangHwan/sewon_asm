@@ -254,13 +254,13 @@ export default function AssetReturnListPage() {
   return (
     <div className="page-container">
       <div className="page-header">
-        <h2>자산 반납 신청 목록</h2>
+        <h2>자산 반납 목록</h2>
       </div>
 
       {/* 1. 내가 ↷ 현재 빌린 자산 → “반납 신청” 버튼 */}
       {isMobile
         ? renderCardList(
-            '내가 대여 중인 자산',
+            '대여 중인 자산',
             내가빌린,
             <button
               className="primary-btn"
@@ -271,7 +271,7 @@ export default function AssetReturnListPage() {
             </button>
           )
         : renderTable(
-            '내가 대여 중인 자산',
+            '대여 중인 자산',
             내가빌린,
             <button
               className="primary-btn"
@@ -285,7 +285,7 @@ export default function AssetReturnListPage() {
       {/* 2. 내가 ↷ 이미 반납 신청한 자산 → “반납 취소” 버튼 */}
       {isMobile
         ? renderCardList(
-            '내가 반납 신청한 자산',
+            '반납 신청한 자산',
             내가반납신청한,
             <button
               className="primary-btn"
@@ -296,7 +296,7 @@ export default function AssetReturnListPage() {
             </button>
           )
         : renderTable(
-            '내가 반납 신청한 자산',
+            '반납 신청한 자산',
             내가반납신청한,
             <button
               className="primary-btn"
@@ -310,14 +310,14 @@ export default function AssetReturnListPage() {
       {/* 3. ↷ 타인이 내 자산(=내가 등록자) 반납 신청한 자산 → “승인” 버튼 */}
       {isMobile
         ? renderCardList(
-            '반납 신청한 자산',
+            '반납 신청 내역',
             내자산에들어온신청,
             <button className="primary-btn" onClick={handleApprove}>
               승인
             </button>
           )
         : renderTable(
-            '반납 신청한 자산',
+            '반납 신청 내역',
             내자산에들어온신청,
             <button className="primary-btn" onClick={handleApprove}>
               승인

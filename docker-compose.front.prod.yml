@@ -1,0 +1,14 @@
+# docker-compose.front.prod.yml
+version: '3'
+services:
+  frontend:
+    build:
+      context: .
+    container_name: react-frontend-prod
+    ports:
+      - "80:80"
+    environment:
+      - REACT_APP_API_URL=https://api.yourdomain.com
+      - REACT_APP_LANG=ko
+      - REACT_APP_VERSION=1.0.0
+      - REACT_APP_BUILD_ENV=production

@@ -1,29 +1,35 @@
-# node 이미지 사용
-FROM node    
-    
-# 이후 명령어를 실행해 컨테이너 내부의 작업 디렉토리 설정
-WORKDIR /app 
-    
-# package.json 파일을 경로(.)에 복사
-COPY packakge.json . 
 
-# package.json 내부의 의존성을 설치
-RUN npm install
+#-----------------------------------------------------------------------------
+# 1단계: Node.js로 React 앱을 빌드 (개발 소스 → 정적 파일로 변환)
+FROM node:18-alpine AS build
 
-# 프로젝트의 모든 파일을 복사한다. [ 현재 작업 디렉토리의 루트 경로 : .] 에서 [ container 디렉토리의 루트 경로 : . ]로 복사
+# 작업 디렉터리 설정
+WORKDIR /app
+
+# 소스 복사
 COPY . .
 
-# 런타임에 사용할 포트 번호 설정
-EXPOSE 3000
+# 패키지 설치 및 React 앱 빌드
+RUN npm install --legacy-peer-deps && npm run build
 
-#  react 프로젝트 시작
-CMD ["npm", "start"]
 
-# Step 2: Serve with Nginx
+# 2단계: Nginx로 정적 파일 서빙
 FROM nginx:alpine
+
+# React에서 빌드된 파일들을 Nginx 기본 경로로 복사
 COPY --from=build /app/build /usr/share/nginx/html
+
+# ✅ nginx 설정 복사
+COPY ./nginx.conf /etc/nginx/conf.d/default.conf
+
+# entrypoint.sh 스크립트를 복사 (환경변수로 env.js 생성용)
 COPY ./entrypoint.sh /entrypoint.sh
+
+# 실행 권한 부여
 RUN chmod +x /entrypoint.sh
 
+# 컨테이너 시작 시 entrypoint.sh 실행 → 이후 Nginx 실행
 ENTRYPOINT ["/entrypoint.sh"]
+
+# Nginx 포그라운드 실행
 CMD ["nginx", "-g", "daemon off;"]

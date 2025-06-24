@@ -6,6 +6,8 @@ import { createRoot } from 'react-dom/client';
 import LabelPrint from '../MyInfor/LabelPrint';
 import { authFetchWithRefresh } from '../../utils/authFetchWithRefresh'
 
+const API_BASE = window._env_?.REACT_APP_API_URL || 'http://localhost:8888';
+
 const convertToGB = (value, unit) => {
   const num = parseFloat(value) || 0;
   switch (unit) {
@@ -192,7 +194,8 @@ const AssetRegister = () => {
   useEffect(() => {
     const fetchCorporation = async () => {
       try {
-        const res = await authFetchWithRefresh('http://192.168.0.220:8888/corporations');
+        // const res = await authFetchWithRefresh('http://192.168.0.220:8888/corporations');
+        const res = await authFetchWithRefresh(`${API_BASE}/corporations`);
         const result = await res.json();
   
         if (result.code === 1 && result.data?.corporationList) {
@@ -215,7 +218,8 @@ const AssetRegister = () => {
           alert(result.message || '법인 정보 조회 실패');
         }
               // 자산 유형 계층 정보 가져오기
-              const typeRes = await authFetchWithRefresh('http://192.168.0.220:8888/asset-types/hierarchy');
+              // const typeRes = await authFetchWithRefresh('http://192.168.0.220:8888/asset-types/hierarchy');
+              const typeRes = await authFetchWithRefresh(`${API_BASE}/asset-types/hierarchy`);
               const typeResult = await typeRes.json();
               
               if (typeResult.code === 1 && typeResult.data?.parentList) {
@@ -340,9 +344,13 @@ const AssetRegister = () => {
   
     const isElectronic = ['노트북', '컴퓨터'].includes(formData.item);
 
-    const url = isElectronic
-  ? 'http://192.168.0.220:8888/assets/electronic'
-  : 'http://192.168.0.220:8888/assets';
+  //   const url = isElectronic
+  // ? 'http://192.168.0.220:8888/assets/electronic'
+  // : 'http://192.168.0.220:8888/assets';
+  const url = isElectronic
+  ? `${API_BASE}/assets/electronic`
+  : `${API_BASE}/assets`;
+
 
   const dataToSend = isElectronic ? {
     corporation: formData.company,
