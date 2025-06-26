@@ -3,7 +3,7 @@ import * as XLSX from 'xlsx';
 import './loadBulk.css';
 import useMediaQuery from '../../utils/hooks/useMediaQuery';
 import { createRoot } from 'react-dom/client';
-import LabelPrint from '../MyInfor/LabelPrint.js';
+import LabelPrint from '../MyInfor/LabelPrint';
 import { authFetchWithRefresh } from '../../utils/authFetchWithRefresh';
 
 // ✅ API 주소 상수 정의
@@ -147,9 +147,10 @@ const convertExcelDate = (value) => {
 };
 
 // 예시 회사/부서/세부위치
+// 이걸 db에서 가져와서 비교해서 넣는 식으로 교체
 const COMPANY_MAP = {
-  '한국공장': {
-    '전산팀': ['전산실', '사무실'],
+  '평택공장': {
+    '전산운영': ['전산실', '사무실'],
     '노무총무P': [],
     '품질보증P': [],
     '기술P': [],

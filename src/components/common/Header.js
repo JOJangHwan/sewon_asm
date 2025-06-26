@@ -29,6 +29,8 @@ function Header({ toggleSidebar, isSidebarOpen }) {
     document.addEventListener('mousedown', handleClickOutside);
   
     // ✅ 여기 먼저 실행되게 해야 함!
+    console.log("헤더"+localStorage.getItem('corporation'))
+
     const savedUsername = localStorage.getItem('name');
     const savedDepartment = localStorage.getItem('department');
     if (savedUsername) setName(savedUsername);

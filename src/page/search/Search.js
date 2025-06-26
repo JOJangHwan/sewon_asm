@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "./Search.css";
 import { authFetchWithRefresh } from "../../utils/authFetchWithRefresh";  // 인증 포함 fetch 함수 사용
-
+import { createRoot } from "react-dom/client";
+import LabelPrint from "../MyInfor/LabelPrint";
 const API_BASE_URL = window._env_?.REACT_APP_API_URL || "http://localhost:8888";
 
 
@@ -9,6 +10,7 @@ export default function Search() {
   const [companyData, setCompanyData] = useState({});
   const [assetCategoryData, setAssetCategoryData] = useState({});
   const [items, setItems] = useState([]);
+  const [selected, setSelected] = useState(new Set());
   const [searched, setSearched] = useState(false);
 
   const [company, setCompany] = useState("");
@@ -22,6 +24,7 @@ export default function Search() {
   const [sortField, setSortField] = useState("");
   const [sortOrder, setSortOrder] = useState("asc");
   const [viewCount, setViewCount] = useState(30);
+  
     const [companyList, setCompanyList] = useState([]);
     const [companyIdMap, setCompanyIdMap] = useState({});  // ✅ ID 매핑용
 
@@ -30,12 +33,97 @@ export default function Search() {
 
     const [childTypeId, setChildTypeId] = useState(null);    // ✅ 이 줄 추가!
 
+    const headerCheckboxRef = useRef(); // ✅ ref 선언
+
     
 
 
     const [corporationId, setCorporationId] = useState(null);
 const [affiliationId, setAffiliationId] = useState(null);
 const [locationId, setLocationId] = useState(null);
+
+
+const handlePrint = () => {
+  /* 1) 선택 검사 */
+  if (selected.size === 0) {
+    alert('인쇄할 항목을 한 개 이상 체크해주세요.');
+    return;
+  }
+
+  /* 2) 선택된 자산 목록 */
+  const toPrint = items.filter((it) => selected.has(it.barcode));
+
+  /* 3) 팝업 */
+  const popup = window.open('', '_blank', 'width=900,height=600');
+  if (!popup) {
+    alert('팝업이 차단되었습니다. 팝업 허용을 확인하세요.');
+    return;
+  }
+
+  /* 4) 템플릿 주입 */
+  popup.document.write(`
+    <html>
+      <head>
+        <title>라벨 인쇄</title>
+        <style>
+          @page { size: 40mm 15mm; margin: 0; }
+          @media print { body { margin: 0; } }
+          html,body { width:40mm; height:15mm; margin:0; padding:0; font-family:Arial; }
+          .label-print-wrapper{display:flex;flex-direction:column;width:40mm;height:15mm;margin:0;padding:0;}
+          .label-box{width:40mm;height:15mm;display:flex;align-items:center;margin:0;padding:0;page-break-after:always;}
+          .qr-section{width:13mm;display:flex;justify-content:center;align-items:center;}
+          .qr-canvas{width:11.5mm!important;height:11.5mm!important;}
+          .info-section{display:flex;flex-direction:column;align-items:flex-start;padding-left:1.5mm;}
+          .logo-wrapper{width:100%;display:flex;justify-content:flex-start;margin-bottom:0.3mm;}
+          .logo{max-width:32mm;height:5.5mm;object-fit:contain;}
+          .text-line{font-size:2.2mm;margin:0;padding:0;white-space:nowrap;}
+          .barcode-text{font-size:2.6mm;font-weight:bold;}
+        </style>
+      </head>
+      <body>
+        <div id="print-root"></div>
+      </body>
+    </html>
+  `);
+  popup.document.close();
+
+  /* 5) React 라벨 렌더 후 print */
+  const timer = setInterval(() => {
+    const mount = popup.document.getElementById('print-root');
+    if (mount) {
+      clearInterval(timer);
+      const root = createRoot(mount);
+      root.render(
+        <LabelPrint
+          selectedAssets={toPrint}
+          onAllImagesLoaded={() => {
+            popup.focus();
+            popup.print();
+            popup.close();
+          }}
+        />
+      );
+    }
+  }, 100);
+};   // ←★★ handlePrint 닫는 중괄호 꼭 필요
+
+
+  /* ===== 체크박스 핸들러 ===== */
+  // (1) 단일 행 토글
+  const toggleRow = (id) =>
+    setSelected((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+
+  // (2) 전체선택 토글
+  const toggleAll = () =>
+    setSelected((prev) =>
+      prev.size === items.length
+        ? new Set()                    // 모두 해제
+        : new Set(items.map((it) => it.barcode)) // 모두 선택
+    );
 
   useEffect(() => {
     const fetchCorporation = async () => {
@@ -137,7 +225,13 @@ const [locationId, setLocationId] = useState(null);
   }, []);
 
 
-
+  useEffect(() => {
+    if (headerCheckboxRef.current) {
+      headerCheckboxRef.current.indeterminate =
+        selected.size > 0 && selected.size < items.length;
+    }
+  }, [selected, items]);
+  
   // useEffect(() => {
   //   const fetchLookups = async () => {
   //     try {
@@ -175,18 +269,20 @@ const [locationId, setLocationId] = useState(null);
       let result = [];
   
       if (barcode.trim()) {
+        const url = `${API_BASE_URL}/assets/barcode?value=${encodeURIComponent(barcode.trim())}`;
+        const res      = await authFetchWithRefresh(url, { method: 'GET' });
+        const resJson  = await res.json();
         // const res = await fetch(`http://192.168.0.220:8888/assets/${barcode}`);
-        const res = await fetch(`${API_BASE_URL}/assets/${barcode}`);
-        const data = await res.json();
-  
-        if (!data || data === 0) {
-          alert("❌ 바코드 조회 실패: 데이터가 없습니다.");
-          setItems([]);
+
+        if (resJson.code !== 1 || !resJson.data) {
+          alert('❌ 해당 바코드를 찾을 수 없습니다.');
+          setItems([]);          // 테이블 비우기
           setSearched(true);
           return;
         }
   
-        result = [data];
+  /* 테이블에 단건이라도 배열 형태로 넣어야 map() 가능 */
+  result = [resJson.data];
       } else {
         // ✅ ID가 전부 있어야 검색 가능
         if (!corporationId || !affiliationId || !locationId) {
@@ -386,37 +482,58 @@ const data = resData.data?.list || [];
             <option value="desc">내림차순</option>
           </select>
           <button className="search-button" onClick={handleSearch}>🔍 조회</button>
+          <button className="search-button print" onClick={handlePrint}>🖨️ 인쇄</button>
           <button className="search-button reset" onClick={handleReset}>↺ 초기화</button>
         </div>
       </div>
 
       {searched && (
-        <div className="search-table-wrapper">
-          <table className="search-asset-table">
-            <thead>
-              <tr>
-                <th>바코드</th><th>회사</th><th>부서</th><th>위치</th><th>자산분류</th>
-                <th>품목</th><th>상태</th><th>제조사</th><th>모델</th><th>취득일자</th><th>취득가</th><th>등록자</th>
+      <div className="search-table-wrapper">
+        <table className="search-asset-table">
+          <thead>
+            <tr>
+              {/* 🆕 전체선택 체크박스 */}
+              <th>
+              <input
+  type="checkbox"
+  ref={headerCheckboxRef} // ✅ ref 연결
+  checked={selected.size === items.length && items.length > 0}
+  onChange={toggleAll}
+/>
+
+              </th>
+              <th>바코드</th><th>회사</th><th>부서</th><th>위치</th>
+              <th>자산분류</th><th>품목</th><th>상태</th>
+              <th>제조사</th><th>모델</th><th>취득일자</th>
+              <th>취득가</th><th>등록자</th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((item) => (
+              <tr key={item.barcode}>
+                {/* 🆕 개별 체크박스 */}
+                <td>
+                  <input
+                    type="checkbox"
+                    checked={selected.has(item.barcode)}
+                    onChange={() => toggleRow(item.barcode)}
+                  />
+                </td>
+                <td>{item.barcode}</td>
+                <td>{item.corporation}</td>
+                <td>{item.department}</td>
+                <td>{item.location}</td>
+                <td>{item.parentCategory}</td>
+                <td>{item.childCategory}</td>
+                <td>{item.status}</td>
+                <td>{item.manufacturer}</td>
+                <td>{item.model}</td>
+                <td>{item.acquisitionDate}</td>
+                <td>{Number(item.acquisitionPrice).toLocaleString()}</td>
+                <td>{item.registerName}</td>
               </tr>
-            </thead>
-            <tbody>
-              {items.map((item, idx) => (
-                <tr key={idx}>
-                  <td>{item.barcode}</td>
-<td>{item.corporation}</td>
-<td>{item.department}</td>
-<td>{item.location}</td>
-<td>{item.parentCategory}</td>
-<td>{item.childCategory}</td>
-<td>{item.status}</td>
-<td>{item.manufacturer}</td>
-<td>{item.model}</td>
-<td>{item.acquisitionDate}</td>
-<td>{Number(item.acquisitionPrice).toLocaleString()}</td>
-<td>{item.registerName}</td>
-                </tr>
-              ))}
-            </tbody>
+            ))}
+          </tbody>
           </table>
         </div>
       )}

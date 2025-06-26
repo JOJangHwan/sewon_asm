@@ -17,6 +17,15 @@ const convertToGB = (value, unit) => {
     default: return 0;
   }
 };
+ // 입력값(YYYY-MM-DD 또는 YYYY-MM-DDTHH:mm)을 받아
+ // 항상 YYYY-MM-DDTHH:mm:ss 형태로 돌려준다.
+ const toDateTimeWithSeconds = (val) => {
+   if (!val) return '';
+   // date 타입이면 길이 10, datetime-local이면 16
+   if (val.length === 10) return `${val}T00:00:00`;
+   if (val.length === 16) return `${val}:00`;
+   return val; // 이미 초까지 있으면 그대로
+ };
 
 const selectFieldLabels = {
   company: '회사구분',
@@ -326,7 +335,7 @@ const AssetRegister = () => {
     }
     setErrors({});
   
-    const appendSeconds = (dt) => (dt && dt.length === 16 ? dt + ':00' : dt);
+    //const appendSeconds = (dt) => (dt && dt.length === 16 ? dt + ':00' : dt);
     const statusMap = { '사용': 0, '미사용': 1 };
     const divisionMap = {
       '구매자산(자산)': 0,
@@ -336,8 +345,8 @@ const AssetRegister = () => {
   const formatted = {
   ...formData,
   division: divisionMap[formData.acquisitionType],
-  acquisitionDate: appendSeconds(formData.acquisitionDate),
-  rentalDate: appendSeconds(formData.rentalDate),
+   acquisitionDate: toDateTimeWithSeconds(formData.acquisitionDate),
+   rentalDate: toDateTimeWithSeconds(formData.rentalDate),
   assetStatus: statusMap[formData.assetStatus],
 };
 
@@ -362,7 +371,7 @@ const AssetRegister = () => {
     status: formData.assetStatus === '사용' ? 0 : 1,
     manufacturer: formData.manufacturer,
     model: formData.model,
-    acquisitionDate: appendSeconds(formData.acquisitionDate),
+    acquisitionDate: toDateTimeWithSeconds(formData.acquisitionDate),
     acquisitionPrice: Number(formData.acquisitionCost),
     cpu: formData.cpu,
     gpu: formData.gpu,
@@ -378,7 +387,7 @@ const AssetRegister = () => {
     status: formData.assetStatus === '사용' ? 0 : 1,
     manufacturer: formData.manufacturer,
     model: formData.model,
-    acquisitionDate: appendSeconds(formData.acquisitionDate),
+    acquisitionDate: toDateTimeWithSeconds(formData.acquisitionDate),
     acquisitionPrice: Number(formData.acquisitionCost),
   };
 
@@ -409,7 +418,7 @@ const AssetRegister = () => {
         assetStatus: formData.assetStatus,
         manufacturer: formData.manufacturer,
         model: formData.model,
-        acquisitionDate: formData.acquisitionDate.split('T')[0],
+        acquisitionDate: toDateTimeWithSeconds(formData.acquisitionDate),
         acquisitionPrice: Number(formData.acquisitionCost).toLocaleString(),
       };
 
@@ -619,7 +628,7 @@ const AssetRegister = () => {
         {/* 취득일자 */}
         <div className="form-row">
           <label>취득일자</label>
-          <input type="datetime-local" name="acquisitionDate" value={formData.acquisitionDate} onChange={handleChange} />
+          <input type="date" name="acquisitionDate" value={formData.acquisitionDate} onChange={handleChange} />
           {errors.acquisitionDate && (<div style={{ color: 'red', fontSize: '12px' }}>{errors.acquisitionDate}</div>)}
         </div>
         {/* 취득가 */}

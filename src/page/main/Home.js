@@ -15,6 +15,7 @@
 // File: src/components/page/main/Home.js
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   PieChart, Pie, Cell, ResponsiveContainer,
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
@@ -136,6 +137,8 @@ const AuditGauge = () => {
    2. Home 컴포넌트 (로그 활동 및 차트 포함)
    =========================================== */
 const Home = () => {
+
+  const navigate = useNavigate(); 
   // ====== DashboardCards용 더미 데이터 ======
   const totalAssets = 1500;
   const rentedAssets = 320;
@@ -166,8 +169,8 @@ const Home = () => {
       {/* ====== 요약 대시보드 카드 ====== */}
       <section className="dashboard-cards">
         {/* 카드 1: 전체 자산 현황 */}
-        <div className="card" onClick={() => alert('전체 자산 조회 페이지로 이동')}>
-          <h3>전체 자산 현황</h3>
+        <div className="card" onClick={() => navigate('/profile')}>
+          <h3>부서 자산 현황</h3>
           <p>총 자산: <strong>{totalAssets.toLocaleString()}개</strong></p>
           <p>대여 중: <strong>{rentedAssets.toLocaleString()}개</strong></p>
           <p>대여 가능: <strong>{availableAssets.toLocaleString()}개</strong></p>
@@ -175,7 +178,7 @@ const Home = () => {
         </div>
 
         {/* 카드 2: 실사 진행 현황 */}
-        <div className="card" onClick={() => alert('실사 페이지로 이동')}>
+        <div className="card" onClick={() => navigate('/audit/list')}>
           <h3>실사 진행 현황</h3>
           <p>실사 대상: <strong>{auditTotal.toLocaleString()}개</strong></p>
           <p>완료된 실사: <strong>{auditCompleted.toLocaleString()}개</strong></p>
@@ -190,7 +193,7 @@ const Home = () => {
         </div>
 
         {/* 카드 3: 최근 대여·반납 통계 */}
-        <div className="card" onClick={() => alert('최근 대여·반납 통계 페이지로 이동')}>
+        <div className="card" onClick={() => navigate('/rent')}>
           <h3>최근 대여·반납 통계</h3>
           <p>지난 7일 대여 건수: <strong>45건</strong></p>
           <p>지난 7일 반납 건수: <strong>38건</strong></p>

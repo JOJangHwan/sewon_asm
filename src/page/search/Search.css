@@ -91,42 +91,12 @@
 .search-asset-table tbody tr:hover {
   background-color: #f9fafb;
 }
-/* 페이징 */
-.search-pagination {
-  display: flex;
-  justify-content: center;
-  gap: 4px;
-  margin-top: 32px;
-  flex-wrap: wrap;
+.search-button.print {
+  background-color: #ffb300;
+  color: white;
+  margin-left: 5px;
 }
-.search-page-button {
-  width: 40px;
-  height: 36px;
-  font-size: 14px;
-  border: 1px solid #d1d5db;
-  border-radius: 4px;
-  background: white;
-  cursor: pointer;
-  transition: background-color 0.3s, color 0.3s;
-}
-.search-page-button:hover:not(:disabled):not(.active) {
-  background-color: #f3f4f6;
-}
-.search-page-button.active {
-  background-color: #FFC107;
-}
-.search-page-button:disabled {
-  color: #9ca3af;
-  cursor: not-allowed;
-}
-/* nav-button */
-.nav-button {
-  background: white !important;
-}
-.nav-button:disabled {
-  background: white !important;
-  color: #9ca3af;
-}
+
 /* 반응형 */
 @media (max-width: 768px) {
   .search-bar.top-bar,

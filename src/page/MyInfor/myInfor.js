@@ -2,9 +2,12 @@
 import React, { useState, useEffect } from 'react';
 import EditModal from './EditModal';
 import InfoEditModal from './MyInfoModal';
-import LabelPrint from './LabelPrint';
+import LabelPrint from '../MyInfor/LabelPrint.js';
 import { createRoot } from 'react-dom/client';
 import './myInfor.css';
+import { authFetchWithRefresh } from "../../utils/authFetchWithRefresh";  // 인증 포함 fetch 함수 사용
+const API_BASE_URL = window._env_?.REACT_APP_API_URL || "http://localhost:8888";
+
 
 function useMediaQuery(query) {
   const [matches, setMatches] = useState(() => window.matchMedia(query).matches);
@@ -24,27 +27,36 @@ function useMediaQuery(query) {
 }
 
 export default function MyInfoPage() {
-  const [items, setItems] = useState(
-    Array.from({ length: 100 }, (_, i) => ({
-      barcode: `200RSFFL${i + 1}`,
-      company: '평택공장',
-      department: '전산운영팀',
-      location: '전산실',
-      acquisitionType: '구매',
-      assetCategory: 'IT자산',
-      itemName: '노트북',
-      assetStatus: '사용',
-      manufacturer: '삼성',
-      model: 'SLD-5700',
-      acquisitionDate: '2025-03-20',
-      acquisitionPrice: '1,300,000',
-    }))
-  );
+
+  // 1) 법인 계층 (corporationList)
+  const [corporations, setCorporations] = useState([]);
+  const [selectedCorp, setSelectedCorp] = useState("");
+  const [selectedDept, setSelectedDept] = useState("");
+  const [locations, setLocations]     = useState([]);
+  const [selectedLoc, setSelectedLoc] = useState("");
+
+  // → ID 전용으로 분리
+const [selectedCorpId, setSelectedCorpId] = useState("");
+const [selectedDeptId, setSelectedDeptId] = useState("");
+const [selectedLocId,  setSelectedLocId]  = useState("");
+
+
+
+// 여기에 missing!
+const [selectedCategoryId, setSelectedCategoryId] = useState("");
+const [selectedItemId, setSelectedItemId]         = useState("");
+
+
+  // 2) 자산 분류 계층 (assetCategories)
+  const [assetCategories, setAssetCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [items, setItems] = useState([]);
+  const [selectedItem, setSelectedItem]   = useState("");
 
   // ── 검색 필터 상태
-  const [company, setCompany] = useState('');
-  const [department, setDepartment] = useState('');
-  const [location, setLocation] = useState('');
+
+
+
   const [assetCategory, setAssetCategory] = useState('');
   const [itemName, setItemName] = useState('');
   const [barcodeKeyword, setBarcodeKeyword] = useState('');
@@ -63,7 +75,7 @@ export default function MyInfoPage() {
   const pageNumberLimit = 5;
 
   // ── 선택 & 모달 상태
-  const [selectedItems, setSelectedItems]     = useState([]);
+  const [selectedBarcodes, setSelectedBarcodes] = useState(new Set());
   const [selectAll, setSelectAll]             = useState(false);
   const [isModalOpen, setIsModalOpen]         = useState(false);
   const [editItem, setEditItem]               = useState(null);
@@ -71,6 +83,7 @@ export default function MyInfoPage() {
 
   // ── 상세보기 상태
   const [detailItem, setDetailItem] = useState(null);
+
 
   // ── 내 정보
   const userInfo = {
@@ -80,17 +93,134 @@ export default function MyInfoPage() {
     id: 'ghdrlfehdWkd123',
   };
 
+// 맵핑용
+     const [companyData, setCompanyData] = useState({});
+
+
+    //로그인 정보 가져오기
+   const [logName, setLogName] = useState('');
+   const [logCorporation,setloginCorporation]=useState('');
+   const [logDepartment, setLogDepartment] = useState('');
+  //로그인 정보 저장
+  console.log(localStorage)
+  const savedUsername = localStorage.getItem('name');
+  const saveCorporation =localStorage.getItem('corporation');
+  const savedDepartment = localStorage.getItem('department');
+  const savedCorp = localStorage.getItem('corporation');
+  const savedDept = localStorage.getItem('department');
+  // ── 상태들 선언이 끝난 바로 다음 위치에
+useEffect(() => {                     // ★ 추가
+  const corp = localStorage.getItem('corporation');  // 예: 평택공장
+  const dept = localStorage.getItem('department');   // 예: 전산운영팀
+  const savedCorp = localStorage.getItem('corporation');
+const savedDept = localStorage.getItem('department');
+  if (corp) setSelectedCorp(corp);
+  if (dept) setSelectedDept(dept);
+}, []);
+
+  console.log(saveCorporation,savedDepartment,savedUsername)
+
+
   // ── 종속 필터 초기화
-  useEffect(() => { setDepartment(''); setLocation(''); }, [company]);
-  useEffect(() => { setLocation(''); }, [department]);
-  useEffect(() => { setItemName(''); }, [assetCategory]);
+
+  useEffect(() => {
+    async function loadLookups() {
+      try {
+        // 법인 계층 호출
+        const corpRes  = await authFetchWithRefresh(`${API_BASE_URL}/corporations`);
+        const corpJson = await corpRes.json();
+        if (corpJson.code === 1) {
+                   const list = corpJson.data.corporationList;
+                   console.log("▶ 전체 법인 리스트:", list);
+                  setCorporations(list);
+          
+                   // 로그인 정보
+                   const savedCorp = localStorage.getItem("corporation");
+                   const savedDept = localStorage.getItem("department");
+                   console.log("▶ savedCorp, savedDept:", savedCorp, savedDept);
+          
+                   // 만약 로그인된 corp/dept 가 API 결과에 있으면 선택 & locations 세팅
+                     if (savedCorp && savedDept) {
+                        const corpEntry = list.find(c => c.name === savedCorp);
+                        console.log("▶ 매칭된 corpEntry:", corpEntry);
+                        if (corpEntry) {
+                          setSelectedCorp(savedCorp);
+                         const aff = corpEntry.affiliationList.find(a => a.department === savedDept);
+                         console.log("▶ 매칭된 aff:", aff);
+                          if (aff) {
+                            setSelectedDept(savedDept);
+                            setLocations(
+                              aff.locations.map( l =>({
+                                id:   l.locationId,  
+                                name: l.location      
+                              }))
+                            )
+                            
+                          }
+                        }
+                      }
+        }
+
+        // 자산 분류 계층 호출
+        const typeRes  = await authFetchWithRefresh(`${API_BASE_URL}/asset-types/hierarchy`);
+        const typeJson = await typeRes.json();
+        if (typeJson.code === 1) {
+          setAssetCategories(typeJson.data.parentList);
+        }
+      } catch (err) {
+        console.error("초기 lookup 로딩 오류:", err);
+      }
+    }
+    loadLookups();
+  }, []);
+
+
+
+   useEffect(() => {
+       // selectedDeptId 가 있을 때만 locations 세팅
+       if (!selectedDeptId) return;
+    
+       const corp = corporations.find(c => c.id === selectedCorpId);
+      const aff  = corp?.affiliationList.find(a => a.departmentId === selectedDeptId);
+       if (aff) {
+         setLocations(
+           aff.locations.map(l => ({
+            id:   l.locationId,
+            name: l.location
+          }))
+         );
+       }
+     }, [selectedDeptId, selectedCorpId, corporations]);
+
+// 자산분류 선택 시 → 품목(childList) 초기화
+
+useEffect(() => {
+  setItems([]);
+  setSelectedItemId("");
+
+
+  // 문자열 비교로 통일
+    if (!selectedCategoryId) return;
+  
+    // 숫자 대 숫자로 비교
+   const parent = assetCategories.find(p => p.parentId === selectedCategoryId);
+  if (parent && Array.isArray(parent.childList)) {
+    setItems(
+      parent.childList.map(c => ({
+        id:   c.childId,
+        name: c.name
+      }))
+    );
+  }
+}, [selectedCategoryId, assetCategories]);
+
 
   // ── 내부 필터링
   const applyFilter = () => {
     return items.filter(it => {
-      if (company         && it.company         !== company)         return false;
-      if (department      && it.department      !== department)      return false;
-      if (location        && it.location        !== location)        return false;
+if (selectedCorp   && it.company      !== selectedCorp)   return false;
+if (selectedDept   && it.department   !== selectedDept)   return false;
+if (selectedLoc    && it.location     !== selectedLoc)    return false;
       if (assetCategory   && it.assetCategory   !== assetCategory)   return false;
       if (itemName        && it.itemName        !== itemName)        return false;
       if (barcodeKeyword  && it.barcode         !== barcodeKeyword)  return false;
@@ -100,33 +230,29 @@ export default function MyInfoPage() {
     });
   };
 
-  // ── 검색/초기화
-  const handleSearch = () => {
-    if (startDate && endDate && startDate > endDate) {
-      return alert('시작일자가 종료일자보다 빠를 수 없습니다.');
-    }
-    let result = applyFilter();
-    if (viewCount > 0) result = result.slice(0, viewCount);
-    setFilteredItems(result);
-    setSearched(true);
-    setCurrentPage(1);
-    setSelectAll(false);
-    setSelectedItems([]);
-  };
+
+
+
+
   const handleReset = () => {
-    setCompany(''); setDepartment(''); setLocation('');
+
+    setSelectedLoc(''); 
     setAssetCategory(''); setItemName(''); setBarcodeKeyword('');
     setStartDate(''); setEndDate(''); setViewCount(30);
     setFilteredItems([]); setSearched(false);
-    setCurrentPage(1); setSelectAll(false); setSelectedItems([]);
+    setCurrentPage(1); setSelectAll(false); setSelectedBarcodes(new Set());
   };
 
   // ── 페이지별 리스트
-  const listToShow = searched ? filteredItems : items;
+  // const listToShow = searched ? filteredItems : items;
+    // ── 페이지별 리스트 (검색 결과만 보여줌)
+  const listToShow = searched ? filteredItems : [];
   const totalPages = Math.ceil(listToShow.length / itemsPerPage);
   const idxLast = currentPage * itemsPerPage;
   const idxFirst = idxLast - itemsPerPage;
   const currentList = listToShow.slice(idxFirst, idxLast);
+
+  
 
   // ── 페이징 버튼
   const maxPageNum = Math.ceil(currentPage / pageNumberLimit) * pageNumberLimit;
@@ -147,36 +273,55 @@ export default function MyInfoPage() {
 
   // ── 전체/단일 선택
   const handleSelectAll = () => {
-    setSelectAll(prev => !prev);
-    setSelectedItems(!selectAll ? currentList.map((_, i) => i) : []);
+    const currentBarcodes = currentList.map(row => row.barcode);
+    const isAllSelected = currentBarcodes.every(bc => selectedBarcodes.has(bc));
+  
+    setSelectedBarcodes(prev => {
+      const next = new Set(prev);
+      if (isAllSelected) {
+        // 전체 해제
+        currentBarcodes.forEach(bc => next.delete(bc));
+      } else {
+        // 전체 추가
+        currentBarcodes.forEach(bc => next.add(bc));
+      }
+      return next;
+    });
   };
-  const handleCheckboxChange = idx => {
-    setSelectedItems(prev =>
-      prev.includes(idx)
-        ? prev.filter(i => i !== idx)
-        : [...prev, idx]
-    );
+  
+  const handleCheckboxChange = (barcode) => {
+    setSelectedBarcodes(prev => {
+      const next = new Set(prev);
+      if (next.has(barcode)) {
+        next.delete(barcode);
+      } else {
+        next.add(barcode);
+      }
+      return next;
+    });
   };
+  
 
   // ── 수정/삭제/인쇄
   const handleModify = () => {
-    if (selectedItems.length !== 1) return alert('수정은 하나만 선택해야 합니다.');
-    const sel = currentList[selectedItems[0]];
-    setEditItem({ ...sel, idx: selectedItems[0] });
+    if (selectedBarcodes.size !== 1) return alert("수정은 하나만 선택해야 합니다.");
+       const sel = currentList.find(row => selectedBarcodes.has(row.barcode));
+       setEditItem(sel); // ✅ 인덱스 없이 넘김
     setIsModalOpen(true);
   };
   const handleDelete = () => {
-    if (!selectedItems.length) return alert('삭제할 항목을 선택하세요.');
-    if (!window.confirm('정말 삭제하시겠습니까?')) return;
-    const newArr = [...items];
-    const base   = (currentPage - 1) * itemsPerPage;
-    selectedItems.sort((a,b)=>b-a).forEach(idx => newArr.splice(base + idx, 1));
-    setItems(newArr); setSelectAll(false); setSelectedItems([]);
+    if (!selectedBarcodes.size) return alert("삭제할 항목을 선택하세요.");
+    if (!window.confirm("정말 삭제하시겠습니까?")) return;
+       const newArr = items.filter(item => !selectedBarcodes.has(item.barcode));
+       setItems(newArr);
+       setSelectAll(false);
+       setSelectedBarcodes(new Set());
     alert('삭제되었습니다.');
   };
   const handlePrint = () => {
-    if (!selectedItems.length) return alert('인쇄할 항목을 선택하세요!');
-    const toPrint = selectedItems.map(idx => listToShow[(currentPage - 1) * itemsPerPage + idx]);
+if (!selectedBarcodes.size) return alert("인쇄할 항목을 선택하세요!");
+const toPrint = listToShow.filter(row => selectedBarcodes.has(row.barcode));
+
     const printWindow = window.open('', '_blank', 'width=900,height=700');
     if (!printWindow) return alert('팝업 차단을 해제해주세요.');
 
@@ -311,6 +456,48 @@ export default function MyInfoPage() {
     }, 100);
   };
 
+  const handleSearch = async () => {
+    // … 검색 로직 …
+    // 기본 유효성 검사 (날짜 범위)
+    if (startDate && endDate && startDate > endDate) {
+        return alert("시작일이 종료일보다 클 수 없습니다.");
+      }
+  
+      // 쿼리스트링 빌드
+    const params = new URLSearchParams();
+     if (selectedLocId)        params.append("locationId", selectedLocId);
+     if (selectedCategoryId) params.append("parentTypeId", selectedCategoryId); // ✅
+     if (selectedItemId)     params.append("childTypeId",  selectedItemId); 
+      if (startDate)         params.append("after", startDate);
+      if (endDate)           params.append("before", endDate);
+      if (viewCount > 0)     params.append("size", viewCount);
+
+  
+      try {
+        const url = `${API_BASE_URL}/assets/paged?${params.toString()}`;
+        const res = await authFetchWithRefresh(url);
+        const json = await res.json();
+        if (json.code !== 1 || json.data.list.length === 0) {
+         alert("조건에 맞는 자산이 없습니다.");
+          setFilteredItems([]);
+          setSearched(true);
+          return;
+        }
+        console.log("📦 자산 리스트:", json.data.list);
+        // data.list 안에 자산 배열이 들어옵니다
+        setFilteredItems(json.data.list);
+        setSearched(true);
+        setSelectedBarcodes(new Set());   // 페이징·체크박스 초기화
+        setCurrentPage(1);
+      } catch (err) {
+        console.error(err);
+        alert("서버 통신 중 오류가 발생했습니다.");
+      }
+  };
+
+
+
+
   return (
     <div className="my-info-container">
 
@@ -334,58 +521,101 @@ export default function MyInfoPage() {
       <div className="search-section">
         <h2 className="section-title">자산 조회</h2>
         <div className="search-bar-wrapper">
-          <div className="search-bar">
-            <select className="search-input" value={company} onChange={e=>setCompany(e.target.value)}>
-              <option value="">회사</option><option>평택공장</option><option>우신비나</option>
-            </select>
-            <select className="search-input" value={department} onChange={e=>setDepartment(e.target.value)}>
-              <option value="">부서</option><option>전산운영팀</option><option>자재팀</option>
-            </select>
-            <select className="search-input" value={location} onChange={e=>setLocation(e.target.value)}>
-              <option value="">위치</option><option>전산실</option><option>라인1</option>
-            </select>
-            <select className="search-input" value={assetCategory} onChange={e=>setAssetCategory(e.target.value)}>
-              <option value="">분류</option><option>IT자산</option><option>가구</option>
-            </select>
-            <select className="search-input" value={itemName} onChange={e=>setItemName(e.target.value)}>
-              <option value="">품목</option><option>노트북</option><option>책상</option>
-            </select>
-            <input
-              type="number"
-              className="search-input view-count"
-              placeholder="출력개수"
-              value={viewCount}
-              onChange={e=>setViewCount(+e.target.value)}
-            />
-          </div>
-          <div className="search-bar">
-            <input
-              type="text"
-              className="search-input"
-              placeholder="바코드"
-              value={barcodeKeyword}
-              onChange={e=>setBarcodeKeyword(e.target.value)}
-            />
-            <input type="date" className="search-input" value={startDate} onChange={e=>setStartDate(e.target.value)} />
-            <span>~</span>
-            <input type="date" className="search-input" value={endDate}   onChange={e=>setEndDate(e.target.value)} />
-            <button className="search-button" onClick={handleSearch}>🔍 조회</button>
-            <button className="search-button reset" onClick={handleReset}>↺ 초기화</button>
-          </div>
+        <div className="search-bar">
+{/* 세부위치 */}
+<select
+  className="search-input"
+  value={selectedLocId}
+  onChange={e => setSelectedLocId(e.target.value)}
+>
+  <option value="">세부위치</option>
+  {locations.map(loc => (
+    <option key={loc.id} value={loc.id}>
+      {loc.name}
+    </option>
+  ))}
+</select>
+
+ {/* 분류 */ }
+ <select
+   className="search-input"
+   value={selectedCategoryId}
+   onChange={e => setSelectedCategoryId(Number(e.target.value))}
+ >
+  <option value="">분류</option>
+  {assetCategories.map(cat => (
+    <option key={cat.parentId} value={cat.parentId}>
+      {cat.name}
+    </option>
+  ))}
+</select>
+
+ {/* 품목 */ }
+ <select
+   className="search-input"
+   value={selectedItemId}
+   onChange={e => setSelectedItemId(Number(e.target.value))}
+   disabled={!selectedCategoryId}
+ >
+  <option value="">품목</option>
+  {items.map(item => (
+    // value에는 ID, 화면에는 name 문자열
+    <option key={item.id} value={item.id}>
+      {item.name}
+    </option>
+  ))}
+</select>
+
+
+  {/* 출력개수 */}
+  <input
+    type="number"
+    className="search-input view-count"
+    placeholder="출력개수"
+    value={viewCount}
+    onChange={e => setViewCount(+e.target.value)}
+  />
+</div>
+
+<div className="search-bar">
+  {/* <input
+    type="text"
+    className="search-input"
+    placeholder="바코드"
+    value={barcodeKeyword}
+    onChange={e => setBarcodeKeyword(e.target.value)}
+  /> */}
+  <input
+    type="date"
+    className="search-input"
+    value={startDate}
+    onChange={e => setStartDate(e.target.value)}
+  />
+  <span>~</span>
+  <input
+    type="date"
+    className="search-input"
+    value={endDate}
+    onChange={e => setEndDate(e.target.value)}
+  />
+  <button className="search-button" onClick={handleSearch}>🔍 조회</button>
+  <button className="search-button reset" onClick={handleReset}>↺ 초기화</button>
+</div>
+
         </div>
       </div>
 
       {/* 3. 제목 + 액션 버튼 */}
       <div className="bottom-header">
-        <h2 className="section-title">내가 올린 정보</h2>
+        <h2 className="section-title">부서 자산 정보</h2>
         <div className="button-group">
-          <button className="action-button" onClick={handleModify} disabled={selectedItems.length!==1}>
+          <button className="action-button" onClick={handleModify} disabled={selectedBarcodes.size !== 1}>
             수정하기
           </button>
-          <button className="action-button" onClick={handleDelete} disabled={!selectedItems.length}>
+          <button className="action-button" onClick={handleDelete} disabled={!selectedBarcodes.size}>
             삭제하기
           </button>
-          <button className="action-button" onClick={handlePrint} disabled={!selectedItems.length}>
+          <button className="action-button" onClick={handlePrint} disabled={!selectedBarcodes.size}>
             인쇄하기
           </button>
         </div>
@@ -406,23 +636,27 @@ export default function MyInfoPage() {
               </tr>
             </thead>
             <tbody>
-              {currentList.map((row, idx) => (
-                <tr
-                  key={idx}
-                  onClick={() => setDetailItem(row)}
-                  style={{ cursor: 'pointer' }}
-                >
+            {currentList.length === 0
+    ? (
+      <tr>
+        <td colSpan={13} style={{ textAlign: 'center', padding: '1rem 0' }}>
+          검색 결과가 없습니다.
+        </td>
+      </tr>
+    )
+    : currentList.map((row, idx) => (
+      <tr key={idx} onClick={() => setDetailItem(row)} style={{ cursor: 'pointer' }}>
                   <td>
-                    <input
-                      type="checkbox"
-                      checked={selectedItems.includes(idx)}
-                      onClick={e => e.stopPropagation()}
-                      onChange={() => handleCheckboxChange(idx)}
-                    />
+                  <input
+  type="checkbox"
+  checked={selectedBarcodes.has(row.barcode)}
+  onClick={e => e.stopPropagation()}
+  onChange={() => handleCheckboxChange(row.barcode)}
+/>
                   </td>
                   <td>{row.barcode}</td><td>{row.company}</td><td>{row.department}</td><td>{row.location}</td>
-                  <td>{row.acquisitionType}</td><td>{row.assetCategory}</td><td>{row.itemName}</td>
-                  <td>{row.assetStatus}</td><td>{row.manufacturer}</td><td>{row.model}</td>
+                  <td>{row.division}</td><td>{row.parentCategory}</td><td>{row.childCategory}</td>   
+                  <td>{row.status}</td><td>{row.manufacturer}</td><td>{row.model}</td>
                   <td>{row.acquisitionDate}</td><td>{row.acquisitionPrice}</td>
                 </tr>
               ))}
@@ -456,13 +690,12 @@ export default function MyInfoPage() {
         <EditModal
           item={editItem}
           onSave={edited=>{
-            const arr=[...items];
-            const gi=(currentPage-1)*itemsPerPage + edited.idx;
-            delete edited.idx;
-            arr[gi]=edited;
+                 const arr = [...items];
+                 const gi = arr.findIndex(i => i.barcode === edited.barcode);
+                 if (gi !== -1) arr[gi] = edited;
             setItems(arr);
             setIsModalOpen(false);
-            setSelectedItems([]); setSelectAll(false);
+            setSelectedBarcodes(new Set()); setSelectAll(false);
             alert('수정되었습니다.');
           }}
           onClose={()=>setIsModalOpen(false)}
@@ -497,7 +730,9 @@ function FullPageDetail({ item, onClose }) {
   );
 }
 
+
 function SideDrawerDetail({ item, onClose }) {
+  
   return (
     <>
       <div className="drawer-overlay" onClick={onClose} />

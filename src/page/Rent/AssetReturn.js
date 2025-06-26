@@ -1,53 +1,27 @@
-import React, { useState } from 'react';
-import useMediaQuery from '../../utils/hooks/useMediaQuery';
+import React, { useState, useEffect } from 'react';
+import useMediaQuery            from '../../utils/hooks/useMediaQuery';
+import { authFetchWithRefresh } from '../../utils/authFetchWithRefresh';
+
+// .env 없이도 동작하도록 기본값 유지
+const API_BASE_URL =
+  window._env_?.REACT_APP_API_URL || 'http://localhost:8888';
+
 
 export default function AssetReturnListPage() {
-  const loginUser = '홍길동';
+  // 로그인 사용자 · 부서 ID 는 실제 앱에서 내려주는 값을 사용하세요
+  const loginUser     = localStorage.getItem('username')     || '홍길동';
+  const affiliationId = localStorage.getItem('affiliationId');
   const isMobile = useMediaQuery('(max-width: 768px)');
 
   const [checkedItems, setCheckedItems] = useState([]);
-  const [assets, setAssets] = useState([
-    // 예시 데이터에 rentLocation 필드를 추가했습니다.
-    {
-      barcode: '20ORSFFL2',
-      company: '평택 공장',
-      department: '회계팀',
-      location: '서버실',     // 세부위치
-      rentLocation: '사무실', // 대여위치 (예시)
-      category: 'IT자산',
-      item: '모니터',
-      borrower: '홍길동',
-      registrar: '이철수'
-    },
-    {
-      barcode: '20ORSFFL3',
-      company: '우신비나',
-      department: '생산팀',
-      location: '라인1',     // 세부위치
-      rentLocation: '사무실', // 대여위치 (예시)
-      category: '사무자산',
-      item: '책상',
-      borrower: '신청중',
-      registrar: '홍길동'
-    },
-    {
-      barcode: '20ORSFFL4',
-      company: '우신비나',
-      department: '자재팀',
-      location: '창고',       // 세부위치
-      rentLocation: '사무실', // 대여위치 (예시)
-      category: '사무자산',
-      item: '의자',
-      borrower: '신청중',
-      registrar: '홍길동'
-    }
-  ]);
+  const [assets, setAssets] = useState([]);   // 서버 데이터
 
   const handleCheck = (barcode) => {
     setCheckedItems((prev) =>
       prev.includes(barcode) ? prev.filter((item) => item !== barcode) : [...prev, barcode]
     );
   };
+  
 
   // 1) 내가 현재 빌린 자산에 대해 “반납 신청”
   const handleRequestReturn = () => {
@@ -123,10 +97,62 @@ export default function AssetReturnListPage() {
     setCheckedItems([]);
   };
 
-  // 3가지 상태로 필터링
-  const 내가빌린 = assets.filter((a) => a.borrower === loginUser);
-  const 내가반납신청한 = assets.filter((a) => a.borrower === '신청중' && a.registrar !== loginUser);
-  const 내자산에들어온신청 = assets.filter((a) => a.borrower === '신청중' && a.registrar === loginUser);
+    // 3가지 상태로 필터링
+    const 내가빌린          = assets.filter(a => a.borrower === loginUser);
+    const 내가반납신청한    = assets.filter(a => a.borrower === '신청중' && a.registrar !== loginUser);
+    const 내자산에들어온신청 = assets.filter(a => a.borrower === '신청중' && a.registrar === loginUser);
+  
+
+      useEffect(() => {
+          if (!affiliationId) return;          // 부서 ID 없으면 호출 X
+      
+          const fetchAssets = async () => {
+            try {
+              const res   = await authFetchWithRefresh(
+                `${API_BASE_URL}/rental?affiliationId=${affiliationId}`,
+                { method:'POST', headers:{ 'Content-Type':'application/json' } }
+              );
+              const json  = await res.json();
+              if (json.code !== 1) {
+                console.warn('대여 자산 조회 실패:', json.message);
+                return;
+              }
+    
+              const mapped = (json.data?.list || []).map(r => ({
+                id          : r.id,
+                barcode     : r.barcode,
+                company     : r.corporation,
+                department  : r.department,
+                location    : r.location,
+                rentLocation: r.rentLocation,
+                category    : r.parentType,
+                item        : r.childType,
+                borrower    : r.renter,
+                registrar   : r.register,
+                status      : r.status,
+                fromDate    : r.fromDate,
+                toDate      : r.toDate,
+                isExpire    : r.isExpire
+              }));
+      
+              console.log('[대여 중 자산]', mapped);  // ← 확인용 로그
+            setAssets(mapped);
+            } catch (err) {
+              console.error('대여 자산 조회 오류:', err);
+            }
+          };
+      
+          fetchAssets();
+        }, [affiliationId]);
+
+
+
+  
+
+
+
+
+  
 
   // 데스크톱용 테이블 렌더링 헬퍼
   const renderTable = (title, data, buttonElement) => (
@@ -144,20 +170,20 @@ export default function AssetReturnListPage() {
       </div>
       <div className="table-wrapper">
         <table className="asset-table">
-          <thead>
-            <tr>
-              <th></th>
-              <th>바코드</th>
-              <th>회사구분</th>
-              <th>부서구분</th>
-              <th>세부위치</th>
-              <th>대여위치</th>  {/* 새로 추가된 컬럼 */}
-              <th>자산분류</th>
-              <th>품목</th>
-              <th>대여자</th>
-              <th>등록자</th>
-            </tr>
-          </thead>
+        <thead>
+  <tr>
+    <th></th>
+    <th>바코드</th>
+    <th>회사구분</th>
+    <th>부서구분</th>
+    <th>세부위치</th>
+    <th>대여위치</th>
+    <th>자산분류</th>
+    <th>품목</th>
+    <th>대여자</th>
+    <th>등록자</th>
+  </tr>
+</thead>
           <tbody>
             {data.map((item) => (
               <tr key={item.barcode}>

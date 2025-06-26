@@ -4,11 +4,14 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import { saveItem, deleteItem, initDB } from '../../utils/db';
 import { authFetchWithRefresh } from '../../utils/authFetchWithRefresh';
-import axios from 'axios';
+// import axios from 'axios';
 import './auditLoad.css';
 import barcodeIcon from '../../assets/img/scan.png';
 
 const AuditLoad = () => {
+  const currentUserId = localStorage.getItem('username') || 'NO_ID';
+  const currentUserName = localStorage.getItem('name') || '실사 등록자 없음';
+
   const [searchBarcode, setSearchBarcode] = useState('');
   const [items, setItems] = useState([]);
   const [scannerVisible, setScannerVisible] = useState(false);
@@ -21,7 +24,34 @@ const AuditLoad = () => {
 
   const API_BASE = window._env_?.REACT_APP_API_URL || 'http://localhost:8888';
 
+  console.log(localStorage)
 
+  useEffect(() => {
+    const loadSavedItems = async () => {
+      try {
+        const db = await initDB();
+        const all = await db.getAll('inspection');
+  
+        // 🔍 현재 사용자 항목만
+        const filtered = all.filter(item =>
+          item.registrantId === currentUserId && item.registrantName === currentUserName
+        );
+        
+  
+        const formatted = filtered.map(it => ({
+          ...it,
+          selected: false,
+          new: false,
+        }));
+  
+        setItems(formatted);
+      } catch (err) {
+        console.error('IndexedDB 로드 오류:', err);
+      }
+    };
+  
+    loadSavedItems();
+  }, []);     
 
 
   useEffect(() => {
@@ -103,7 +133,8 @@ const AuditLoad = () => {
       parsedData = null;
     }
     const barcode = parsedData?.barcode || decodedText.trim();
-    const registrant = parsedData?.registrant || '홍길동';
+    const registrantId = currentUserId;
+    const registrantName = currentUserName;
     const location = selectedLocation;
 
     let existsInDB = false;
@@ -116,9 +147,9 @@ const AuditLoad = () => {
     }
 
     if (!existsInDB) {
-      const newItem = { barcode, location, registrant, selected: false, new: true };
+      const newItem = { barcode, location, registrantId, registrantName, selected: false, new: true };
       setItems((prev) => [...prev, newItem]);
-      await saveItem({ barcode, location, registrant });
+      await saveItem({ barcode, location, registrantId, registrantName });
     }
 
     setScannerVisible(false);
@@ -134,6 +165,7 @@ const AuditLoad = () => {
   };
 
   const handleDelete = async () => {
+    if (!window.confirm("정말 삭제하시겠습니까?")) return;
     const toDelete = items.filter((item) => item.selected);
     if (toDelete.length === 0) return alert('삭제할 항목을 선택하세요.');
     for (const item of toDelete) await deleteItem(item.barcode);
@@ -226,13 +258,14 @@ const AuditLoad = () => {
               if (e.key === 'Enter' && searchBarcode.trim()) {
                 if (!selectedLocation) return alert('먼저 세부위치를 선택해주세요.');
                 const barcode = searchBarcode.trim();
-                const registrant = '홍길동';
+                const registrantId = currentUserId;
+                const registrantName = currentUserName;
                 const location = selectedLocation;
                 const exists = items.some((it) => it.barcode === barcode);
                 if (!exists) {
-                  const newItem = { barcode, location, registrant, selected: false, new: true };
+                  const newItem = { barcode, location, registrantId, registrantName, selected: false, new: true };
                   setItems((prev) => [...prev, newItem]);
-                  await saveItem({ barcode, location, registrant });
+                  await saveItem({ barcode, location, registrantId, registrantName });
                 }
                 setSearchBarcode('');
               }
@@ -265,7 +298,7 @@ const AuditLoad = () => {
                 <td><input type="checkbox" checked={item.selected || false} onChange={() => handleSelectItem(index)} /></td>
                 <td>{item.barcode}</td>
                 <td>{item.location}</td>
-                <td>{item.registrant}</td>
+                <td>{`${item.registrantName} (${item.registrantId})`}</td>
               </tr>
             ))
           )}
@@ -280,7 +313,9 @@ const AuditLoad = () => {
               <input type="checkbox" checked={item.selected || false} onChange={() => handleSelectItem(index)} />
             </div>
             <div className="audit-card-row"><strong>위치:</strong> {item.location}</div>
-            <div className="audit-card-row"><strong>등록자:</strong> {item.registrant}</div>
+            <div className="audit-card-row">
+  <strong>등록자:</strong> {`${item.registrantName} (${item.registrantId})`}
+</div>
           </div>
         ))}
       </div>

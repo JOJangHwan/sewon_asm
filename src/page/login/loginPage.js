@@ -29,6 +29,7 @@ function LoginPage() {
   }, []);
 
   const handleLogin = async () => {
+    
     if (!userId || !password) {
       setError('아이디와 비밀번호를 입력해주세요.');
       return;
@@ -51,14 +52,18 @@ function LoginPage() {
       const result = await res.json();
 
       if (result.code === 1) {
-        const { accessToken, refreshToken,name, id, username, department } = result.data;
+        const { accessToken, refreshToken,name, id, username, department,corporation,affiliationId } = result.data;
+       // console.log("로그인할때 받는 정보"+result.data);
 
         // ✅ 토큰 및 사용자 정보 저장
         saveTokens({ accessToken, refreshToken });
+        //console.log("로그인할때 받는 정보"+result.corporation)
+        localStorage.setItem('corporation',corporation)
         localStorage.setItem('name', name);
         localStorage.setItem('userId', id);
         localStorage.setItem('username', username);
         localStorage.setItem('department', department);
+        localStorage.setItem('affiliationId', affiliationId);
 
         navigate('/main');
       } else {
@@ -83,50 +88,61 @@ function LoginPage() {
 
   return (
     <div className="loginPage-container">
-      {/* 언어 선택 */}
-      <div className="loginPage-lang">
-        <label><input type="radio" name="lang" value="ko" checked={i18n.language === 'ko'} onChange={handleLangChange} />한국어</label>
-        <label><input type="radio" name="lang" value="vi" checked={i18n.language === 'vi'} onChange={handleLangChange} />Tiếng Việt</label>
-        <label><input type="radio" name="lang" value="ch" checked={i18n.language === 'ch'} onChange={handleLangChange} />中文</label>
-      </div>
-
-      <img src="/img/login_img.jpg" alt="로고" className="loginPage-logo" />
-      <div className="loginPage-title">{t('title') || '세원전자 자산관리 시스템'}</div>
-      <p className="loginPage-desc">Sewon Electronics<br />Asset Management System</p>
-
-      <input
-        type="text"
-        placeholder={t('username') || '아이디'}
-        value={userId}
-        className="loginPage-input"
-        onChange={(e) => setUserId(e.target.value)}
-      />
-      <input
-        type="password"
-        placeholder={t('password') || '비밀번호'}
-        className="loginPage-input"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
-
-      <div className="loginPage-remember">
+  
+      {/* ✅ <form> 시작 */}
+      <form className="loginPage-form" onSubmit={(e) => { e.preventDefault(); handleLogin(); }}>
+  
+        {/* ===== 언어 선택을 폼 내부로 이동 ===== */}
+        <div className="loginPage-lang">
+          <label><input type="radio" name="lang" value="ko" checked={i18n.language === 'ko'} onChange={handleLangChange}/>한국어</label>
+          <label><input type="radio" name="lang" value="vi" checked={i18n.language === 'vi'} onChange={handleLangChange}/>Tiếng Việt</label>
+          <label><input type="radio" name="lang" value="ch" checked={i18n.language === 'ch'} onChange={handleLangChange}/>中文</label>
+        </div>
+  
+        {/* 로고 / 타이틀 */}
+        <img src="/img/login_img.jpg" alt="로고" className="loginPage-logo" />
+        <div className="loginPage-title">{t('title') || '세원전자 자산관리 시스템'}</div>
+        <p className="loginPage-desc">Sewon Electronics<br />Asset Management System</p>
+  
+        {/* 아이디 / 비밀번호 */}
         <input
-          type="checkbox"
-          id="remember"
-          checked={rememberId}
-          onChange={(e) => setRememberId(e.target.checked)}
+          type="text"
+          placeholder={t('username') || '아이디'}
+          value={userId}
+          className="loginPage-input"
+          onChange={(e) => setUserId(e.target.value)}
         />
-        <label htmlFor="remember">{t('remember') || '아이디 저장'}</label>
-      </div>
-
-      {error && <div style={{ color: 'red', fontSize: '13px' }}>{error}</div>}
-
-      <button className="loginPage-loginButton" onClick={handleLogin}>
-        {t('submit') || '로그인'}
-      </button>
-      <button className="loginPage-signupButton" onClick={handleRegister}>
-        {t('register') || '회원가입'}
-      </button>
+        <input
+          type="password"
+          placeholder={t('password') || '비밀번호'}
+          className="loginPage-input"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+  
+        {/* 아이디 저장 */}
+        <div className="loginPage-remember">
+          <input
+            type="checkbox"
+            id="remember"
+            checked={rememberId}
+            onChange={(e) => setRememberId(e.target.checked)}
+          />
+          <label htmlFor="remember">{t('remember') || '아이디 저장'}</label>
+        </div>
+  
+        {/* 에러 메시지 */}
+        {error && <div style={{ color: 'red', fontSize: '13px' }}>{error}</div>}
+  
+        {/* 버튼 */}
+        <button type="submit" className="loginPage-loginButton">
+          {t('submit') || '로그인'}
+        </button>
+        <button type="button" className="loginPage-signupButton" onClick={handleRegister}>
+          {t('register') || '회원가입'}
+        </button>
+  
+      </form>
     </div>
   );
 }
