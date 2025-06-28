@@ -3,6 +3,10 @@ import React, { useState, useEffect } from "react";
 import { FaSearch } from "react-icons/fa";
 import "./auditList.css";
 import { authFetchWithRefresh } from "../../utils/authFetchWithRefresh";  // 인증 포함 fetch 함수 사용
+// 📦 [추가] 엑셀 내보내기용 라이브러리
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
+
 const API_BASE_URL = window._env_?.REACT_APP_API_URL || "http://localhost:8888";
 
 // ✅ 환경변수에서 API URL 사용 추가
@@ -230,6 +234,46 @@ export default function StockTakingSearch() {
     setFilteredItems([]); setSearched(false);
     setSelectedItems([]); setCurrentPage(1);
   };
+    /* -----------------------------------------------------------
+       📑 Excel 다운로드
+       - 현재 화면에 표시 중인 rows(`currentItems`)만 저장
+       - 선택된 행만 저장하려면 ↓ 주석 참고
+    ----------------------------------------------------------- */
+    const handleExportExcel = () => {
+      if (!currentItems.length) {
+        alert("내보낼 데이터가 없습니다.");
+        return;
+      }
+  
+      // ▶ 선택된 행만 내보내고 싶으면 아래 한 줄 교체
+      // const dataToExport = currentItems.filter(row => selectedItems.includes(row.barcode));
+      const dataToExport = currentItems;
+  
+      const jsonData = dataToExport.map(row => ({
+        바코드:           row.barcode,
+        회사:             row.corporation,
+        부서:             row.department,
+        위치:             row.location,
+        취득구분:         row.division,
+        자산분류:         row.parentCategory,
+        품목:             row.childCategory,
+        상태:             row.status,
+        제조사:           row.manufacturer,
+        모델:             row.model,
+        취득일자:         row.acquisitionDate,
+        취득가:           row.acquisitionPrice,
+        등록자:           row.registerName,
+        실사상태:         row.isStockTaking ? "완료" : "미완료",
+      }));
+  
+      const ws = XLSX.utils.json_to_sheet(jsonData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "실사목록");
+  
+      const buffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+      const blob   = new Blob([buffer], { type: "application/octet-stream" });
+      saveAs(blob, "실사_조회_결과.xlsx");
+    };
 
   const listToDisplay = searched ? filteredItems : items;
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -323,6 +367,7 @@ value={company} onChange={e=>{
   🔍 조회
 </button>
           <button className="audit-search-btn reset" onClick={handleReset}>↺ 초기화</button>
+          <button className="audit-search-btn download" onClick={handleExportExcel}>⬇️ 내려받기</button>
         </div>
       </div>
 

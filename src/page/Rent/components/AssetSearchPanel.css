@@ -1,11 +1,41 @@
-/* AssetSearchPanel.css */
-.slide-panel {
+.asp-search-box input,
+.asp-search-box button {
+  height: 40px;           /* ✅ 명시적으로 높이 통일 */
+  font-size: 14px;
+  padding: 0 12px;
+  border: 1px solid #ccc;
+  box-sizing: border-box; /* ✅ 패딩 포함한 높이 계산 */
+}
+
+.asp-search-box input {
+  border-right: none;
+  border-radius: 6px 0 0 6px;
+  flex: 1;
+}
+
+.asp-search-box button {
+  border-left: none;
+  border-radius: 0 6px 6px 0;
+  background-color: #facc15;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+}
+
+.asp-search-box button:hover {
+  background-color: #fbbf24;
+}
+
+/* AssetSearchPanel.css — 모든 선택자에 asp- 접두어 적용 */
+.asp-slide-panel {
   position: fixed;
   top: 0;
   right: 0;
   width: 500px;
   height: 100vh;
-  background-color: white;
+  background-color: #fff;
   box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
   z-index: 1100;
   display: flex;
@@ -15,34 +45,60 @@
   transition: transform 0.3s ease;
 }
 
-.panel-header {
+.asp-header {
+  position: relative;
   display: flex;
+  align-items: center;   
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  padding-right: 8px;
+  height: 40px; 
+  margin-bottom: 25px;            /* ✅ 고정 높이로 기준 만들기 */
 }
 
-.panel-header h3 {
+.asp-header h3 {
   font-size: 20px;
   font-weight: bold;
   margin: 0;
 }
+/* ------------- 닫기(×) 버튼 ------------- */
+.asp-close-btn {
+  /* 1. 위치 */
+  position: absolute;
+  top: 4px;                   /* ← 더 위로 붙임(필요하면 값 조절) */
+  right: 4px;
 
-.close-btn {
-  background: none;
-  border: none;
-  font-size: 24px;
+  /* 2. 크기·모양 */
+  width: 50px;
+  height: 50px;
+  font-size: 18px;
+  line-height: 1;
+  border: 1px solid #ccc;     /* ⭐ 테두리 추가 */
+  border-radius: 4px;         /* 둥근 모서리 */
+  background: #fff;
+  color: #333;
   cursor: pointer;
+  padding: 0;
+
+  /* 3. 시각 효과 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
 }
 
-.panel-body {
+.asp-close-btn:hover {
+  background: #f8f8f8;
+}
+
+.asp-body {
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
-.filters select {
+.asp-filters select {
   width: 100%;
   padding: 10px;
   border-radius: 6px;
@@ -50,15 +106,13 @@
   font-size: 14px;
 }
 
-.search-box {
+.asp-search-box {
   display: flex;
-  gap: 0;
-  flex-direction: row;
   border-radius: 6px;
-  overflow: hidden;
+  overflow: visible; /* ✅ 버튼 잘림 방지 */
 }
 
-.search-box input {
+.asp-search-box input {
   flex: 1;
   padding: 10px;
   border: 1px solid #ccc;
@@ -67,7 +121,7 @@
   font-size: 14px;
 }
 
-.search-box button {
+.asp-search-box button {
   background-color: #facc15;
   border: 1px solid #ccc;
   border-left: none;
@@ -78,26 +132,28 @@
   display: flex;
   align-items: center;
   justify-content: center;
-}
 
-.search-box button:hover {
-  background-color: #fbbf24;
+    /* 👇 추가 또는 수정 */
+    width: fit-content;
+    min-width: 40px;
+    transform: translateY(-7px);  /* 숫자 조절: -1px ~ -3px 권장 */
 }
+.asp-search-box button:hover { background-color: #fbbf24; }
 
-.asset-table {
+.asp-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
 }
 
-.asset-table th,
-.asset-table td {
+.asp-table th,
+.asp-table td {
   padding: 10px;
   border: 1px solid #eee;
   text-align: center;
 }
 
-.select-btn {
+.asp-select-btn {
   background-color: #facc15;
   border: none;
   padding: 6px 12px;
@@ -105,83 +161,24 @@
   cursor: pointer;
   font-size: 14px;
 }
+.asp-select-btn:hover { background-color: #fbbf24; }
 
-.select-btn:hover {
-  background-color: #fbbf24;
-}
-
+/* ---------------- 반응형 ---------------- */
 @media (max-width: 768px) {
-  .slide-panel {
-    width: 100vw;
-    height: 100vh;
-    padding: 16px;
-    left: 0;
-    right: 0;
-    top: 0;
-    bottom: 0;
-    border-radius: 0;
-  }
-
-  .panel-header h3 {
-    font-size: 18px;
-  }
-
-  .close-btn {
-    font-size: 22px;
-  }
-
-  .filters select {
-    font-size: 14px;
-    padding: 10px;
-  }
-
-  .search-box {
-    flex-direction: row;
-  }
-
-  .search-box input {
-    font-size: 14px;
-    padding: 10px;
-  }
-
-  .search-box button {
-    font-size: 16px;
-    padding: 0 14px;
-  }
-
-  .asset-table th,
-  .asset-table td {
-    font-size: 13px;
-    padding: 8px;
-  }
-
-  .select-btn {
-    font-size: 13px;
-    padding: 6px 10px;
-  }
+  .asp-slide-panel { width: 100vw; height: 100vh; padding: 16px; left: 0; }
+  .asp-header h3 { font-size: 18px; }
+  .asp-close-btn { font-size: 22px; }
+  .asp-filters select,
+  .asp-search-box input { font-size: 14px; }
+  .asp-search-box button { font-size: 16px; }
+  .asp-table th, .asp-table td { font-size: 13px; padding: 8px; }
+  .asp-select-btn { font-size: 13px; padding: 6px 10px; }
 }
 
 @media (max-width: 480px) {
-  .filters select {
-    font-size: 13px;
-  }
-
-  .panel-header h3 {
-    font-size: 16px;
-  }
-
-  .search-box button {
-    font-size: 14px;
-  }
-
-  .asset-table th,
-  .asset-table td {
-    font-size: 12px;
-    padding: 6px;
-  }
-
-  .select-btn {
-    font-size: 12px;
-    padding: 5px 10px;
-  }
+  .asp-filters select { font-size: 13px; }
+  .asp-header h3       { font-size: 16px; }
+  .asp-search-box button { font-size: 14px; }
+  .asp-table th, .asp-table td { font-size: 12px; padding: 6px; }
+  .asp-select-btn { font-size: 12px; padding: 5px 10px; }
 }

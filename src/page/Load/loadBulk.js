@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import * as XLSX from 'xlsx';
 import './loadBulk.css';
 import useMediaQuery from '../../utils/hooks/useMediaQuery';
@@ -146,56 +146,75 @@ const convertExcelDate = (value) => {
   return value;
 };
 
-// 예시 회사/부서/세부위치
-// 이걸 db에서 가져와서 비교해서 넣는 식으로 교체
-const COMPANY_MAP = {
-  '평택공장': {
-    '전산운영': ['전산실', '사무실'],
-    '노무총무P': [],
-    '품질보증P': [],
-    '기술P': [],
-    '개발P': [],
-    '생산관리P': [],
-    '영업P': [],
-  },
-  '서울사무소':{
-    '감사인사P':[],
-    '회계P':[],
-    '원가P':[],
-  },
-  '우신에너지': {
-    '경영관리P': ['본사 사무실'],
-    '구매관리P': ['본사 사무실'],
-    '자재관리P': ['창고'],
-  },
-  '경산공장장': {
-    '경영관리P': ['본사 사무실'],
-  },
-  '우신비나': {
-    '1공장': ['본사 사무실'],
-    '2공장': ['본사 사무실'],
-    '3공장': ['본사 사무실'],
-  },
-  '위해': {
-    '경영관리P': ['본사 사무실'],
-  },
-  '덕주': {
-    '경영관리P': ['본사 사무실'],
-  },
-};
 
-// 예시 자산분류/품목
-const ASSET_CATEGORY_MAP = {
-  '전자자산': ['노트북', '컴퓨터', '모니터'],
-  '가구': ['의자', '책상'],
-};
+// 서버에서 받아쓴 데이터를 담을 state
+const DUMMY_COMPANY_MAP = {  }
+const DUMMY_ASSET_MAP   = {  }
 
 const LoadBulk = () => {
+  //db에서 가져오는 정보들을 맵핑하기 위한 정보
+  const [companyMap,        setCompanyMap]        = useState(DUMMY_COMPANY_MAP);
+  const [assetCategoryMap,  setAssetCategoryMap]  = useState(DUMMY_ASSET_MAP);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        // ① 회사-부서-세부위치 계층
+        const corpRes = await authFetchWithRefresh(`${API_BASE}/corporations`);
+        const corpJson = await corpRes.json();
+        if (corpJson.code === 1) {
+          const map = {};
+          corpJson.data?.corporationList?.forEach(c => {
+            map[c.name] = {};
+            c.affiliationList?.forEach(a => {
+                map[c.name][a.department] = a.locations.map(l => ({
+                    name: l.location,
+                    id: l.id
+                  }));
+            });
+          });
+          console.log('🗺️ [CORP] final map:', map);
+          setCompanyMap(map);
+        }
+  
+        // ② 자산분류 - 품목 계층
+        const assetRes = await authFetchWithRefresh(`${API_BASE}/asset-types/hierarchy`);
+        const assetJson = await assetRes.json();
+        console.log("방금"+JSON.stringify(assetJson, null, 2));
+        if (assetJson.code === 1) {
+          const map = {};
+          assetJson.data?.parentList?.forEach(p => {
+            // map[p.name] = p.childList.map(c => c.name);
+            map[p.name] = (p.childList || []).map(c => c.name);
+            console.log([p.name])
+          });
+          console.log('🗺️ [ASSET] final map:', map);
+          console.log("map"+map)
+          setAssetCategoryMap(map);
+        }
+      } catch (e) {
+        console.error('서버 계층 데이터 불러오기 실패:', e);
+      }
+    })();
+  }, []);
+  
   const [fileName, setFileName] = useState('');
   const [tableData, setTableData] = useState([]);
   const [selectedRows, setSelectedRows] = useState([]);
   const [rowErrors, setRowErrors] = useState([]);
   const [isValid, setIsValid] = useState(true);
+    // ✅ 전체 선택 여부
+  const isAllSelected = tableData.length > 0 && selectedRows.length === tableData.length;
+
+  // ✅ 전체 선택 토글
+  const handleSelectAll = () => {
+    if (isAllSelected) {
+      setSelectedRows([]);
+    } else {
+      // 오류 행도 포함해서 “보이는 행 전부” 선택
+      setSelectedRows(tableData.map((_, idx) => idx));
+    }
+  };
 
   const isMobile = useMediaQuery('(max-width: 768px)');
 
@@ -231,17 +250,17 @@ const LoadBulk = () => {
       
         if (!newRow[5]) rowError.push('품목 누락');
       
-        if (!(company in COMPANY_MAP)) {
+        if (!(company in companyMap)) {
           rowError.push('회사구분 오류');
-        } else if (!(department in COMPANY_MAP[company])) {
+        } else if (!(department in companyMap[company])) {
           rowError.push('부서구분 오류');
-        } else if (!COMPANY_MAP[company][department].includes(location)) {
+        } else if (!companyMap[company][department].includes(location)) {
           rowError.push('세부위치 오류');
         }
       
-        if (!(category in ASSET_CATEGORY_MAP)) {
+        if (!(category in assetCategoryMap)) {
           rowError.push('자산분류 오류');
-        } else if (!ASSET_CATEGORY_MAP[category].includes(item)) {
+        } else if (!assetCategoryMap[category].includes(item)) {
           rowError.push('품목 오류');
         }
       
@@ -353,12 +372,22 @@ const LoadBulk = () => {
       let lastResponseMessage = '';
   
       if (generalRows.length > 0) {
-        // const res = await authFetchWithRefresh('http://192.168.0.220:8888/assets/bulk', {
-          const res = await authFetchWithRefresh(`${API_BASE}/assets/bulk`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ list: generalRows.map(mapRowToBackend) }),
-        });
+        const payload = generalRows.map(mapRowToBackend);
+
+        // ✅ 여기서 전송 내용 확인
+        // console.log('📦 [POST /assets/bulk] payload:', JSON.stringify(payload, null, 2));
+        // // const res = await authFetchWithRefresh('http://192.168.0.220:8888/assets/bulk', {
+        //   const res = await authFetchWithRefresh(`${API_BASE}/assets/bulk`, {
+        //   method: 'POST',
+        //   headers: { 'Content-Type': 'application/json' },
+        //   body: JSON.stringify({ list: generalRows.map(mapRowToBackend) }),
+        // });
+         console.log('📦 [POST /assets/bulk] payload:', JSON.stringify(payload, null, 2));
+ const res = await authFetchWithRefresh(`${API_BASE}/assets/bulk`, {
+   method: 'POST',
+   headers: { 'Content-Type': 'application/json' },
+   body: JSON.stringify({ list: payload }),
+ });
         console.log('📡 응답 상태코드:', res.status);   // ← 200, 403, 500 등 출력됨
         console.log('📡 응답 ok:', res.ok);     
 
@@ -436,19 +465,37 @@ const LoadBulk = () => {
 
   const mapRowToBackend = (row) => {
     const acquisitionTypeMap = {
-      '구매자산(자산)': 0,
-      '대여자산(비품)': 1
+      '구매자산': 0,
+      '대여자산': 1
     };
     const statusMap = {
       '사용': 0,
       '미사용': 1
     };
+      // ✅ 세부위치 ID 매핑
+  let locationId = null;
+  try {
+    const deptList = Object.entries(companyMap[row[0]] || {});
+    for (const [deptName, locList] of deptList) {
+      if (deptName === row[1]) {
+        const matchedLocation = locList.find(loc => loc.name === row[2]);
+        if (matchedLocation) {
+          locationId = matchedLocation.id;
+          break;
+        }
+      }
+    }
+  } catch (e) {
+    console.warn('locationId 매핑 실패:', row[0], row[1], row[2]);
+  }
   
     return {
       corporation: row[0],
       department: row[1],
       location: row[2],
+      locationId,
       division: acquisitionTypeMap[row[3]],
+      division: acquisitionTypeMap[row[3]] ?? 0,
       parentType: row[4],
       childType: row[5],
       status: statusMap[row[6]],
@@ -502,25 +549,25 @@ const formatDataForJson = (data) => {
 
   const handleDownloadTemplate = () => {
     const exampleRow = [
-      '예시: 평택공장',        // 회사구분
-      '예시: 전산운영P',        // 부서구분
-      '예시: 전산실',          // 세부위치
-      '예시: 구매자산(자산)',    // 취득구분
-      '예시: IT',             // 자산분류
-      '예시: 노트북',          // 품목
-      '예시: 사용',            // 자산상태
-      '예시: 삼성',            // 제조사
-      '예시: NT500R5W',       // 모델
-      '예시: 2024-01-15',     // 취득일자
-      '예시: 1200000',        // 취득가
-      '예시: 홍길동',          // 등록자
-      '예시: i5-1135G7',      // ✅ CPU
-      '예시: 16GB',           // ✅ RAM
-      '예시: Intel Iris Xe',  // ✅ 그래픽카드
-      '예시: 512'             // ✅ 저장공간(GB)
+      '평택공장',        // 회사구분
+      '전산운영',        // 부서구분
+      '전산실',          // 세부위치
+      '구매자산 또는 대여자산(2가지만 작성해야됨)',    // 취득구분
+      '전자자산',             // 자산분류
+      '노트북',          // 품목
+      '사용 또는 미사용(2가지만 작성해야됨)',            // 자산상태
+      '삼성',            // 제조사
+      'NT500R5W',       // 모델
+      '2024-01-15',     // 취득일자
+      '1200000',        // 취득가
+      '홍길동',          // 등록자
+      'i5-1135G7',      // ✅ CPU
+      '16GB',           // ✅ RAM
+      'Intel Iris Xe',  // ✅ 그래픽카드
+      '512'             // ✅ 저장공간(GB)
     ];
 
-    const warningRow = ['⚠️ 이 줄은 예시입니다. 업로드 전에 반드시 삭제해주세요.'];
+    const warningRow = ['⚠️ 이 줄은 예시입니다. 업로드 전에 반드시 삭제해주세요. 오타나지않게 작성해주세요'];
     
     
     const worksheet = XLSX.utils.aoa_to_sheet([
@@ -630,9 +677,16 @@ const getFixedRow = (row) => {
       {/* === 📋 테이블 (PC 전용) === */}
       {!isMobile && (
   <table className="bulk-table">
-    <thead>
-      <tr>
-        <th></th>
+
+         <thead>
+   <tr>
+     <th>
+       <input
+         type="checkbox"
+         onChange={handleSelectAll}
+         checked={isAllSelected}
+       />
+     </th>
         {TABLE_HEADERS.map((header, idx) => <th key={idx}>{header}</th>)}
         <th>에러 원인</th>
       </tr>
@@ -677,7 +731,17 @@ const getFixedRow = (row) => {
 
 {/* === 📱 카드형 목록 (모바일 전용) === */}
 {isMobile && (
-  <div className="bulk-card-list">
+    <div className="bulk-card-list">
+      {/* ✅ 모바일 전체 선택 */}
+      <div className="mobile-select-all">
+        <label>
+          <input
+            type="checkbox"
+            onChange={handleSelectAll}
+            checked={isAllSelected}
+          /> 전체 선택
+        </label>
+      </div>
     {tableData.length === 0 ? (
       <p>업로드된 데이터가 없습니다.</p>
     ) : (

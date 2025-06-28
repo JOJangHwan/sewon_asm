@@ -1,0 +1,262 @@
+/* ── 자산 트리(.asset-tree) 도 “법인” 트리와 같은 들여쓰기 ── */
+.asset-tree {
+  padding-left: 0;
+}
+
+/* 트리 기본 ul 들여쓰기 줄이기 (필요시) */
+.asset-tree ul {
+  list-style: none;
+  margin: 0;
+  padding-left: 14px;
+  border-left: none !important;
+}
+.asset-tree li {
+  position: relative;
+  padding: 4px 0 4px 8px;
+}
+
+/* 가로선·도트 */
+.asset-tree li::before {
+  content: '';
+  position: absolute;
+  top: 10px;
+  left: -5.5px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #b0bec5;          /* 기본 도트(회색) */
+}
+.asset-tree > ul > .asset-node::before {
+  background: #9c27b0;          /* 자산분류(보라) */
+}
+.asset-node > .asset-label {     /* 자산분류 텍스트 */
+  color: #8e24aa;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+.asset-label:hover { text-decoration: underline; }
+
+/* 품목(leaf) 텍스트 */
+.asset-leaf {
+  margin-left: 0;
+  padding-left: 22px;        /* 도트와 라벨 간 간격 조정 */
+  color: #455a64;
+  white-space: nowrap;       /* ✅ 줄바꿈 방지 */
+  display: flex;             /* ✅ 한 줄 정렬 */
+  align-items: center;
+}
+
+/* ─── 공통 ───────────────────────── */
+.page-wrap {
+  margin: 20px auto;
+  max-width: 1180px;
+  color: #333;
+  font-family: Arial, sans-serif;
+}
+h1 { text-align: center; margin-bottom: 24px; }
+h2 { margin-bottom: 8px; }
+
+/* ─── 카드 레이아웃 ───────────────── */
+.card-wrap {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+.card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 20px;
+  flex: 1 1 400px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  box-sizing: border-box;
+}
+
+/* ─── 폼 요소 ─────────────────────── */
+input, select {
+  margin: 4px 0;
+  padding: 8px;
+  width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 16px;
+}
+button {
+  margin-top: 12px;
+  padding: 10px 16px;
+  width: 100%;
+  background: #FFC107;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+}
+button:disabled {
+  background: #bbb;
+  cursor: not-allowed;
+}
+
+/* ─── 트리 공통 ───────────────────── */
+.tree {
+  padding: 4px 6px;
+  font-size: 15px;
+  line-height: 1.45;
+}
+.tree ul {
+  list-style: none;
+  margin: 0 0 0 1rem;
+  padding: 0;
+  border-left: 1px solid #e0e0e0;
+}
+.tree li {
+  position: relative;
+  padding: 4px 0 4px 8px;
+  margin: 6px 0;
+}
+.tree li::before {
+  content: '';
+  position: absolute;
+  top: 12px;
+  left: -5.5px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #9e9e9e; /* 기본 도트 색 */
+}
+.tree strong {
+  font-weight: 600;
+  color: #2c3e50;
+}
+.tree-label {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  color: #424242;
+}
+.tree-label {
+  position: relative;
+}
+.node-actions {
+  display: none;           /* 기본 숨김 */
+  gap: 6px;
+  margin-left: 6px;
+}
+.node-actions {
+  margin-left: auto;       /* 오른쪽 정렬 */
+  display: none;           /* 기본 숨김 */
+  gap: 6px;
+  color: #757575;
+}
+.tree-node:hover  .node-actions,
+.asset-node:hover .node-actions,
+.asset-leaf:hover .node-actions   { display: inline-flex; }
+.tree-node:hover .node-actions,
+.asset-node:hover .node-actions { display: flex; }
+
+.edit-icon:hover { color: #1976d2; cursor: pointer; }
+.del-icon:hover  { color: #d32f2f; cursor: pointer; }
+
+.edit-icon:hover { color:#1976d2; cursor:pointer; }
+.del-icon:hover  { color:#d32f2f; cursor:pointer; }
+.node-actions {
+  margin-left: auto;       /* 오른쪽 정렬 */
+  display: none;           /* 기본 숨김 */
+  gap: 6px;
+  color: #757575;
+}
+.tree-node:hover .node-actions,
+.asset-node:hover .node-actions { display: flex; }
+
+.edit-icon:hover { color:#1976d2; cursor:pointer; }
+.del-icon:hover  { color:#d32f2f; cursor:pointer; }
+.tree-label:hover {
+  color: #000;
+  text-decoration: underline;
+}
+.toggle-icon {
+  width: 14px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #5d5d5d;
+}
+
+/* ─── 트리 분류 색상 (회사, 부서, 위치 등) ─── */
+.tree > ul > li::before {
+  background: #FF9800; /* 1단계 – 주황 (예: 회사) */
+}
+.tree > ul > li > ul > li::before {
+  background: #03A9F4; /* 2단계 – 파랑 (예: 부서) */
+}
+.tree > ul > li > ul > li > ul > li::before {
+  background: #8BC34A; /* 3단계 – 연두 (예: 세부위치) */
+}
+.tree > ul > li > .tree-label { color: #e6a900; font-weight: 600; }
+.tree > ul > li > ul > li > .tree-label { color: #0277bd; }
+.tree > ul > li > ul > li > ul > li > .tree-label { color: #558b2f; }
+
+/* ─── 자산분류/품목 전용 트리 ───────────── */
+.asset-tree ul {
+  list-style: none;
+  margin: 0 0 0 1rem;
+  padding: 0;
+  position: relative;
+}
+.asset-tree ul::before {
+  content: '';
+  position: absolute;
+  left: -0.5rem;
+  top: 0; bottom: 0;
+  width: 1px;
+  background: #d0d0d0;
+}
+.asset-tree .asset-node::before,
+.asset-tree .asset-leaf::before {
+  content: '';
+  position: absolute;
+  left: -6px;
+  top: 9px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #b0bec5;
+}
+.asset-tree > ul > .asset-node::before {
+  background: #9c27b0;
+}
+.asset-tree > ul > .asset-node > .asset-label {
+  color: #8e24aa;
+  font-weight: 600;
+}
+.asset-label {
+  margin-left: -2px;
+}
+.asset-leaf {
+  margin-left: 0;
+  padding-left: 22px;
+  color: #455a64;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+}
+
+/* ─── 모바일 대응 ───────────────────── */
+@media (max-width: 768px) {
+  .card {
+    flex: 1 1 100%;
+  }
+  input, select, button {
+    font-size: 15px;
+  }
+  .tree {
+    font-size: 14px;
+  }
+}

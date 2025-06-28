@@ -12,7 +12,7 @@ const API_BASE = window._env_?.REACT_APP_API_URL || 'http://localhost:8888';
 export default function AssetListPage() {
 
     /* ---------- 기본 상태 ---------- */
-  const loginUser   = '홍길동';
+  const loginUser   = '';
   const isMobile    = useMediaQuery('(max-width: 768px)');
   const [isModalOpen,   setIsModalOpen]   = useState(false);
   const [checkedItems,  setCheckedItems]  = useState([]);
@@ -64,7 +64,7 @@ export default function AssetListPage() {
       const affiliationId = localStorage.getItem('affiliationId');
       if (!affiliationId) return;
     
-      const url = `${API_BASE}/rental/request/others?affiliationId=${affiliationId}`;
+      const url = `${API_BASE}/rental/user?affiliationId=${affiliationId}`;
       //console.log('📤 fetchOtherRequests GET URL:', url);
     
       try {
@@ -439,14 +439,10 @@ const formattedInUse = useMemo(
               </tr>
             </thead>
             <tbody>
-              {data.map((item) => {
-                const isOverdue =
-                  title === '대여중' && new Date(item.endDate) < today;
-                return (
-                  <tr
-                    key={item.barcode}
-                    className={isOverdue ? 'overdue' : ''}
-                  >
+  {data.map((item) => {
+    const isOverdue = title === '대여중' && new Date(item.endDate) < today;
+    return (
+      <tr key={item.id || `${item.barcode}-${item.startDate}`}>
                     {title !== '대여중' && (
                       <td>
                         <input

@@ -32,7 +32,8 @@ function Sidebar({ isSidebarOpen, toggleSidebar }) {
         { path: '/audit/list', label: '실사 조회' },
       ],
     },
-    { path: '/report', icon: reportImg, label: '보고서' },
+    // { path: '/report', icon: reportImg, label: '보고서' },
+    { path: '/RegisterCorpAndItem', icon: reportImg, label: '법인 및 품목등록' },
     { path: '/profile', icon: myInforImg, label: '내정보' },
   ];
 

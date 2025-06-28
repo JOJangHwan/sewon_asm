@@ -1,33 +1,32 @@
-/* 전체 컨테이너 */
-.audit-search-container {
-  padding: 20px;
-}
+/* ───────────────────────────────
+   auditList.css  (완성본)
+   ─────────────────────────────── */
 
-/* 타이틀 */
-.audit-title {
-  font-size: 24px;
-  font-weight: bold;
-  margin-bottom: 20px;
-}
+/* ===== 컨테이너 & 타이틀 ===== */
+.audit-search-container { padding: 20px; }
+.audit-title            { font-size: 24px; font-weight: 700; margin-bottom: 20px; }
 
-/* 검색 필터 전체 영역 */
-.audit-search-filter {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-bottom: 24px;
-}
+/* ===== 필터 영역 ===== */
+.audit-search-filter { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
 
-/* 검색 한 줄 (row) */
+/* 한 줄(row) 공통 */
 .audit-search-row {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: wrap;          /* 기본은 줄바꿈 허용 → 모바일 대응 */
   gap: 8px;
   align-items: center;
   justify-content: center;
 }
 
-/* 각 검색 입력, 셀렉트박스 */
+/* ✅ PC 전용: 두 번째 행(날짜 + 버튼)만 줄바꿈 금지 */
+@media (min-width: 769px) {
+  .audit-search-filter .audit-search-row:nth-of-type(2) {
+    flex-wrap: nowrap;      /* 한 줄 고정 */
+    gap: 10px;
+  }
+}
+
+/* ===== 인풋·셀렉트 공통 ===== */
 .audit-search-simple {
   border: 1px solid #ccc;
   padding: 0 10px;
@@ -38,165 +37,118 @@
   box-sizing: border-box;
 }
 
-/* 날짜 input은 조금 넓게 */
-.audit-search-simple[type="date"] {
-  width: 160px;
-}
+/* 날짜 input 은 살짝 넓게 */
+.audit-search-simple[type="date"] { width: 160px; }
 
-/* 조회 버튼 */
+/* 조회·초기화 버튼 */
 .audit-search-btn {
-  background-color: #FFC107;
-  color: white;
-  font-weight: bold;
+  background: #FFC107;
+  color: #fff;
+  font-weight: 700;
   padding: 0 18px;
   height: 36px;
+  font-size: 14px;
   border: none;
   border-radius: 4px;
-  font-size: 14px;
   cursor: pointer;
+  transition: background-color .2s;
   white-space: nowrap;
-  transition: background-color 0.2s;
+}
+/* auditList.css 맨 아래 */
+.audit-search-btn.download {
+  background:#4caf50;
+  color:#fff;
+}
+.audit-search-btn:hover          { background: #ffb300; }
+.audit-search-btn.reset          { background: #9e9e9e; }
+.audit-search-btn.reset:hover    { background: #7e7e7e; }
+
+/* ✅ PC 전용: 버튼 폭을 내용만큼 */
+@media (min-width: 769px) {
+  .audit-search-btn { width: auto; flex: 0 0 auto; }
 }
 
-.audit-search-btn:hover {
-  background-color: #ffb300;
-}
-
-/* 초기화 버튼 */
-.audit-search-btn.reset {
-  background-color: #9e9e9e;
-}
-
-.audit-search-btn.reset:hover {
-  background-color: #7e7e7e;
-}
-
-/* 테이블 영역 */
-.audit-table-wrapper {
-  width: 100%;
-  overflow-x: auto;
-}
-
-/* 테이블 */
-.audit-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 14px;
-  min-width: 1000px;
-}
-
+/* ===== 테이블 ===== */
+.audit-table-wrapper { width: 100%; overflow-x: auto; }
+.audit-table         { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 1000px; }
 .audit-table th,
-.audit-table td {
-  border: 1px solid #ccc;
-  padding: 10px;
-  text-align: center;
-}
+.audit-table td      { border: 1px solid #ccc; padding: 10px; text-align: center; }
+.audit-table thead   { background: #f3f4f6; border-bottom: 2px solid #999; }
+.audit-table tbody tr:hover { background: #f9fafb; transition: background-color .2s; }
 
-.audit-table thead {
-  background-color: #f3f4f6;
-  border-bottom: 2px solid #999;
-}
-
-.audit-table tbody tr:hover {
-  background-color: #f9fafb;
-  transition: background-color 0.2s;
-}
-
-/* 페이징 버튼 영역 */
+/* ===== 페이징 ===== */
+/* ───────── CLEAN-SLATE PAGINATION ───────── */
 .audit-pagination {
+  all: unset;                     /* ✅ 기존 상속·라이브러리 규칙 초기화 */
   display: flex;
   justify-content: center;
-  gap: 4px;
-  margin-top: 24px;
-  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 32px 0 0;
+  flex-wrap: wrap;                /* 화면이 아주 좁을 때만 줄바꿈 */
 }
 
-/* 페이징 버튼 기본 */
 .audit-pagination button {
-  width: 40px;
-  height: 36px;
-  font-size: 14px;
-  font-weight: normal;
-  border: 1px solid #d1d5db;
-  border-radius: 4px;
-  background: #ffffff;
-  color: black;
+  all: unset;                     /* ✅ 버튼 자체도 리셋 */
   cursor: pointer;
-  text-align: center;
-  transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+
+  min-width: 40px;            /* ✅ 더 좁게 */
+  height: 25px;               /* ✅ 높이도 줄임 */
+  padding: 0 12px;            /* 좌우 여백도 축소 */
+  font-size: 13px;
+  font-family: inherit;
+  line-height: 1;
+  white-space: nowrap;            /* 줄바꿈 금지 */
+
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #000000;
+
+  transition: background-color .25s, color .25s, border-color .25s;
 }
 
 .audit-pagination button:hover:not(:disabled):not(.active) {
-  background-color: #f3f4f6;
+  background: #f3f4f6;
 }
 
 .audit-pagination button.active {
-  background-color: #FFC107;
-  border: 1px solid #d1d5db;
-  color: black;
+  background: #FFC107;
+  border-color: #FFC107;
 }
 
 .audit-pagination button:disabled {
-  background-color: #ffffff;
-  border: 1px solid #d1d5db;
+  background: #ffffff;
   color: #9ca3af;
   cursor: not-allowed;
 }
 
-/* 상세페이지용 추가 스타일 */
-.detail-fullpage {
-  padding: 20px;
-  background-color: white;
+/* 모바일에서도 가로폭 고정 */
+@media (max-width: 480px) {
+  .audit-pagination { gap: 8px; }
+  .audit-pagination button { flex: 0 0 auto; }
 }
 
-.detail-back {
-  background: none;
-  border: none;
-  font-size: 18px;
-  cursor: pointer;
-  margin-bottom: 10px;
-}
-
-.drawer-overlay {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100vw; height: 100vh;
-  background: rgba(0, 0, 0, 0.4);
-  z-index: 999;
-}
-
+/* ===== 상세 뷰 (풀·드로어) ===== */
+.detail-fullpage { padding: 20px; background: #fff; }
+.detail-back     { background: none; border: none; font-size: 18px; cursor: pointer; margin-bottom: 10px; }
+.drawer-overlay  { position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 999; }
 .drawer {
-  position: fixed;
-  top: 0; right: 0;
-  width: 400px; height: 100vh;
-  background: white;
-  padding: 20px;
-  overflow-y: auto;
-  z-index: 1000;
-  box-shadow: -2px 0 5px rgba(0,0,0,0.3);
+  position: fixed; top: 0; right: 0; width: 400px; height: 100vh;
+  background: #fff; padding: 20px; overflow-y: auto; z-index: 1000;
+  box-shadow: -2px 0 5px rgba(0,0,0,.3);
 }
+.drawer-close { background: none; border: none; font-size: 24px; float: right; cursor: pointer; }
 
-.drawer-close {
-  background: none;
-  border: none;
-  font-size: 24px;
-  float: right;
-  cursor: pointer;
-}
-
-/* 반응형 대응 */
+/* ===== 모바일 대응 ===== */
 @media (max-width: 768px) {
-  .audit-search-row {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
+  /* 모든 필터 요소 & 버튼을 꽉 채워 세로 배치 */
+  .audit-search-row         { flex-direction: column; align-items: stretch; }
   .audit-search-simple,
-  .audit-search-btn {
-    width: 100%;
-  }
-
-  .drawer {
-    width: 100vw;
-  }
+  .audit-search-btn         { width: 100%; }
+  .drawer                   { width: 100vw; }
 }
+

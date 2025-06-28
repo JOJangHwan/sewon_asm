@@ -1,3 +1,4 @@
+
 // src/components/asset/AssetSearchPanel.js
 import React, { useEffect, useMemo, useState } from "react";
 import "./AssetSearchPanel.css";
@@ -146,15 +147,15 @@ export default function AssetSearchPanel({ isOpen, onClose, onSelect }) {
   if (!isOpen) return null;
 
   return (
-    <div className="slide-panel">
-      <div className="panel-header">
+    <div className="asp-slide-panel">
+      <div className="asp-header">
         <h3>자산 검색</h3>
-        <button className="close-btn" onClick={onClose}>×</button>
+        <button className="asp-close-btn" onClick={onClose}>×</button>
       </div>
 
-      <div className="panel-body">
+      <div className="asp-body">
         {/* ---------- 필터 선택 ---------- */}
-        <div className="filters">
+        <div className="asp-filters">
           {/* 대분류(자산 유형) */}
           <select
   value={parentId}
@@ -241,7 +242,7 @@ export default function AssetSearchPanel({ isOpen, onClose, onSelect }) {
         </div>
 
         {/* ---------- 바코드 검색 ---------- */}
-        <div className="search-box">
+        <div className="asp-search-box">
           <input
             type="text"
             placeholder="바코드 검색"
@@ -258,7 +259,7 @@ export default function AssetSearchPanel({ isOpen, onClose, onSelect }) {
         </div>
 
         {/* ---------- 결과 테이블 ---------- */}
-        <table className="asset-table">
+        <table className="asp-table">
           <thead>
             <tr>
               <th>번호</th>
@@ -285,7 +286,7 @@ export default function AssetSearchPanel({ isOpen, onClose, onSelect }) {
                   <td>{asset.registerName}</td>
                   <td>
                     <button
-                      className="select-btn"
+                      className="asp-select-btn"
                       onClick={() => onSelect(asset)}
                     >
                       선택

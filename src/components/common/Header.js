@@ -88,15 +88,16 @@ function Header({ toggleSidebar, isSidebarOpen }) {
       </div>
 
       <div className="header-right" ref={alarmRef}>
-        <Link to="/rent" className="header-alarm">
+        {/* <Link to="/rent" className="header-alarm">
           <img src={rentImg} alt="렌트" className="header-icon" />
-        </Link>
+        </Link> */}
         {/* <Link to="/scan" className="header-alarm">
           <img src={ScanImg} alt="스캔" className="header-icon" />
         </Link> */}
 
         {/* 알림 */}
-        <div className="header-alarm" onClick={toggleAlarm} style={{ position: 'relative' }}>
+        {/* 추후에 오픈예정 */}
+        {/* <div className="header-alarm" onClick={toggleAlarm} style={{ position: 'relative' }}>
           <img src={alarmImg} alt="알람" className="header-icon" />
           {unreadCount > 0 && (
             <div className="alarm-badge">{unreadCount}</div>
@@ -141,7 +142,7 @@ function Header({ toggleSidebar, isSidebarOpen }) {
               <div className="alarm-empty">알림이 없습니다.</div>
             )}
           </div>
-        )}
+        )} */}
 
 <div className="header-user">
   <div className="user-name">이름: {name || '로그인을 하시오'}</div>

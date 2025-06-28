@@ -1,3 +1,4 @@
+
 .modal-background {
     position: fixed;
     top: 0; left: 0;
@@ -38,7 +39,7 @@
     background-color: #e09000;
   }
   
-  .close-btn {
+  .modal-close-btn {       /* ← 기존 close-btn 과 동일한 스타일 적용 */
     background-color: #ccc;
     color: #333;
     border: none;
@@ -46,7 +47,5 @@
     border-radius: 6px;
     cursor: pointer;
   }
-  .close-btn:hover {
-    background-color: #999;
-  }
+  .modal-close-btn:hover { background-color: #999; }
   

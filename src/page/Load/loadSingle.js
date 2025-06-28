@@ -179,6 +179,7 @@ const AssetRegister = () => {
     company: '',
     department: '',
     location: '',
+    locationId: '',
     acquisitionType: '',
     assetCategory: '',
     item: '',
@@ -200,6 +201,7 @@ const AssetRegister = () => {
   const [companyMap, setCompanyMap] = useState({}); // ✅ 여기에 추가
   const [companyData, setCompanyData] = useState({});
   const [assetCategoryData, setAssetCategoryData] = useState({});
+  const [locationIdMap, setLocationIdMap] = useState({});  
   useEffect(() => {
     const fetchCorporation = async () => {
       try {
@@ -208,21 +210,31 @@ const AssetRegister = () => {
         const result = await res.json();
   
         if (result.code === 1 && result.data?.corporationList) {
-          const nestedData = {};
-          const names = [];
+           const nestedData = {};      // 화면용 {회사 > 부서 > [위치명]}
+           const names = [];           // 회사명 배열
+           const locMap = {};          // ⭐ ID 매핑 {회사 > 부서 > {위치명: id}}
   
           result.data.corporationList.forEach(corp => {
             const corpName = corp.name;
             names.push(corpName); // 회사명 수집
             nestedData[corpName] = {};
+            locMap[corpName] = {};
+            
             corp.affiliationList.forEach(aff => {
-              nestedData[corpName][aff.department] =
-                aff.locations.map(loc => loc.location);
+              const dept = aff.department;
+                            nestedData[corpName][dept] = [];
+                            locMap[corpName][dept] = {};      // ⭐ 부서 루트
+              
+                            aff.locations.forEach(loc => {
+                              nestedData[corpName][dept].push(loc.location);          // 화면용
+                              locMap[corpName][dept][loc.location] = loc.locationId;  // ⭐ ID 저장
+                           });
             });
           });
   
           setCompanyData(nestedData);
           setCompanyList(names); // ✅ 회사명 리스트 저장
+          setLocationIdMap(locMap);      
         } else {
           alert(result.message || '법인 정보 조회 실패');
         }
@@ -265,9 +277,12 @@ const AssetRegister = () => {
       setErrors(updated);
     }
     if (name === 'company') {
-      setFormData({ ...formData, company: value, department: '', location: '' });
+      setFormData({ ...formData, company: value, department: '', location: '', locationId: '' });
     } else if (name === 'department') {
-      setFormData({ ...formData, department: value, location: '' });
+      setFormData({ ...formData, department: value, location: '', locationId: '' });
+    } else if (name === 'location') {
+      const id = locationIdMap[formData.company]?.[formData.department]?.[value] ?? '';
+      setFormData({ ...formData, location: value, locationId: id });
     } else if (name === 'assetCategory') {
       setFormData({ ...formData, assetCategory: value, item: '' });
     } else if (name.startsWith('storage')) {
@@ -315,9 +330,9 @@ const AssetRegister = () => {
       'acquisitionDate', 'acquisitionCost'
     ];
   
-    required.forEach((field) => {
-      if (!formData[field]) newErrors[field] = getErrorMsg(field);
-    });
+    if (!formData.locationId) {                     // ⭐ 추가
+        newErrors.location = '세부위치를 선택해주세요.';
+      }
   
     if (formData.item === '노트북' || formData.item === '컴퓨터') {
       ['cpu', 'memory', 'gpu'].forEach((f) => {
@@ -362,9 +377,12 @@ const AssetRegister = () => {
 
 
   const dataToSend = isElectronic ? {
+    // corporation: formData.company,
+    // department: formData.department,
+    // location: formData.location,
+    locationId:   Number(formData.locationId),   // ⭐ 세부위치 ID 전송
+    division: 0, 
     corporation: formData.company,
-    department: formData.department,
-    location: formData.location,
     division: 0,
     parentType: formData.assetCategory,
     childType: formData.item,
@@ -378,9 +396,10 @@ const AssetRegister = () => {
     ram: Number(formData.memory),
     storage: Number(formData.totalStorage),
   } : {
-    corporation: formData.company,
-    department: formData.department,
-    location: formData.location,
+    // corporation: formData.company,
+    // department: formData.department,
+    // location: formData.location,
+    locationId: Number(formData.locationId),
     division: 0,
     parentType: formData.assetCategory,
     childType: formData.item,
@@ -391,7 +410,7 @@ const AssetRegister = () => {
     acquisitionPrice: Number(formData.acquisitionCost),
   };
 
-  
+  console.log('[POST /asset] payload ▶', JSON.stringify(dataToSend, null, 2));  // ⭐ 추가
   try {
     const res = await authFetchWithRefresh(url, {
       method: 'POST',

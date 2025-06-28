@@ -56,6 +56,7 @@
 }
 .asset-table {
   width: 100%;
+  min-width: 1200px; /* ✅ 이 줄을 추가하세요 (값은 필요에 따라 조정) */
   border-collapse: collapse;
 }
 .asset-table th,
@@ -136,14 +137,47 @@
 }
 .modal-top {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;   /* 가운데 정렬 */
   align-items: center;
+  position: relative;        /* × 버튼 절대배치용 기준 */
+}
+
+/* 제목을 한 줄로 고정 */
+.modal-top h2,
+.modal-top h3 {              /* 실제 사용 태그에 맞춰 둘 다 지정 */
+  margin: 0;
+  font-size: 22px;
+  font-weight: bold;
+  white-space: nowrap;       /* ⭐ 줄바꿈 금지 */
+}
+
+/* × 버튼 */
+.modal-top .close-btn {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
 }
 .close-btn {
-  background: none;
-  border: none;
-  font-size: 20px;
+  position: absolute;
+  top: 12px;
+  right: 12px;
+
+  width: 24px;          /* 👈 작게 조정 */
+  height: 24px;
+  font-size: 16px;      /* 👈 아이콘 크기 ↓ */
+  line-height: 1;
+  
+  background: white;    /* ✅ 배경 흰색 */
+  color: #e53e3e;       /* 적색 아이콘 */
+  border: 1px solid #ccc;
+  border-radius: 4px;
   cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
 }
 
 /* === 공통 .row 스타일 === */

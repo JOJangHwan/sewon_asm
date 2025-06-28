@@ -1,17 +1,18 @@
-/* src/page/MyInfor/myInfor.css */
+/* ──────────────────────────────────────────────
+   src/page/MyInfor/myInfor.css  (최종 완성본)
+   ────────────────────────────────────────────── */
 
-/* ── 전체 컨테이너 ── */
+/* ===== 공통 레이아웃 ===== */
 .my-info-container {
   max-width: 1200px;
   margin: 0 auto;
+  padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 24px;
-  padding: 20px;
   background: #f9fafb;
 }
 
-/* ── 섹션 제목 ── */
 .section-title {
   margin: 0;
   font-size: 20px;
@@ -19,13 +20,13 @@
   color: #333;
 }
 
-/* ── 1. 맨 위: 내정보 박스 + 수정 버튼 ── */
+/* ===== 1. 내 정보 영역 ===== */
 .top-section {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #fff;
   padding: 12px 16px;
+  background: #fff;
   border-radius: 8px;
   box-shadow: 0 1px 4px rgba(0,0,0,0.1);
 }
@@ -37,113 +38,113 @@
   color: #333;
 }
 
-.info-edit-button {
-  background-color: #ffc107;
+.btn-edit-info {
+  background: #ffc107;
   color: #333;
+  padding: 10px 20px;
+  font-size: 15px;
   border: none;
-  padding: 8px 16px;
   border-radius: 6px;
   font-weight: 600;
-  font-size: 14px;
   cursor: pointer;
-  transition: background-color .2s;
+  transition: background .2s;
+  white-space: nowrap;
+  width: fit-content;
+  min-width: 140px;
 }
-.info-edit-button:hover {
-  background-color: #e0a800;
-}
+.btn-edit-info:hover { background: #e0a800; }
 
-/* ── 2. 중간: 조회 필터 ── */
+/* ===== 2. 자산 조회 ===== */
 .search-section {
-  background: #fff;
   padding: 16px;
+  background: #fff;
   border-radius: 8px;
   box-shadow: 0 1px 4px rgba(0,0,0,0.1);
 }
 
-.search-bar-wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
+.search-bar-wrapper { display: flex; flex-direction: column; gap: 12px; }
 
 .search-bar {
   display: flex;
-  flex-wrap: wrap;
   gap: 12px;
-  align-items: center;
   justify-content: center;
+  align-items: center;
+  flex-wrap: nowrap;
+  flex-direction: row;
+}
+
+.search-input,
+.search-bar .btn-search,
+.search-bar .btn-reset {
+  height: 38px;
+  line-height: 38px;
+  vertical-align: middle;
+  font-size: 14px;
 }
 
 .search-input {
+  padding: 0 10px;
   border: 1px solid #ccc;
   border-radius: 4px;
-  height: 32px;
-  padding: 0 10px;
-  font-size: 14px;
   box-sizing: border-box;
 }
+.search-input.view-count { width: 80px; }
 
-.search-input.view-count {
-  width: 80px;
+.search-bar input[type="date"] {
+  padding-top: 0;
+  padding-bottom: 0;
 }
 
-.search-button {
-  background-color: #ffc107;
-  color: #333;
+/* 버튼 스타일 */
+.btn-search,
+.btn-reset {
+  padding: 0 12px;
+  min-width: 80px;
+  height: 38px;
+  font-size: 14px;
+  line-height: 38px;
   border: none;
-  padding: 0 16px;
-  height: 32px;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
-  transition: background-color .2s;
-}
-.search-button:hover {
-  background-color: #e0a800;
-}
-.search-button.reset {
-  background-color: #999;
-}
-.search-button.reset:hover {
-  background-color: #777;
+  transition: background .2s;
 }
 
-/* ── 3. 하단 헤더: 제목 + 버튼 ── */
-.bottom-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.btn-search {
+  background: #ffc107;
+  color: #000;
 }
+.btn-search:hover { background: #e0a800; }
 
-.button-group {
-  display: flex;
-  gap: 12px;
+.btn-reset {
+  background: #6c757d;
+  color: #fff;
 }
+.btn-reset:hover { background: #545b62; }
+
+/* ===== 3. 하단 버튼 ===== */
+.bottom-header      { display: flex; justify-content: space-between; align-items: center; }
+.button-group       { display: flex; gap: 12px; }
 
 .action-button {
-  background-color: #ffc107;
+  background: #ffc107;
   color: #333;
-  border: none;
   padding: 8px 16px;
+  font-size: 14px;
+  border: none;
   border-radius: 6px;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color .2s;
+  transition: background .2s;
 }
-.action-button:hover:not(:disabled) {
-  background-color: #e0a800;
-}
+.action-button:hover:not(:disabled) { background: #e0a800; }
 .action-button:disabled {
-  background-color: #ffe8a1;
-  cursor: not-allowed;
+  background: #ffe8a1;
   color: #666;
+  cursor: not-allowed;
 }
 
-/* ── 4. 테이블 + 페이징 ── */
-.table-section {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
+/* ===== 4. 테이블 & 페이징 ===== */
+.table-section  { display: flex; flex-direction: column; gap: 16px; }
 
 .table-container {
   background: #fff;
@@ -152,46 +153,46 @@
   box-shadow: 0 1px 4px rgba(0,0,0,0.1);
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 14px;
-}
+table            { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td           { padding: 12px 8px; text-align: center; border-bottom: 1px solid #ececec; white-space: nowrap; }
+thead th         { background: #fafafa; font-weight: 600; }
+tbody tr:hover   { background: #f3f4f6; }
 
-th, td {
-  padding: 12px 8px;
-  text-align: center;
-  border-bottom: 1px solid #ececec;
-  white-space: nowrap;
-}
-
-thead th {
-  background: #fafafa;
-  font-weight: 600;
-}
-
-tbody tr:hover {
-  background: #f3f4f6;
-  transition: background-color .2s;
-}
-
+/* 페이징 버튼 */
 .pagination {
   display: flex;
   justify-content: center;
-  gap: 6px;
-}
+  align-items: center;
 
-.page-btn {
+  flex-wrap: nowrap;   /* ✅ ① 줄바꿈 금지  */
+  gap: 6px;
+  margin: 16px auto 0; /* 가운데 정렬 */
+
+  width: auto;         /* ✅ ② fit-content → auto 로 */
+}
+/* 버튼 (선택) : 폭을 모두 동일하게 맞추고 싶으면 ↓ */
+.page-btn{
+  flex: 0 0 80px;      /* 80 px 고정(더 작게는 60~72도 OK) */
+  padding: 6px 0;      /* 내용이 가운데 오도록 좌우 패딩 축소 */
+}
+/* .page-btn {
+  padding: 6px 12px;
+  height: 36px;
+  font-size: 14px;
   background: #fff;
   border: 1px solid #ddd;
-  padding: 6px 12px;
   border-radius: 4px;
-  font-size: 14px;
   cursor: pointer;
-  transition: background-color .2s, color .2s;
-}
+  transition: background .2s;
+  color: #333;
+  white-space: nowrap;
+
+  min-width: 72px;        
+  flex-shrink: 0;         
+} */
 .page-btn:hover:not(:disabled):not(.active) {
   background: #f3f4f6;
+  color: #111;
 }
 .page-btn.active {
   background: #ffc107;
@@ -200,11 +201,13 @@ tbody tr:hover {
   font-weight: 600;
 }
 .page-btn:disabled {
-  color: #ccc;
+  background: #f1f1f1;    /* ✅ 회색 배경 */
+  border-color: #ccc;
+  color: #999;            /* ✅ 회색 텍스트 */
   cursor: not-allowed;
 }
 
-/* ── 인쇄용 숨김 ── */
+/* ===== 인쇄 숨김 ===== */
 @media print {
   .top-section,
   .search-section,
@@ -214,57 +217,41 @@ tbody tr:hover {
   th, td { border: 1px solid #999; padding: 10px; font-size: 16px; }
 }
 
-/* ── 모바일 대응 ── */
+/* ===== 모바일 대응 ===== */
 @media (max-width: 768px) {
   .top-section,
   .search-section,
-  .bottom-header {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
-  }
-  .search-bar,
-  .button-group {
-    justify-content: stretch;
-  }
+  .bottom-header { flex-direction: column; gap: 12px; }
+  .search-bar, .button-group { justify-content: stretch; }
   .search-input,
-  .search-button,
-  .search-button.reset,
-  .action-button {
-    width: 100%;
-  }
-  .user-info-inline {
-    flex-direction: column;
-    align-items: flex-start;
-  }
+  .btn-search,
+  .btn-reset,
+  .action-button { width: 100%; }
+  .user-info-inline { flex-direction: column; align-items: flex-start; }
 }
 
-/* 사이드 드로어 */
+/* ===== 사이드 드로어 & 상세보기 ===== */
 .drawer-overlay {
-  position: fixed; top:0; left:0; width:100%; height:100%;
-  background: rgba(0,0,0,0.3); z-index: 1000;
+  position: fixed; inset: 0; background: rgba(0,0,0,.3); z-index: 1000;
 }
 .drawer {
-  position: fixed; top:0; right:0; width:320px; height:100%;
-  background:#fff; padding:16px; box-shadow:-2px 0 8px rgba(0,0,0,0.1);
-  overflow-y:auto; z-index:1001;
-  transform: translateX(100%); animation: slide-in 0.3s forwards;
+  position: fixed; top: 0; right: 0; width: 320px; height: 100%;
+  background: #fff; padding: 16px; overflow-y: auto; z-index: 1001;
+  box-shadow: -2px 0 8px rgba(0,0,0,0.1);
+  transform: translateX(100%); animation: slide-in .3s forwards;
 }
-@keyframes slide-in {
-  from { transform: translateX(100%); }
-  to   { transform: translateX(0); }
-}
+@keyframes slide-in { from { transform: translateX(100%);} to { transform: translateX(0);} }
+
 .drawer-close {
-  background:none; border:none; font-size:24px;
-  position:absolute; top:8px; right:12px; cursor:pointer;
+  position: absolute; top: 8px; right: 12px;
+  background: none; border: none; font-size: 24px; cursor: pointer;
 }
 
-/* 모바일 풀페이지 */
 .detail-fullpage {
-  position: fixed; top:0; left:0; width:100%; height:100%;
-  background:#fff; padding:16px; overflow-y:auto; z-index:1002;
+  position: fixed; inset: 0; background: #fff; padding: 16px;
+  overflow-y: auto; z-index: 1002;
 }
 .detail-back {
-  background:none; border:none; font-size:18px; margin-bottom:12px;
-  cursor:pointer;
+  background: none; border: none; font-size: 18px;
+  margin-bottom: 12px; cursor: pointer;
 }

@@ -1,5 +1,6 @@
 // src/page/MyInfor/MyInfoPage.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
+import { UserContext } from '../../utils/UserContext';
 import EditModal from './EditModal';
 import InfoEditModal from './MyInfoModal';
 import LabelPrint from '../MyInfor/LabelPrint.js';
@@ -27,6 +28,7 @@ function useMediaQuery(query) {
 }
 
 export default function MyInfoPage() {
+  const { user } = useContext(UserContext);
 
   // 1) 법인 계층 (corporationList)
   const [corporations, setCorporations] = useState([]);
@@ -34,6 +36,8 @@ export default function MyInfoPage() {
   const [selectedDept, setSelectedDept] = useState("");
   const [locations, setLocations]     = useState([]);
   const [selectedLoc, setSelectedLoc] = useState("");
+  const [locationsId,setLocationId]=useState("");
+
 
   // → ID 전용으로 분리
 const [selectedCorpId, setSelectedCorpId] = useState("");
@@ -86,28 +90,28 @@ const [selectedItemId, setSelectedItemId]         = useState("");
 
 
   // ── 내 정보
-  const userInfo = {
-    company: '경영기획',
-    department: '전산운영팀',
-    name: '홍길동',
-    id: 'ghdrlfehdWkd123',
-  };
-
+    // ── 내 정보 – Context 값 기준으로 표시
+    const userInfo = {
+      company:    user?.corporation ?? localStorage.getItem('corporation') ?? '미지정',
+      department: user?.department  ?? localStorage.getItem('department')  ?? '미지정',
+      name:       user?.name        ?? localStorage.getItem('name')       ?? '이름 없음',
+      id:         user?.username    ?? localStorage.getItem('username')   ?? '아이디 없음',
+    };
 // 맵핑용
      const [companyData, setCompanyData] = useState({});
 
 
     //로그인 정보 가져오기
-   const [logName, setLogName] = useState('');
-   const [logCorporation,setloginCorporation]=useState('');
-   const [logDepartment, setLogDepartment] = useState('');
-  //로그인 정보 저장
-  console.log(localStorage)
-  const savedUsername = localStorage.getItem('name');
-  const saveCorporation =localStorage.getItem('corporation');
-  const savedDepartment = localStorage.getItem('department');
-  const savedCorp = localStorage.getItem('corporation');
-  const savedDept = localStorage.getItem('department');
+  //  const [logName, setLogName] = useState('');
+  //  const [logCorporation,setloginCorporation]=useState('');
+  //  const [logDepartment, setLogDepartment] = useState('');
+  // //로그인 정보 저장
+  // console.log(localStorage)
+  // const savedUsername = localStorage.getItem('name');
+  // const saveCorporation =localStorage.getItem('corporation');
+  // const savedDepartment = localStorage.getItem('department');
+  // const savedCorp = localStorage.getItem('corporation');
+  // const savedDept = localStorage.getItem('department');
   // ── 상태들 선언이 끝난 바로 다음 위치에
 useEffect(() => {                     // ★ 추가
   const corp = localStorage.getItem('corporation');  // 예: 평택공장
@@ -118,7 +122,7 @@ const savedDept = localStorage.getItem('department');
   if (dept) setSelectedDept(dept);
 }, []);
 
-  console.log(saveCorporation,savedDepartment,savedUsername)
+  //console.log(saveCorporation,savedDepartment,savedUsername)
 
 
   // ── 종속 필터 초기화
@@ -305,8 +309,32 @@ if (selectedLoc    && it.location     !== selectedLoc)    return false;
   // ── 수정/삭제/인쇄
   const handleModify = () => {
     if (selectedBarcodes.size !== 1) return alert("수정은 하나만 선택해야 합니다.");
-       const sel = currentList.find(row => selectedBarcodes.has(row.barcode));
-       setEditItem(sel); // ✅ 인덱스 없이 넘김
+                 // ✅ 그대로 넘기던 부분
+    
+        /* ─────────────────────────
+           📌 ① 모달이 요구하는 필드명으로 변환
+              · division   → acquisitionType
+              · status     → assetStatus
+              · parentCategory / childCategory → assetCategory / itemName
+          ───────────────────────── */
+      const raw = currentList.find(row => selectedBarcodes.has(row.barcode));
+        // ① 화면 표기(한글) → 코드값(0/1) 치환
+  const divisionCode =
+    raw.division === "구매자산" ? 0 :
+    raw.division === "대여자산" ? 1 : raw.division;         // 이미 0/1 이면 그대로
+
+  const statusCode   =
+    raw.status   === "사용"   ? 0 :
+    raw.status   === "미사용" ? 1 : raw.status;
+      const mapped = {
+          ...raw,
+             acquisitionType: String(divisionCode),   // ← 모달에서 보여줄 값
+             assetStatus:     String(statusCode),
+          assetCategory:   raw.parentCategory,
+          itemName:        raw.childCategory,
+      };
+    
+        setEditItem(mapped); 
     setIsModalOpen(true);
   };
   const handleDelete = () => {
@@ -483,9 +511,24 @@ const toPrint = listToShow.filter(row => selectedBarcodes.has(row.barcode));
           setSearched(true);
           return;
         }
-        console.log("📦 자산 리스트:", json.data.list);
-        // data.list 안에 자산 배열이 들어옵니다
-        setFilteredItems(json.data.list);
+        // console.log("📦 자산 리스트:", json.data.list);
+        // // data.list 안에 자산 배열이 들어옵니다
+        // setFilteredItems(json.data.list);
+                console.log("📦 자산 리스트:", json.data.list);
+
+        /*  (1) 백엔드 → 프런트 맵핑
+           ──────────────────────────────
+           · corporation  ➜ company
+           · parentCategory / childCategory 등은
+             이미 프런트에서 쓰이는 이름이므로 그대로 둡니다.
+        */
+        const mapped = json.data.list.map(it => ({
+          ...it,
+          company: it.corporation,   // ✅ 회사 컬럼에 쓸 필드
+        }));
+
+        /*  (2) 상태 반영 */
+        setFilteredItems(mapped);
         setSearched(true);
         setSelectedBarcodes(new Set());   // 페이징·체크박스 초기화
         setCurrentPage(1);
@@ -503,19 +546,19 @@ const toPrint = listToShow.filter(row => selectedBarcodes.has(row.barcode));
 
       {/* 1. 내정보 + 수정 버튼 */}
       <div className="top-section">
-        <h2 className="section-title">내 정보</h2>
-        <div className="user-info-inline">
-          <div>소속: {userInfo.company} {userInfo.department}</div>
-          <div>아이디: {userInfo.id}</div>
-          <div>이름: {userInfo.name}</div>
-        </div>
-        <button
-          className="info-edit-button"
-          onClick={()=>setIsInfoModalOpen(true)}
-        >
-          내 정보 수정하기
-        </button>
-      </div>
+  <h2 className="section-title">내 정보</h2>
+  <div className="user-info-inline">
+    <div>소속: {userInfo.company} {userInfo.department}</div>
+    <div>아이디: {userInfo.id}</div>
+    <div>이름: {userInfo.name}</div>
+  </div>
+  <button
+    className="btn-edit-info"
+    onClick={() => setIsInfoModalOpen(true)}
+  >
+    내 정보 수정하기
+  </button>
+</div>
 
       {/* 2. 조회 필터 */}
       <div className="search-section">
@@ -598,8 +641,8 @@ const toPrint = listToShow.filter(row => selectedBarcodes.has(row.barcode));
     value={endDate}
     onChange={e => setEndDate(e.target.value)}
   />
-  <button className="search-button" onClick={handleSearch}>🔍 조회</button>
-  <button className="search-button reset" onClick={handleReset}>↺ 초기화</button>
+  <button className="btn-search" onClick={handleSearch}>🔍 조회</button>
+  <button className="btn-reset" onClick={handleReset}>↺ 초기화</button>
 </div>
 
         </div>

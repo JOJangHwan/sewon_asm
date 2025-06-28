@@ -5,7 +5,8 @@ import {
   Navigate
 } from 'react-router-dom';
 import i18n from '../src/utils/lang/i18n.js';
-import React, { useEffect } from 'react';
+import React, { useContext ,useState,useEffect } from 'react';
+import { UserContext } from './utils/UserContext.js';
 import LoginPage from './page/login/loginPage';
 import HomePage from './page/main/Home';
 import RegisterPage from './page/register/RegisterPage';
@@ -20,11 +21,13 @@ import AssetRentPage from './page/Rent/components/CommonPage';
 import ScanPage from './page/Scan/Scan';
 import AssetDetailPage from './page/Scan/AssetDetailPage';
 import Layout from './components/layout/Layout';
+import RegisterCorpAndItem from './page/admin/RegisterCorpAndItem.js'
 
 import './index';
 
 // 개발: process.env, Docker: window._env_ 둘 다 지원하고 싶다면
 const apiUrl = window._env_?.REACT_APP_API_URL || process.env.REACT_APP_API_URL;
+
 
 // 언어 설정 적용 (URL 없이 헤더 기반)
 const LanguageInitializer = ({ children }) => {
@@ -53,17 +56,25 @@ const AppRoutes = () => (
       <Route path="/scan" element={<ScanPage />} />
       <Route path="/asset" element={<AssetDetailPage />} />
       <Route path="/rent" element={<AssetRentPage />} />
+      <Route path="/RegisterCorpAndItem" element={<RegisterCorpAndItem/>}/>
     </Route>
   </Routes>
 );
 
 function App() {
+  const [user, setUser] = useState(() => {
+    const saved = localStorage.getItem('user');
+    return saved ? JSON.parse(saved) : null;
+  });
+
   return (
-    <Router>
-      <LanguageInitializer>
-        <AppRoutes />
-      </LanguageInitializer>
-    </Router>
+    <UserContext.Provider value={{ user, setUser }}>
+      <Router>
+        <LanguageInitializer>
+          <AppRoutes />
+        </LanguageInitializer>
+      </Router>
+    </UserContext.Provider>
   );
 }
 

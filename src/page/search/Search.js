@@ -3,6 +3,8 @@ import "./Search.css";
 import { authFetchWithRefresh } from "../../utils/authFetchWithRefresh";  // 인증 포함 fetch 함수 사용
 import { createRoot } from "react-dom/client";
 import LabelPrint from "../MyInfor/LabelPrint";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 const API_BASE_URL = window._env_?.REACT_APP_API_URL || "http://localhost:8888";
 
 
@@ -31,7 +33,7 @@ export default function Search() {
     const [parentTypeId, setParentTypeId] = useState(null);  // 자산 분류 ID
     const [assetCategoryMap, setAssetCategoryMap] = useState({});
 
-    const [childTypeId, setChildTypeId] = useState(null);    // ✅ 이 줄 추가!
+    const [childTypeId, setChildTypeId] = useState(null);    
 
     const headerCheckboxRef = useRef(); // ✅ ref 선언
 
@@ -106,6 +108,54 @@ const handlePrint = () => {
     }
   }, 100);
 };   // ←★★ handlePrint 닫는 중괄호 꼭 필요
+
+
+  /* -----------------------------------------------------------
+     📑 Excel 다운로드
+  ----------------------------------------------------------- */
+  const handleExportExcel = () => {
+    if (!items.length) {
+      alert("내보낼 데이터가 없습니다.");
+      return;
+    }
+
+    // 1) 시트에 넣을 JSON 데이터 작성
+    const exportData = items.map(item => ({
+      바코드: item.barcode,
+      회사: item.corporation,
+      부서: item.department,
+      위치: item.location,
+      자산분류: item.parentCategory,
+      품목: item.childCategory,
+      상태: item.status,
+      제조사: item.manufacturer,
+      모델: item.model,
+      취득일자: item.acquisitionDate,
+      취득가: item.acquisitionPrice,
+      등록자: item.registerName,
+    }));
+
+    // 2) 워크시트/워크북 생성
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook  = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "자산목록");
+
+    // 3) 클라이언트에 저장
+    const buffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+    const blob   = new Blob([buffer], { type: "application/octet-stream" });
+    saveAs(blob, "자산_조회_결과.xlsx");
+  };
+
+
+
+
+
+
+
+
+
+
+
 
 
   /* ===== 체크박스 핸들러 ===== */
@@ -484,6 +534,7 @@ const data = resData.data?.list || [];
           <button className="search-button" onClick={handleSearch}>🔍 조회</button>
           <button className="search-button print" onClick={handlePrint}>🖨️ 인쇄</button>
           <button className="search-button reset" onClick={handleReset}>↺ 초기화</button>
+          <button className="search-button download" onClick={handleExportExcel}>⬇️내려받기</button>
         </div>
       </div>
 

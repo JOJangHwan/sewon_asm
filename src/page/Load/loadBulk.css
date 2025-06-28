@@ -1,192 +1,198 @@
+/* =============================================
+   loadBulk.css – 자산 일괄 등록 전용 스타일 완성본
+   ============================================= */
+
+/* ---------- 공통 ---------- */
 .bulk-container {
-    padding: 20px;
-    font-family: 'Arial', sans-serif;
-    background-color: #f9f9f9;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  background-color: #f9f9f9;
+}
+
+h2 {
+  font-size: 22px;
+  margin-bottom: 16px;
+}
+
+/* 버튼 공통 */
+.btn,
+label.btn {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  height: 36px;          /* 기존 44px → 36px */
+  padding: 0 12px;       /* 좌우 여백 축소 */
+  font-size: 14px;       /* 폰트 크기 축소 */
+  font-weight: 700;
+  border: none;
+  border-radius: 4px;    /* 모서리도 조금 줄임 */
+  white-space: nowrap;
+  cursor: pointer;
+  color: #fff;
+  min-width: auto;          /* ✅ 최소 너비 제한 해제 */
+  width: auto;              /* ✅ 필요한 만큼만 넓이 사용 */
+  flex-shrink: 1;           /* ✅ 줄어들 수 있게 허용 */
+  background: #9e9e9e;
+  transition: background-color 0.2s;
+}
+.btn.primary:hover {
+  background-color: #fb8c00; /* 오렌지 hover */
+}
+
+.btn.upload:hover {
+  background-color: #343c45; /* 파랑 hover */
+}
+
+.btn.danger:hover {
+  background-color: #e53935; /* 빨강 hover */
+}
+
+.btn.success:hover {
+  background-color: #43a047; /* 초록 hover */
+}
+
+.btn.gray:hover {
+  background-color: #343c45; /* 회색 hover */
+}
+
+/* 색상 변형 */
+.primary { background: #ffa726; }
+.upload  { background: #42a5f5; }
+.danger  { background: #ef5350; }
+.success { background: #66bb6a; }
+.gray    { background: #9e9e9e; }
+
+/* 비활성(에러) 상태 */
+.btn-error-disabled {
+  background: #1b5e20 !important;
+  border: 2px solid #388e3c !important;
+  cursor: not-allowed !important;
+}
+
+/* 파일명 입력창 */
+.file-name-input {
+  height: 36px;
+  flex: 0 0 240px;
+  padding: 0 10px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-sizing: border-box;
+}
+
+/* ---------- 상단 컨트롤 영역 ---------- */
+.bulk-top-controls {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: nowrap;
+  margin-bottom: 20px;
+}
+
+/* 삭제 이후 버튼 우측 정렬 */
+.bulk-top-controls .btn.danger {
+  margin-left: auto;
+}
+
+/* ---------- 테이블 ---------- */
+.bulk-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+}
+.bulk-table th,
+.bulk-table td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: center;
+  font-size: 14px;
+}
+.bulk-table th {
+  background: #eeeeee;
+  font-weight: 700;
+}
+.bulk-table tr.selected {
+  background: #c8e6c9;
+}
+.bulk-table tr.row-error {
+  background: #ffe5e5;
+}
+.bulk-table .error-text {
+  color: #b00020;
+  font-size: 13px;
+}
+
+/* ---------- 경고/안내 ---------- */
+.error-summary,
+.register-error-alert {
+  padding: 12px;
+  border-radius: 6px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.error-summary {
+  background: #ffdddd;
+  color: #aa0000;
+  margin-bottom: 12px;
+}
+.register-error-alert {
+  background: #ffe2e2;
+  color: #ba1a1a;
+  margin: 14px 0 10px;
+  border: 1px solid #ffaaaa;
+  box-shadow: 0 2px 6px rgba(200, 0, 0, 0.05);
+}
+
+/* ---------- 모바일 전용 (<768px) ---------- */
+@media (max-width: 767px) {
+  .bulk-container {
+    padding: 16px;
   }
-  
+
   .bulk-top-controls {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 15px;
-    align-items: center;
-  }
-  
-  .btn {
-    padding: 8px 14px;
-    border: none;
-    cursor: pointer;
-    border-radius: 4px;
-    font-weight: bold;
-    background-color: #9e9e9e;
-    color: white;
-  }
-  .btn:hover {
-    background-color: #7e7e7e;
-  }
-  
-  .primary {
-    background-color: #ffa726;
-    color: #fff;
-  }
-  
-  .upload {
-    background-color: #42a5f5;
-    color: #fff;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
   }
 
-  
-  
-  .danger {
-    background-color: #ef5350;
-    color: white;
-  }
-  
-  .success {
-    background-color: #66bb6a;
-    color: white;
-  }
-  
+  .btn,
+  label.btn,
   .file-name-input {
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    width: 200px;
-  }
-  
-  .bulk-table {
     width: 100%;
-    border-collapse: collapse;
-    background-color: #fff;
   }
-  
-  .bulk-table th, .bulk-table td {
-    border: 1px solid #ddd;
-    padding: 10px;
-    text-align: center;
+
+  .btn {
+    font-size: 14px;
   }
-  
-  .bulk-table th {
-    background-color: #eeeeee;
-    font-weight: bold;
+
+  .file-name-input {
+    font-size: 14px;
   }
-  
-  .bulk-table tr.selected {
-    background-color: #c8e6c9;
-  }
-  
-  .error-summary {
-    background: #ffdddd;
-    color: #aa0000;
-    padding: 10px;
-    border-radius: 6px;
-    margin-bottom: 12px;
-    font-weight: bold;
-  }
-  
-  .row-error {
-    background-color: #ffe5e5 !important;
-  }
-  
-  .error-text {
-    color: #b00020;
-    font-size: 13px;
-    margin-top: 8px;
-  }
-  .register-error-alert {
-    margin-top: 14px;
-    margin-bottom: 10px;
-    padding: 12px;
-    background: #ffe2e2;
-    color: #ba1a1a;
-    border: 1px solid #ffaaaa;
-    border-radius: 6px;
-    font-weight: bold;
-    font-size: 15px;
-    box-shadow: 0 2px 6px rgba(200,0,0,0.05);
+
+  /* 카드형 리스트 (모바일 카드형 테이블) */
+  .bulk-card-list {
     display: flex;
-    align-items: center;
-    gap: 8px;
+    overflow-x: auto;
+    gap: 12px;
+    padding: 12px 0;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
   }
 
-  .btn-error-disabled {
-    background: #1b5e20 !important;     /* 진한 초록색 */
-    color: #fff !important;
-    border: 2px solid #388e3c !important;
-    opacity: 1 !important;
-    cursor: not-allowed !important;
-  }
-  
-  
-  
-
-
-  @media (max-width: 480px) {
-    .bulk-container {
-      padding: 16px;
-    }
-  
-    .bulk-top-controls {
-      flex-direction: column;
-      align-items: stretch;
-      gap: 12px; /* 버튼 간격 살짝 넓힘 */
-    }
-  
-    .btn {
-      width: 100%;
-      font-size: 14px;
-      padding: 12px 0;        /* 버튼 크기 확대 */
-      border-radius: 6px;
-    }
-  
-    .file-name-input {
-      width: 100%;
-      font-size: 14px;
-      padding: 10px;
-      height: 44px;            /* 버튼 높이와 맞춤 */
-      box-sizing: border-box;
-    }
-  
-    .bulk-table th,
-    .bulk-table td {
-      font-size: 13px;
-      padding: 8px;
-    }
-  
-    .error-summary {
-      font-size: 13px;
-      padding: 10px;
-    }
-
-    label.btn.upload {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      height: 44px;            /* 버튼과 동일 */
-      padding: 12px 14px;      /* 버튼과 동일 */
-      font-size: 14px;
-      font-weight: bold;
-      border-radius: 4px;
-      background-color: #42a5f5;
-      color: white;
-      width: 100%;
-      box-sizing: border-box;
-      line-height: 1;          /* 기본 line-height 차이 방지 */
-    }
-
-   /* 카드 개별 요소를 가로로 나열 */
-   .bulk-card {
+  .bulk-card {
     flex: 0 0 auto;
     width: 260px;
     min-height: 320px;
     border: 1px solid #ccc;
     border-radius: 8px;
     padding: 12px;
-    background-color: #fff;
+    background: #fff;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
     scroll-snap-align: start;
   }
-  
- 
+
   .card-row {
     display: flex;
     justify-content: space-between;
@@ -194,44 +200,28 @@
     border-bottom: 1px solid #eee;
     font-size: 14px;
   }
-  
-    .card-row:last-child {
-      border-bottom: none;
-    }
-  
-    .label {
-      font-weight: bold;
-      color: #333;
-      width: 40%;
-      white-space: nowrap;
-    }
-  
-    .value {
-      width: 60%;
-      text-align: right;
-      color: #444;
-      word-break: break-word;
-    }
-  
-    /* 등록자 영역 스타일 보완 */
-    .card-header {
-      font-weight: bold;
-      font-size: 14px;
-      margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
 
-      /* 카드 목록 전체를 가로 스크롤 가능하게 설정 */
-  .bulk-card-list {
+  .card-row:last-child {
+    border-bottom: none;
+  }
+
+  .card-header {
+    font-weight: 700;
+    margin-bottom: 8px;
     display: flex;
-    overflow-x: auto;
-    padding: 12px 0;
-    gap: 12px;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
+    align-items: center;
+    gap: 8px;
   }
 
-
+  .bulk-card.row-error {
+    border: 1px solid #f44336;
+    background: #fff6f6;
   }
+
+  .error-text {
+    color: #d32f2f;
+    font-weight: 600;
+    font-size: 13px;
+    margin-top: 6px;
+  }
+}

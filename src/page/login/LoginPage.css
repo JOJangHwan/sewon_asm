@@ -65,11 +65,19 @@
 
 /* 아이디 저장 */
 .loginPage-remember {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  font-size: 0.9rem;
-  margin: 0.5rem 0 1rem 0;
+    display: flex;            /* 한 줄 배치 */
+    align-items: center;      /* 세로 중앙정렬 */
+    gap: 4px;                 /* 체크박스와 글자 간격 */
+    font-size: 0.9rem;
+    margin: 0.5rem 0 1rem 0;
+    align-self: flex-start;
+}
+
+/* ↓↓↓ 새 규칙 추가 ↓↓↓ */
+/* 라디오/체크박스 제목이 둘로 안 갈라지도록 */
+.loginPage-lang label,
+.loginPage-remember label {
+  white-space: nowrap;      /* 줄 바꿈 방지 */
 }
 
 .loginPage-remember input {

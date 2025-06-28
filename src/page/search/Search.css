@@ -60,6 +60,11 @@
   cursor: pointer;
   transition: background-color 0.2s;
 }
+
+.search-button.download {
+  background: #4caf50;   /* 녹색 계열 */
+  color: #fff;
+}
 .search-button:hover { background-color: #ffb300; }
 .search-button.reset {
   background-color: #9e9e9e;
@@ -131,9 +136,29 @@
 .drawer-close {
   background:none; border:none; font-size:24px; cursor:pointer;
 }
-@media (max-width: 768px) {
-  .drawer, .drawer-overlay { display: none; }
-}
+/* === ❶ 데스크톱 전용: 바텀바를 한 줄로 고정 === */
 @media (min-width: 769px) {
-  .detail-fullpage { display: none; }
+  .search-bar.bottom-bar {
+    flex-wrap: nowrap;      /* 줄바꿈 방지 */
+    gap: 8px;               /* 살짝 좁혀도 OK */
+  }
+}
+
+/* === ❷ 데스크톱 전용: 버튼 슬림화 (수정 버전) === */
+@media (min-width: 769px) {
+  .search-bar.bottom-bar .search-button {
+    flex: 0 0 auto;     /* 버튼 내용만큼만 차지 */
+    width: auto;        /* ← 고정폭 제거 */
+    min-width: 90px;    /* 필요한 경우 최소폭만 지정 */
+    padding: 0 12px;    /* 좌·우 여백만 약간 */
+    white-space: nowrap;/* 🔑 글자가 두 줄로 접히지 않도록 */
+  }
+}
+
+/* 내려받기 전용 추가 옵셥 – 텍스트가 긴 경우 */
+.search-button.download {
+  background: #4caf50;
+  color: #fff;
+  min-width: 110px;     /* ‘내려받기’ 한글 텍스트가 충분히 들어가도록 */
+  white-space: nowrap;
 }
