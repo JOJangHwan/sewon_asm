@@ -43,7 +43,6 @@ function Header({ toggleSidebar, isSidebarOpen }) {
       console.log("알림전송 url : "+url)
       console.log('📡 SSE 연결 URL:', url);
       sse = new EventSource(url);
-      console.log("sse"+sse)
        sse.addEventListener('connect', (event) => {
          console.log('📨 [message] 기본 이벤트 수신:', event.data);
      });
