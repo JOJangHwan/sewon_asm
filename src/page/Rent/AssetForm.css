@@ -56,18 +56,23 @@
 }
 .asset-table {
   width: 100%;
-  min-width: 1200px; /* ✅ 이 줄을 추가하세요 (값은 필요에 따라 조정) */
+  min-width: 900px; /* 모바일에서도 스크롤로 대응 (원하면 600~1000px로 조정) */
   border-collapse: collapse;
+  background: #fff;
 }
 .asset-table th,
 .asset-table td {
-  padding: 12px;
+  padding: 12px 8px;
   border-bottom: 1px solid #eee;
   text-align: center;
   font-size: 14px;
 }
 .asset-table thead {
   background-color: #f9fafb;
+}
+.asset-table th {
+  font-weight: bold;
+  color: #333;
 }
 .asset-table td:last-child,
 .asset-table th:last-child {
@@ -76,39 +81,14 @@
   text-align: center;
 }
 
-/* === 카드형 리스트 (모바일 전용) === */
-.card-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin-top: 20px;
+/* 연체 강조 */
+.asset-table tr.overdue td {
+  background-color: #ffe5e5;
 }
-.card {
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  background: #fff;
-  padding: 12px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-}
-.card-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 12px;
-}
-.card-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 4px 0;
+.overdue-text {
+  color: #e53e3e;
   font-size: 14px;
-}
-.card-label {
-  font-weight: bold;
-  color: #333;
-}
-.card-value {
-  color: #555;
-  text-align: right;
+  margin-left: 12px;
 }
 
 /* === 모달 === */
@@ -137,21 +117,17 @@
 }
 .modal-top {
   display: flex;
-  justify-content: center;   /* 가운데 정렬 */
+  justify-content: center;
   align-items: center;
-  position: relative;        /* × 버튼 절대배치용 기준 */
+  position: relative;
 }
-
-/* 제목을 한 줄로 고정 */
 .modal-top h2,
-.modal-top h3 {              /* 실제 사용 태그에 맞춰 둘 다 지정 */
+.modal-top h3 {
   margin: 0;
   font-size: 22px;
   font-weight: bold;
-  white-space: nowrap;       /* ⭐ 줄바꿈 금지 */
+  white-space: nowrap;
 }
-
-/* × 버튼 */
 .modal-top .close-btn {
   position: absolute;
   right: 0;
@@ -162,18 +138,15 @@
   position: absolute;
   top: 12px;
   right: 12px;
-
-  width: 24px;          /* 👈 작게 조정 */
+  width: 24px;
   height: 24px;
-  font-size: 16px;      /* 👈 아이콘 크기 ↓ */
+  font-size: 16px;
   line-height: 1;
-  
-  background: white;    /* ✅ 배경 흰색 */
-  color: #e53e3e;       /* 적색 아이콘 */
+  background: white;
+  color: #e53e3e;
   border: 1px solid #ccc;
   border-radius: 4px;
   cursor: pointer;
-
   display: flex;
   align-items: center;
   justify-content: center;
@@ -205,7 +178,7 @@
   box-sizing: border-box;
 }
 
-/* 아이콘 버튼 */
+/* 버튼 스타일 */
 .icon-btn {
   background-color: #facc15;
   border: none;
@@ -218,289 +191,35 @@
   background-color: #fbbf24;
 }
 
-/* 날짜 입력 */
-.date-range {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  align-items: center;
-}
-.date-range input {
-  flex: 1;
-  min-width: 0;
-}
-.date-range span {
-  padding: 0 4px;
-  font-weight: bold;
-}
-.calendar-icon {
-  color: #888;
-  font-size: 16px;
-}
+/* 날짜 입력 등 기타 스타일 생략 (필요시 유지) */
 
-/* === 실사위치 선택 관련 스타일 === */
-.location-select-3depth {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  justify-content: flex-start;
-  margin-bottom: 8px;
-}
-
-/* 실사위치 래퍼 */
-.location-wrapper {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  margin-bottom: 12px;
-}
-
-/* 실사위치 레이블 */
-.location-wrapper label {
-  font-weight: 500;
-  font-size: 14px;
-  color: #333;
-}
-
-/* 세부위치 드롭다운 스타일 */
-.location-wrapper select {
-  padding: 6px 10px;
-  font-size: 14px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background-color: #fff;
-  color: #333;
-  transition: border-color 0.2s ease;
-  min-width: 200px;
-  /* 기본 브라우저 화살표 제거 */
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  /* 오른쪽 공간 확보 */
-  padding-right: 32px;
-  background-image: url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTQiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDE0IDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPHBhdGggZD0iTTEuNzEyIDAuMjgyTDcgNS44ODRiNS4yODktNS42MDIgNC4yODktNC4yODlMNyA1Ljg4NEwxLjcxMiAwLjI4MloiIGZpbGw9IiM2NjY2NjYiLz4KPC9zdmc+");
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-  background-size: 10px 6px;
-}
-
-.location-wrapper select:focus {
-  outline: none;
-  border-color: #409eff;
-  box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
-}
-
-/* placeholder 옵션(값이 없는 기준 option) 스타일 */
-.location-wrapper select option[value=""] {
-  color: #999;
-}
-
-/* === 바코드 입력 & 버튼 줄 === */
-.barcode-action-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-/* 바코드 이미지 */
-.barcode-icon {
-  width: 36px;
-  height: 36px;
-  cursor: pointer;
-}
-.barcode-icon:hover {
-  transform: scale(1.1);
-}
-
-/* 바코드 입력창 */
-.barcode-action-row input {
-  height: 36px;
-  padding: 0 8px;
-  font-size: 14px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  min-width: 180px;
-}
-
-/* 버튼 스타일 */
-.button-group,
-.delete-btn,
-.register-btn,
-.verify-btn {
-  font-size: 14px;
-  padding: 8px 16px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.delete-btn {
-  background-color: #f44336;
-  color: white;
-}
-
-.verify-btn {
-  background-color: #3b82f6;
-  color: white;
-}
-
-.register-btn {
-  background-color: #4caf50;
-  color: white;
-}
-
-/* === QR 스캐너 === */
-.qr-reader {
-  width: 300px;
-  margin: 20px auto;
-}
-
-/* === 바코드 줄 레이아웃 === */
-.barcode-row-split {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  width: 100%;
-  row-gap: 10px; /* 세로 간격 추가 */
-}
-
-.barcode-left,
-.barcode-buttons {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  flex-shrink: 0;
-}
-
-.barcode-left input {
-  height: 36px;
-  padding: 0 8px;
-  font-size: 14px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  min-width: 200px;
-}
-
-/* 아이템 리스트 절단선 (테이블 하단 여백 조정) */
-.audit-table tr:last-child td {
-  border-bottom: none;
-}
-
-.asset-table tr.overdue td {
-
-  background-color: #ffe5e5;      /* 연체된 행 배경 보조 색상 */
-}
-
-.card.overdue {
-  background-color: #ffe5e5;      /* 배경도 연하게 빨간색 */
-}
-
-/* 제목 옆 연체 알림 텍스트 */
-.overdue-text {
-  color: #e53e3e;
-  font-size: 14px;
-  margin-left: 12px;
-}
-
-/* === 반응형 - 태블릿 === */
+/* === 반응형: 모바일에서도 테이블만 보여줌 === */
 @media (max-width: 768px) {
   .page-header h2 {
     font-size: 20px;
   }
-
   .primary-btn,
   .submit-btn,
   .icon-btn {
     padding: 8px 16px;
     font-size: 13px;
   }
-
   .modal-content {
     padding: 20px;
     width: 95%;
   }
-
   .row span {
     font-size: 14px;
   }
-
   .asset-table th,
   .asset-table td {
-    padding: 8px;
-    font-size: 13px;
-  }
-
-  .asset-table td:last-child,
-  .asset-table th:last-child {
-    width: 120px;
-  }
-
-  .card-row {
-    font-size: 13px;
-  }
-}
-
-/* === 반응형 - 모바일 (가로 row 전환) === */
-@media (max-width: 480px) {
-  .page-container {
-    padding: 16px;
-  }
-
-  .row {
-    flex-direction: row;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .row span:first-child,
-  .row label {
-    min-width: 90px;
-    font-size: 13px;
-  }
-
-  .row input,
-  .row span:last-child,
-  .row button {
-    flex: 1;
-    width: auto;
-    font-size: 13px;
-  }
-
-  .modal-content {
-    padding: 16px;
-  }
-
-  .primary-btn,
-  .submit-btn,
-  .icon-btn {
+    padding: 8px 6px;
     font-size: 12px;
-    padding: 6px 12px;
   }
-
   .asset-table td:last-child,
   .asset-table th:last-child {
     width: 100px;
   }
-
-  .card {
-    padding: 10px;
-  }
-
-  .card-row {
-    font-size: 12px;
-  }
-
-  /* 모바일용 카드형 UI 숨김 */
-  .asset-table {
-    display: none;
-  }
-  .card-list {
-    display: flex;
-  }
 }
+
+/* ★ 카드형 리스트, 카드뷰 등 완전 제거! (불필요한 스타일/주석 삭제) */

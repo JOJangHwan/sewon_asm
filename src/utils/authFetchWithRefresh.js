@@ -66,7 +66,7 @@
 // };
 
 import { getAccessToken, getRefreshToken, saveTokens, clearTokens } from './token';
-
+import { jwtDecode } from 'jwt-decode';
 const API_BASE = window._env_?.REACT_APP_API_URL || 'http://localhost:8080';
 
 export const authFetchWithRefresh = async (url, options = {}) => {
@@ -143,4 +143,44 @@ export const authFetchWithRefresh = async (url, options = {}) => {
   }
 
   return response;
+};
+
+
+/** accessToken 만료 여부 */
+const isExpired = (token) => {
+  try {
+    const { exp } = jwtDecode(token);          // exp(초)
+    return exp * 1000 < Date.now() - 3000;     // 3 초 여유 주고 만료
+  } catch {
+    return true;                               // 파싱 실패 → 만료 취급
+  }
+};
+
+/** 항상 유효한 accessToken 반환 (필요 시 refresh) */
+export const getValidAccessToken = async () => {
+  let access = getAccessToken();
+  if (access && !isExpired(access)) return access;
+
+  // ─ 만료 → refresh
+  const refresh = getRefreshToken();
+  const res = await fetch(`${API_BASE}/account/auth/token-refresh`, {
+    method: 'POST',
+    headers: {
+      'Authorization-a': access || '',
+      'Authorization-r': refresh || '',
+      'Content-Type': 'application/json',
+    },
+  });
+  const json = await res.json();
+
+  if (json.code === 1) {
+    const { accessToken: newAcc, refreshToken: newRef } = json.data;
+    saveTokens({ accessToken: newAcc, refreshToken: newRef });
+    return newAcc;
+  }
+
+  // refresh 실패 → 로그아웃
+  clearTokens();
+  window.location.href = '/';
+  throw new Error('토큰 갱신 실패');
 };

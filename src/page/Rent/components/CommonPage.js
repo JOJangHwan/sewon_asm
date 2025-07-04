@@ -20,7 +20,7 @@ export default function CommonPage() {
               checked={mode === 'rent'}
               onChange={() => setMode('rent')}
             />{' '}
-            대여리스트
+            대여
           </label>
           <label>
             <input
@@ -30,7 +30,7 @@ export default function CommonPage() {
               checked={mode === 'return'}
               onChange={() => setMode('return')}
             />{' '}
-            반납리스트
+            반납
           </label>
         </div>
       </div>

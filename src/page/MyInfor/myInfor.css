@@ -207,6 +207,143 @@ tbody tr:hover   { background: #f3f4f6; }
   cursor: not-allowed;
 }
 
+
+
+
+
+/* --- 추가 또는 덮어쓰기 --- */
+.search-bar-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.search-bar-row {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  align-items: center;
+  justify-content: flex-start;
+  flex-wrap: wrap; /* 창이 좁으면 자동 줄바꿈 */
+  margin-bottom: 4px;
+}
+
+.search-bar-row .search-input {
+  min-width: 120px;
+  max-width: 180px;
+}
+
+.search-bar-row input[type="number"] {
+  width: 80px;
+}
+
+/* 버튼 영역만 우측정렬하려면 */
+.search-bar-row.buttons {
+  justify-content: flex-start; /* or flex-end(우측) */
+  gap: 8px;
+}
+
+/* 모바일 대응 */
+@media (max-width: 900px) {
+  .search-bar-row {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .search-bar-row .search-input {
+    min-width: 100px;
+    width: 100%;
+    max-width: 200px;
+  }
+  .search-bar-row.buttons {
+    flex-direction: row;
+    justify-content: stretch;
+    gap: 8px;
+  }
+}
+
+
+.search-bar-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;    /* ← 중앙 정렬 */
+  gap: 14px;              /* 행 간격 */
+}
+
+.search-bar-row {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;   /* ← 가운데 정렬 */
+  width: 100%;               /* 필요 시 100% */
+  margin-bottom: 0;
+}
+
+.search-bar-row.buttons {
+  justify-content: center;   /* 버튼도 중앙 */
+  width: 100%;
+}
+
+/* 버튼 영역이 너무 넓으면 아래처럼 제한도 가능 */
+.search-bar-row.buttons > button {
+  min-width: 180px;
+  max-width: 350px;
+  width: 100%;
+  margin-bottom: 2px;
+}
+
+/* 모바일 대응 */
+@media (max-width: 900px) {
+  .search-bar-row, .search-bar-row.buttons {
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+  }
+}
+.search-bar-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+.search-bar-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;     /* 칸 간격 */
+  width: 100%;
+  margin-bottom: 0;
+}
+.btn-search,
+.btn-reset {
+  min-width: 80px;
+  height: 38px;
+  /* 아래 속성 추가로 일관되게 */
+  font-size: 14px;
+}
+
+@media (max-width: 900px) {
+  .search-bar-row {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /* ===== 인쇄 숨김 ===== */
 @media print {
   .top-section,

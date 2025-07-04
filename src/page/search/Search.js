@@ -370,6 +370,7 @@ const handlePrint = () => {
   
         // const url = `http://192.168.0.220:8888/assets/paged?${queryParams.toString()}`;
         const url = `${API_BASE_URL}/assets/paged?${queryParams.toString()}`;
+        console.log("최종 전송 URL:", url);   // << 이거 둘 다 추가!
         console.log("📤 최종 전송 URL:", url);
         console.log("📦 검색 조건 요약:", {
           locationId,
@@ -522,7 +523,7 @@ const data = resData.data?.list || [];
           <input type="date" className="search-input date" value={startDate} onChange={e => setStartDate(e.target.value)} />
           <span>~</span>
           <input type="date" className="search-input date" value={endDate} onChange={e => setEndDate(e.target.value)} />
-          <select className="search-input" value={sortField} onChange={e => setSortField(e.target.value)}>
+          {/* <select className="search-input" value={sortField} onChange={e => setSortField(e.target.value)}>
             <option value="">정렬 항목</option>
             <option value="acquisitionDate">취득일자</option>
             <option value="acquisitionPrice">취득가</option>
@@ -530,7 +531,7 @@ const data = resData.data?.list || [];
           <select className="search-input" value={sortOrder} onChange={e => setSortOrder(e.target.value)}>
             <option value="asc">오름차순</option>
             <option value="desc">내림차순</option>
-          </select>
+          </select> */}
           <button className="search-button" onClick={handleSearch}>🔍 조회</button>
           <button className="search-button print" onClick={handlePrint}>🖨️ 인쇄</button>
           <button className="search-button reset" onClick={handleReset}>↺ 초기화</button>

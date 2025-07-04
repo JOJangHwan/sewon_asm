@@ -36,7 +36,6 @@ export default function MyInfoPage() {
   const [selectedDept, setSelectedDept] = useState("");
   const [locations, setLocations]     = useState([]);
   const [selectedLoc, setSelectedLoc] = useState("");
-  const [locationsId,setLocationId]=useState("");
 
 
   // → ID 전용으로 분리
@@ -85,6 +84,8 @@ const [selectedItemId, setSelectedItemId]         = useState("");
   const [editItem, setEditItem]               = useState(null);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
 
+  
+
   // ── 상세보기 상태
   const [detailItem, setDetailItem] = useState(null);
 
@@ -92,13 +93,39 @@ const [selectedItemId, setSelectedItemId]         = useState("");
   // ── 내 정보
     // ── 내 정보 – Context 값 기준으로 표시
     const userInfo = {
-      company:    user?.corporation ?? localStorage.getItem('corporation') ?? '미지정',
+      company:    user?.company     ?? localStorage.getItem('company')     ?? localStorage.getItem('corporation') ?? '미지정',
       department: user?.department  ?? localStorage.getItem('department')  ?? '미지정',
-      name:       user?.name        ?? localStorage.getItem('name')       ?? '이름 없음',
-      id:         user?.username    ?? localStorage.getItem('username')   ?? '아이디 없음',
+      name:       user?.name        ?? localStorage.getItem('name')        ?? '이름 없음',
+      id:         user?.username    ?? localStorage.getItem('username')    ?? '아이디 없음',
     };
+    
 // 맵핑용
      const [companyData, setCompanyData] = useState({});
+
+     useEffect(() => {
+      if (!selectedCorp || !selectedDept || corporations.length === 0) {
+        setLocations([]);
+        setSelectedLocId("");
+        return;
+      }
+      const corpEntry = corporations.find(c => c.name === selectedCorp);
+      if (!corpEntry) {
+        setLocations([]);
+        setSelectedLocId("");
+        return;
+      }
+      const aff = corpEntry.affiliationList.find(a => a.department === selectedDept);
+      if (aff && Array.isArray(aff.locations)) {
+        setLocations(aff.locations.map(l => ({
+          id: l.locationId,
+          name: l.location
+        })));
+        setSelectedLocId("");
+      } else {
+        setLocations([]);
+        setSelectedLocId("");
+      }
+    }, [selectedCorp, selectedDept, corporations]);
 
 
     //로그인 정보 가져오기
@@ -113,14 +140,14 @@ const [selectedItemId, setSelectedItemId]         = useState("");
   // const savedCorp = localStorage.getItem('corporation');
   // const savedDept = localStorage.getItem('department');
   // ── 상태들 선언이 끝난 바로 다음 위치에
-useEffect(() => {                     // ★ 추가
-  const corp = localStorage.getItem('corporation');  // 예: 평택공장
-  const dept = localStorage.getItem('department');   // 예: 전산운영팀
-  const savedCorp = localStorage.getItem('corporation');
-const savedDept = localStorage.getItem('department');
-  if (corp) setSelectedCorp(corp);
-  if (dept) setSelectedDept(dept);
-}, []);
+// useEffect(() => {                     // ★ 추가
+//   const corp = localStorage.getItem('corporation');  // 예: 평택공장
+//   const dept = localStorage.getItem('department');   // 예: 전산운영팀
+//   const savedCorp = localStorage.getItem('corporation');
+// const savedDept = localStorage.getItem('department');
+//   if (corp) setSelectedCorp(corp);
+//   if (dept) setSelectedDept(dept);
+// }, []);
 
   //console.log(saveCorporation,savedDepartment,savedUsername)
 
@@ -134,37 +161,31 @@ const savedDept = localStorage.getItem('department');
         const corpRes  = await authFetchWithRefresh(`${API_BASE_URL}/corporations`);
         const corpJson = await corpRes.json();
         if (corpJson.code === 1) {
-                   const list = corpJson.data.corporationList;
-                   console.log("▶ 전체 법인 리스트:", list);
-                  setCorporations(list);
-          
-                   // 로그인 정보
-                   const savedCorp = localStorage.getItem("corporation");
-                   const savedDept = localStorage.getItem("department");
-                   console.log("▶ savedCorp, savedDept:", savedCorp, savedDept);
-          
-                   // 만약 로그인된 corp/dept 가 API 결과에 있으면 선택 & locations 세팅
-                     if (savedCorp && savedDept) {
-                        const corpEntry = list.find(c => c.name === savedCorp);
-                        console.log("▶ 매칭된 corpEntry:", corpEntry);
-                        if (corpEntry) {
-                          setSelectedCorp(savedCorp);
-                         const aff = corpEntry.affiliationList.find(a => a.department === savedDept);
-                         console.log("▶ 매칭된 aff:", aff);
-                          if (aff) {
-                            setSelectedDept(savedDept);
-                            setLocations(
-                              aff.locations.map( l =>({
-                                id:   l.locationId,  
-                                name: l.location      
-                              }))
-                            )
-                            
-                          }
-                        }
-                      }
+          const list = corpJson.data.corporationList;
+          setCorporations(list);
+  
+          // Context > localStorage > ""
+          const ctxCorp = user?.company || localStorage.getItem("corporation") || "";
+          const ctxDept = user?.department || localStorage.getItem("department") || "";
+          setSelectedCorp(ctxCorp);
+          setSelectedDept(ctxDept);
+  
+          // [optional] 만약 바로 locations 세팅도 하고 싶으면
+          if (ctxCorp && ctxDept) {
+            const corpEntry = list.find(c => c.name === ctxCorp);
+            if (corpEntry) {
+              const aff = corpEntry.affiliationList.find(a => a.department === ctxDept);
+              if (aff) {
+                setLocations(
+                  aff.locations.map(l => ({
+                    id:   l.locationId,
+                    name: l.location
+                  }))
+                );
+              }
+            }
+          }
         }
-
         // 자산 분류 계층 호출
         const typeRes  = await authFetchWithRefresh(`${API_BASE_URL}/asset-types/hierarchy`);
         const typeJson = await typeRes.json();
@@ -176,7 +197,8 @@ const savedDept = localStorage.getItem('department');
       }
     }
     loadLookups();
-  }, []);
+  }, [user]);
+  
 
 
 
@@ -337,15 +359,43 @@ if (selectedLoc    && it.location     !== selectedLoc)    return false;
         setEditItem(mapped); 
     setIsModalOpen(true);
   };
-  const handleDelete = () => {
+
+
+  const handleDelete = async () => {
+    const ids = currentList
+      .filter(item => selectedBarcodes.has(item.barcode))
+      .map(item => item.id)
+      .filter(Boolean);
     if (!selectedBarcodes.size) return alert("삭제할 항목을 선택하세요.");
     if (!window.confirm("정말 삭제하시겠습니까?")) return;
-       const newArr = items.filter(item => !selectedBarcodes.has(item.barcode));
-       setItems(newArr);
-       setSelectAll(false);
-       setSelectedBarcodes(new Set());
-    alert('삭제되었습니다.');
+  
+    // 선택된 바코드로부터 id 추출 (items 또는 currentList 기준)
+  
+    if (!ids.length) return alert("삭제할 ID가 없습니다.");
+  
+    try {
+      const res = await authFetchWithRefresh(`${API_BASE_URL}/assets`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids }),    // { ids: [1, 2, 3] }
+      });
+      const json = await res.json();
+      if (json.code === 1) {
+        // 삭제 성공 시, 목록 갱신
+        setItems(prev => prev.filter(item => !ids.includes(item.id)));
+        setFilteredItems(prev => prev.filter(item => !ids.includes(item.id)));
+        setSelectedBarcodes(new Set());
+        setSelectAll(false);
+        alert("자산이 삭제되었습니다.");
+      } else {
+        alert("삭제 실패: " + (json.message || "서버 오류"));
+      }
+    } catch (err) {
+      console.error("삭제 요청 오류:", err);
+      alert("서버와 통신할 수 없습니다.");
+    }
   };
+
   const handlePrint = () => {
 if (!selectedBarcodes.size) return alert("인쇄할 항목을 선택하세요!");
 const toPrint = listToShow.filter(row => selectedBarcodes.has(row.barcode));
@@ -560,93 +610,79 @@ const toPrint = listToShow.filter(row => selectedBarcodes.has(row.barcode));
   </button>
 </div>
 
-      {/* 2. 조회 필터 */}
-      <div className="search-section">
-        <h2 className="section-title">자산 조회</h2>
-        <div className="search-bar-wrapper">
-        <div className="search-bar">
-{/* 세부위치 */}
-<select
-  className="search-input"
-  value={selectedLocId}
-  onChange={e => setSelectedLocId(e.target.value)}
->
-  <option value="">세부위치</option>
-  {locations.map(loc => (
-    <option key={loc.id} value={loc.id}>
-      {loc.name}
-    </option>
-  ))}
-</select>
+    {/* 2. 조회 필터 */}
+<div className="search-section">
+  <h2 className="section-title">자산 조회</h2>
+  <div className="search-bar-wrapper">
+  <div className="search-bar-row">
+    {/* === 1행: 드롭다운 + 출력개수 === */}
+    <div className="search-bar-row">
+      {/* 세부위치 */}
+      <select
+        className="search-input"
+        value={selectedLocId}
+        onChange={e => setSelectedLocId(e.target.value)}
+      >
+        <option value="">세부위치</option>
+        {locations.map(loc => (
+          <option key={loc.id} value={loc.id}>{loc.name}</option>
+        ))}
+      </select>
+      {/* 분류 */}
+      <select
+        className="search-input"
+        value={selectedCategoryId}
+        onChange={e => setSelectedCategoryId(Number(e.target.value))}
+      >
+        <option value="">분류</option>
+        {assetCategories.map(cat => (
+          <option key={cat.parentId} value={cat.parentId}>{cat.name}</option>
+        ))}
+      </select>
+      {/* 품목 */}
+      <select
+        className="search-input"
+        value={selectedItemId}
+        onChange={e => setSelectedItemId(Number(e.target.value))}
+        disabled={!selectedCategoryId}
+      >
+        <option value="">품목</option>
+        {items.map(item => (
+          <option key={item.id} value={item.id}>{item.name}</option>
+        ))}
+      </select>
+      {/* 출력개수 */}
+      <input
+        type="number"
+        className="search-input view-count"
+        placeholder="출력개수"
+        value={viewCount}
+        onChange={e => setViewCount(+e.target.value)}
+      />
+    </div>
 
- {/* 분류 */ }
- <select
-   className="search-input"
-   value={selectedCategoryId}
-   onChange={e => setSelectedCategoryId(Number(e.target.value))}
- >
-  <option value="">분류</option>
-  {assetCategories.map(cat => (
-    <option key={cat.parentId} value={cat.parentId}>
-      {cat.name}
-    </option>
-  ))}
-</select>
-
- {/* 품목 */ }
- <select
-   className="search-input"
-   value={selectedItemId}
-   onChange={e => setSelectedItemId(Number(e.target.value))}
-   disabled={!selectedCategoryId}
- >
-  <option value="">품목</option>
-  {items.map(item => (
-    // value에는 ID, 화면에는 name 문자열
-    <option key={item.id} value={item.id}>
-      {item.name}
-    </option>
-  ))}
-</select>
-
-
-  {/* 출력개수 */}
-  <input
-    type="number"
-    className="search-input view-count"
-    placeholder="출력개수"
-    value={viewCount}
-    onChange={e => setViewCount(+e.target.value)}
-  />
-</div>
-
-<div className="search-bar">
-  {/* <input
-    type="text"
-    className="search-input"
-    placeholder="바코드"
-    value={barcodeKeyword}
-    onChange={e => setBarcodeKeyword(e.target.value)}
-  /> */}
-  <input
-    type="date"
-    className="search-input"
-    value={startDate}
-    onChange={e => setStartDate(e.target.value)}
-  />
-  <span>~</span>
-  <input
-    type="date"
-    className="search-input"
-    value={endDate}
-    onChange={e => setEndDate(e.target.value)}
-  />
-  <button className="btn-search" onClick={handleSearch}>🔍 조회</button>
-  <button className="btn-reset" onClick={handleReset}>↺ 초기화</button>
-</div>
-
-        </div>
+    {/* === 2행: 날짜 + 버튼 === */}
+    <div className="search-bar-row buttons">
+      <input
+        type="date"
+        className="search-input"
+        value={startDate}
+        onChange={e => setStartDate(e.target.value)}
+      />
+      <span style={{ fontWeight: 500 }}>~</span>
+      <input
+        type="date"
+        className="search-input"
+        value={endDate}
+        onChange={e => setEndDate(e.target.value)}
+      />
+      <button className="btn-search" onClick={handleSearch}>🔍 조회</button>
+      <button className="btn-reset" onClick={handleReset}>↺ 초기화</button>
       </div>
+    </div>
+  </div>
+</div>
+
 
       {/* 3. 제목 + 액션 버튼 */}
       <div className="bottom-header">
@@ -655,9 +691,13 @@ const toPrint = listToShow.filter(row => selectedBarcodes.has(row.barcode));
           <button className="action-button" onClick={handleModify} disabled={selectedBarcodes.size !== 1}>
             수정하기
           </button>
-          <button className="action-button" onClick={handleDelete} disabled={!selectedBarcodes.size}>
-            삭제하기
-          </button>
+<button
+  className="action-button"
+  onClick={handleDelete}
+  disabled={!selectedBarcodes.size}
+>
+  삭제하기
+</button>
           <button className="action-button" onClick={handlePrint} disabled={!selectedBarcodes.size}>
             인쇄하기
           </button>

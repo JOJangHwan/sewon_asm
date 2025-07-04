@@ -160,6 +160,11 @@ button:disabled {
 .tree-node:hover .node-actions,
 .asset-node:hover .node-actions { display: flex; }
 
+.edit-icon:hover {
+  color: #1976d2;
+  cursor: pointer;
+}
+
 .edit-icon:hover { color: #1976d2; cursor: pointer; }
 .del-icon:hover  { color: #d32f2f; cursor: pointer; }
 

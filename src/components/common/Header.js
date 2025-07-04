@@ -1,68 +1,140 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
-import ScanImg from '../../assets/img/scan.png';
-import rentImg from '../../assets/img/rent.png';
+import ScanImg  from '../../assets/img/scan.png';
+import rentImg  from '../../assets/img/rent.png';
 import alarmImg from '../../assets/img/alarm.png';
-import logoImg from '../../assets/img/sewon.jpg';
+import logoImg  from '../../assets/img/sewon.jpg';
+import { UserContext }        from '../../utils/UserContext';
+import { getValidAccessToken } from '../../utils/authFetchWithRefresh';
+import NotificationDropdown    from '../common/NotificationDropdown';
+
+const API_BASE_URL = window._env_?.REACT_APP_API_URL || "http://localhost:8888";
 
 function Header({ toggleSidebar, isSidebarOpen }) {
   const [isAlarmOpen, setIsAlarmOpen] = useState(false);
-  const [showUnreadOnly, setShowUnreadOnly] = useState(false);
-  const [name, setName] = useState('');
-  const [department, setDepartment] = useState('');
-  const [notifications, setNotifications] = useState([
-    { id: 1, text: '[공지] 서버 점검 예정', read: false, time: '2024-04-22 10:30' },
-    { id: 2, text: '[알림] 신규 자산 등록됨', read: false, time: '2024-04-22 11:00' },
-    { id: 3, text: '[공지] 시스템 업데이트 완료', read: true, time: '2024-04-21 16:00' },
-    { id: 4, text: '[경고] 라이센스 만료 임박', read: false, time: '2024-04-22 09:15' },
-    { id: 5, text: '[알림] 재고 부족 알림', read: true, time: '2024-04-20 14:20' },
-  ]);
+  const { user } = useContext(UserContext);
+  //const [notifications, setNotifications] = useState([]); //sse
+  const [sseRent,  setSseRent]  = useState([]);   // 대여·반납 실시간
+  const [sseAudit, setSseAudit] = useState([]);   // 실사 실시간
+  const [dbNoti, setDbNoti] = useState([]);  //DB
 
   const alarmRef = useRef(null);
 
   useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (alarmRef.current && !alarmRef.current.contains(e.target)) {
-        setIsAlarmOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
+    let sse;
   
-    // ✅ 여기 먼저 실행되게 해야 함!
-    console.log("헤더"+localStorage.getItem('corporation'))
+    const connectSSE = async () => {
+      const userId = user?.id;
+      console.log(user);
+      if (!userId) {
+        console.warn('❗ userId가 없습니다. SSE 연결 중단');
+        return;
+      }
+  
+      const token = await getValidAccessToken();
+      if (!token) {
+        console.warn('❗ 토큰이 없습니다. SSE 연결 중단');
+        return;
+      }
+  
+      // ✅ userId 먼저, token 다음에 붙이기
+      
+      const url = `${API_BASE_URL}/notification/connect/${userId}?token=${token}`;
+      console.log("알림전송 url : "+url)
+      console.log('📡 SSE 연결 URL:', url);
+      sse = new EventSource(url);
+      console.log("sse"+sse)
+       sse.addEventListener('connect', (event) => {
+         console.log('📨 [message] 기본 이벤트 수신:', event.data);
+     });
+  
+      sse.addEventListener('notification', (event) => {
+console.log('🔔[notification] 알림 수신', event.data);
+        let parsed;
 
-    const savedUsername = localStorage.getItem('name');
-    const savedDepartment = localStorage.getItem('department');
-    if (savedUsername) setName(savedUsername);
-    if (savedDepartment) setDepartment(savedDepartment);
+        try {
+          parsed = JSON.parse(event.data);           // { message, notifyTime }
+        } catch (err) {
+          console.warn('⚠️ JSON 파싱 실패:', parsed.data);
+          return;
+
+        } 
+        console.log('🔔 알림 수신:', parsed); // ✔️ 여기에 진짜 로그가 뜸
+          // 1) JSON 파싱
+          //const content = JSON.parse(event.data);   // { id, text, read, time } 구조여야 함
+          //console.log('🔔 알림 수신:', content);
+
+             const formatted = {
+                 id: Date.now(),
+                 text : parsed.message,
+                 time : parsed.notifyTime,
+                 read : false,
+               };
+            
+               // 📌 유형 구분: parsed.type 값이 'RENT_RETURN' 이면 rent, 그 외 audit
+              //  if (parsed.type === 'RENT_RETURN') {
+              //    setSseRent(prev  => [formatted, ...prev]);
+              //  } else {
+              //    setSseAudit(prev => [formatted, ...prev]);
+              //  }
+               // 📌 type 이 없으면 기본적으로 대여·반납 알림으로 간주
+ if (parsed.type === 'RENT_RETURN' || parsed.type === undefined) {
+   setSseRent(prev => [formatted, ...prev]);
+ } else {
+   setSseAudit(prev => [formatted, ...prev]);
+ }
+
+
+      });
+  
+      sse.onerror = (err) => {
+        console.error('❌ SSE 오류:', err);
+        sse.close();
+      };
+    };
+  
+    connectSSE();
   
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      if (sse) sse.close();
     };
-  }, []);
+  }, [user]); // user 변경될 때마다 재연결
   
 
   const toggleAlarm = () => setIsAlarmOpen(prev => !prev);
 
-  const markAsRead = (id) => {
-    setNotifications(prev =>
-      prev.map(n => (n.id === id ? { ...n, read: true } : n))
-    );
-  };
+      // 처음 열릴 때만 DB 알림 가져오기 (예시)
+    if (!isAlarmOpen && dbNoti.length === 0) {
+      (async () => {
+        const token = await getValidAccessToken();
+        const res   = await fetch(`${API_BASE_URL}/notification/history`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const list  = await res.json();          // [{id,text,time,read}, ...]
+        setDbNoti(list);
+      })();
+    }
 
-  const markAllAsRead = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-  };
+    const markAsRead = (id) => {
+     
+         setSseRent (prev => prev.map(n => (n.id === id ? { ...n, read: true } : n)));
+         setSseAudit(prev => prev.map(n => (n.id === id ? { ...n, read: true } : n)));
+        };
+
+         const markAllAsRead = () => {
+             setSseRent (prev => prev.map(n => ({ ...n, read: true })));
+             setSseAudit(prev => prev.map(n => ({ ...n, read: true })));
+           };
 
   const deleteNotification = (id) => {
-    setNotifications(prev => prev.filter(n => n.id !== id));
-  };
+       setSseRent (prev => prev.filter(n => n.id !== id));
+       setSseAudit(prev => prev.filter(n => n.id !== id));
+      };
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+       const unreadCount =
+         [...sseRent, ...sseAudit].filter(n => !n.read).length;
 
-  const filteredNotifications = showUnreadOnly
-    ? notifications.filter(n => !n.read)
-    : notifications;
+
 
   return (
     <header className="header">
@@ -88,65 +160,45 @@ function Header({ toggleSidebar, isSidebarOpen }) {
       </div>
 
       <div className="header-right" ref={alarmRef}>
-        {/* <Link to="/rent" className="header-alarm">
+           <Link to="/rent" className="header-alarm">
           <img src={rentImg} alt="렌트" className="header-icon" />
-        </Link> */}
-        {/* <Link to="/scan" className="header-alarm">
+        </Link>    
+         {/* <Link to="/scan" className="header-alarm">
           <img src={ScanImg} alt="스캔" className="header-icon" />
-        </Link> */}
+        </Link>  */}
 
-        {/* 알림 */}
-        {/* 추후에 오픈예정 */}
-        {/* <div className="header-alarm" onClick={toggleAlarm} style={{ position: 'relative' }}>
-          <img src={alarmImg} alt="알람" className="header-icon" />
-          {unreadCount > 0 && (
-            <div className="alarm-badge">{unreadCount}</div>
-          )}
-        </div>
+ {/* 알림 아이콘 */}
+<div className="header-alarm" onClick={toggleAlarm} style={{ position: 'relative' }}>
+  <img src={alarmImg} alt="알람" className="header-icon" />
+  {unreadCount > 0 && (
+    <div className="alarm-badge">{unreadCount}</div>
+  )}
+</div>
 
-        {isAlarmOpen && (
-          <div className="alarm-dropdown">
-            <div className="alarm-header">
-              <span>알림</span>
-              <div className="alarm-header-buttons">
-                <button onClick={() => setShowUnreadOnly(prev => !prev)}>
-                  {showUnreadOnly ? '전체 보기' : '읽지 않음만'}
-                </button>
-                <button onClick={markAllAsRead}>모두 읽음</button>
-              </div>
-            </div>
-            {filteredNotifications.length > 0 ? (
-              filteredNotifications.map(n => (
-                <div
-                  key={n.id}
-                  className={`alarm-item ${n.read ? 'read' : ''}`}
-                  onClick={() => markAsRead(n.id)}
-                >
-                  <div className="alarm-text">
-                    {!n.read && <span className="alarm-dot">●</span>}
-                    {n.text}
-                    <div className="alarm-time">{n.time}</div>
-                  </div>
-                  <button
-                    className="alarm-delete"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      deleteNotification(n.id);
-                    }}
-                  >
-                    ✖
-                  </button>
-                </div>
-              ))
-            ) : (
-              <div className="alarm-empty">알림이 없습니다.</div>
-            )}
-          </div>
-        )} */}
+{/* 알림 모달 */}
+{isAlarmOpen && (
+  // <AlertModal
+  //   notifications={notifications}
+  //   onClose={() => setIsAlarmOpen(false)}
+  //   onRead={markAsRead}
+  //   onDelete={deleteNotification}
+  // />
+    <NotificationDropdown
+    anchorRef={alarmRef}
+    onClose={() => setIsAlarmOpen(false)}
+     sseRentList={sseRent}            // ✅
+     sseAuditList={sseAudit}          // ✅
+    dbList={dbNoti}
+    onRead={markAsRead}
+    onDelete={deleteNotification}
+  />
+  
+)}
+
 
 <div className="header-user">
-  <div className="user-name">이름: {name || '로그인을 하시오'}</div>
-  <div className="user-dept">소속: {department || '로그인을 하시오'}</div>
+<div className="user-name">이름: {user?.name || '로그인을 하시오'}</div>
+<div className="user-dept">소속: {user?.department || '로그인을 하시오'}</div>
   <button
     className="logout-button"
     onClick={() => {

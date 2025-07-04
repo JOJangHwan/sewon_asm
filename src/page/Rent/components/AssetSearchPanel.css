@@ -65,8 +65,8 @@
 .asp-close-btn {
   /* 1. 위치 */
   position: absolute;
-  top: 4px;                   /* ← 더 위로 붙임(필요하면 값 조절) */
-  right: 4px;
+  top: -15px;      /* ★ 더 위로 올리기 (기존 4px에서 -15px 등으로) */
+  right: 0px;    /* ★ 오른쪽에도 더 바짝 붙이면 -15px ~ 0px 조절 */
 
   /* 2. 크기·모양 */
   width: 50px;
@@ -137,6 +137,11 @@
     width: fit-content;
     min-width: 40px;
     transform: translateY(-7px);  /* 숫자 조절: -1px ~ -3px 권장 */
+
+     /* 👇 추가/수정 */
+  width: 100%;        /* 버튼 길이 늘리기 (원하는 만큼 숫자 조절) */
+  min-width: 100px;
+  transform: none;     /* 혹시 버튼이 아래로 밀려 있으면 이 줄 삭제 */
 }
 .asp-search-box button:hover { background-color: #fbbf24; }
 

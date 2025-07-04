@@ -1,0 +1,131 @@
+/* AssetListPanel.css */
+.asset-list-panel {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 18px;
+    min-width: 280px;
+    max-width: 420px;
+    box-shadow: 0 0 6px #e2e2e2;
+  }
+  
+  .panel-header {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 6px;
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  .panel-count {
+    color: #888;
+    font-size: 13px;
+    font-weight: normal;
+  }
+  
+  .asset-filter-input {
+    width: 100%;
+    margin-bottom: 8px;
+    padding: 6px 10px;
+    border: 1px solid #e3e3e3;
+    border-radius: 8px;
+    font-size: 15px;
+  }
+  
+  .asset-list-box {
+    max-height: 300px;
+    overflow-y: auto;
+    background: #fff;
+    border-radius: 8px;
+    border: 1px solid #f2f2f2;
+    padding: 2px 0;
+  }
+  
+  .asset-list-row {
+    display: flex;
+    align-items: center;
+    padding: 7px 10px;
+    gap: 12px;
+    font-size: 15px;
+    border-bottom: 1px solid #f5f5f5;
+    transition: background 0.1s;
+  }
+  .asset-list-row:last-child { border-bottom: none; }
+  .asset-list-row.odd { background: #fafbfc; }
+  .asset-list-row.selected { background: #ffe29e; }
+  .asset-list-row.empty { text-align: center; color: #aaa; padding: 18px 0; }
+  
+  .asset-list-row input[type="checkbox"] {
+    margin-right: 7px;
+  }
+  
+  .asset-list-head {
+    background: #f2f2ff;
+    font-weight: bold;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    border-bottom: 2px solid #e6e6e6;
+  }
+  .col-barcode {
+    width: 90px;
+    color: #495b77;
+    font-size: 14px;
+    margin-left: 10px;
+  }
+  .col-name {
+    flex: 1;
+    font-size: 15px;
+    font-weight: 500;
+    margin-left: 8px;
+  }
+  .asset-list-row {
+    /* 기존 스타일 그대로 */
+  }
+
+  .asset-table-wrap {
+    max-height: 320px;
+    overflow-y: auto;
+    background: #fff;
+    border-radius: 10px;
+    border: 1px solid #f0f0f4;
+    margin-top: 8px;
+    box-shadow: 0 0 6px #f3f3fa;
+  }
+  .asset-table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 260px;
+  }
+  .asset-table thead th {
+    background: #f6f7fc;
+    font-size: 15px;
+    font-weight: bold;
+    text-align: left;
+    border-bottom: 2px solid #e8eaf0;
+    padding: 8px 5px;
+    color: #2a3550;
+  }
+  .th-barcode { text-align: right; padding-right: 12px; }
+  .th-name    { text-align: left;  padding-left: 8px; }
+  
+  .asset-table tbody td {
+    font-size: 15px;
+    padding: 7px 5px;
+    border-bottom: 1px solid #f3f4f8;
+  }
+  .td-barcode { text-align: right; color: #47638d; font-size: 14px; padding-right: 12px; }
+  .td-name    { text-align: left;  font-weight: 500; padding-left: 8px; }
+  
+  .asset-table tbody tr.selected-row { background: #fff6cf; }
+  .asset-table tbody tr.odd         { background: #fafdff; }
+  .asset-table tbody tr:hover       { background: #e7f2ff; }
+  .asset-table tbody .empty         { text-align: center; color: #bbb; padding: 18px 0; }
+  
+  .asset-table input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: #ffd400;
+  }
+  
+  
+  

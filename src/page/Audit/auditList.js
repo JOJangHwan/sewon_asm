@@ -10,7 +10,7 @@ import { saveAs } from "file-saver";
 const API_BASE_URL = window._env_?.REACT_APP_API_URL || "http://localhost:8888";
 
 // ✅ 환경변수에서 API URL 사용 추가
-const API_BASE = window._env_?.REACT_APP_API_URL|| 'http://localhost:8080';
+//const API_BASE = window._env_?.REACT_APP_API_URL|| 'http://localhost:8080';
 
 const COLUMN_LABELS = [
   { key: "barcode", label: "바코드" },
@@ -194,10 +194,10 @@ export default function StockTakingSearch() {
           if (parentTypeId)    params.append("parentTypeId", parentTypeId); // 선택
           if (childTypeId)     params.append("childTypeId",  childTypeId);  // 선택
           if (inspectionStatus)
-            params.append("check", inspectionStatus === "완료" ? 1 : 0);    // 선택
+            params.append("check", inspectionStatus === "완료" ? 0 : 1);    // 선택
     
           /* ── 2. API 호출 ─────────────────────────────── */
-          const url = `${API_BASE}/stock-takings?${params.toString()}`;
+          const url = `${API_BASE_URL}/stock-takings?${params.toString()}`;
           console.log("📤 호출 URL:", url);
     
           const res  = await authFetchWithRefresh(url);

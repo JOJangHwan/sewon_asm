@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import './LoginPage.css';
 import { saveTokens } from '../../utils/token'; // 토큰 유틸 경로는 맞게 조정하세요
+import { useContext } from 'react';
+import { UserContext } from '../../utils/UserContext';
 
 
 
@@ -19,6 +21,7 @@ function LoginPage() {
   const [password, setPassword] = useState('');
   const [rememberId, setRememberId] = useState(false);
   const [error, setError] = useState('');
+  const { setUser } = useContext(UserContext);
 
   useEffect(() => {
     const savedId = localStorage.getItem('savedUserId');
@@ -54,16 +57,28 @@ function LoginPage() {
       if (result.code === 1) {
         const { accessToken, refreshToken,name, id, username, department,corporation,affiliationId } = result.data;
        // console.log("로그인할때 받는 정보"+result.data);
+       saveTokens({ accessToken, refreshToken });
+       const userObj = {
+        name,
+        id,
+        username,
+        department,
+        company: corporation, // <- 회사명
+        affiliationId,
+      };
+        // ✅ context와 localStorage에 user 저장
+  setUser(userObj);
+  localStorage.setItem('user', JSON.stringify(userObj));
 
         // ✅ 토큰 및 사용자 정보 저장
         saveTokens({ accessToken, refreshToken });
         //console.log("로그인할때 받는 정보"+result.corporation)
-        localStorage.setItem('corporation',corporation)
-        localStorage.setItem('name', name);
-        localStorage.setItem('userId', id);
-        localStorage.setItem('username', username);
-        localStorage.setItem('department', department);
-        localStorage.setItem('affiliationId', affiliationId);
+        // localStorage.setItem('corporation',corporation)
+        // localStorage.setItem('name', name);
+        // localStorage.setItem('userId', id);
+        // localStorage.setItem('username', username);
+        // localStorage.setItem('department', department);
+        // localStorage.setItem('affiliationId', affiliationId);
 
         navigate('/main');
       } else {

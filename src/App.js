@@ -22,6 +22,7 @@ import ScanPage from './page/Scan/Scan';
 import AssetDetailPage from './page/Scan/AssetDetailPage';
 import Layout from './components/layout/Layout';
 import RegisterCorpAndItem from './page/admin/RegisterCorpAndItem.js'
+import DualTransferSimple from './page/Load/DualTransferSimple.js'
 
 import './index';
 
@@ -32,13 +33,23 @@ const apiUrl = window._env_?.REACT_APP_API_URL || process.env.REACT_APP_API_URL;
 // 언어 설정 적용 (URL 없이 헤더 기반)
 const LanguageInitializer = ({ children }) => {
   useEffect(() => {
+    // + 언어만 초기화
     const lang = localStorage.getItem('language') || 'ko';
     i18n.changeLanguage(lang);
     document.documentElement.lang = lang;
+    // - 아래 코드 전부 삭제!
+    // const onStorage = () => {
+    //   const saved = localStorage.getItem('user');
+    //   setUser(saved ? JSON.parse(saved) : null);
+    // };
+    // window.addEventListener('storage', onStorage);
+    // return () => window.removeEventListener('storage', onStorage);
   }, []);
 
+  // + children만 반환!
   return children;
 };
+
 
 const AppRoutes = () => (
   <Routes>
@@ -57,6 +68,7 @@ const AppRoutes = () => (
       <Route path="/asset" element={<AssetDetailPage />} />
       <Route path="/rent" element={<AssetRentPage />} />
       <Route path="/RegisterCorpAndItem" element={<RegisterCorpAndItem/>}/>
+      <Route path="/DualTransferSimple" element={<DualTransferSimple/>}/>
     </Route>
   </Routes>
 );
@@ -67,15 +79,25 @@ function App() {
     return saved ? JSON.parse(saved) : null;
   });
 
-  return (
-    <UserContext.Provider value={{ user, setUser }}>
-      <Router>
-        <LanguageInitializer>
-          <AppRoutes />
-        </LanguageInitializer>
-      </Router>
-    </UserContext.Provider>
-  );
+// + user/setUser를 여기서 관리!
+useEffect(() => {
+  const onStorage = () => {
+    const saved = localStorage.getItem('user');
+    setUser(saved ? JSON.parse(saved) : null);
+  };
+  window.addEventListener('storage', onStorage);
+  return () => window.removeEventListener('storage', onStorage);
+}, []);
+
+return (
+  <UserContext.Provider value={{ user, setUser }}>
+    <Router>
+      <LanguageInitializer>
+        <AppRoutes />
+      </LanguageInitializer>
+    </Router>
+  </UserContext.Provider>
+);
 }
 
 export default App;

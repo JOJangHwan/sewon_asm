@@ -353,8 +353,8 @@ const AssetRegister = () => {
     //const appendSeconds = (dt) => (dt && dt.length === 16 ? dt + ':00' : dt);
     const statusMap = { '사용': 0, '미사용': 1 };
     const divisionMap = {
-      '구매자산(자산)': 0,
-      '대여자산(비품)': 1
+      '구매자산': 0,
+      '이관자산': 1
     };
     
   const formatted = {
@@ -531,7 +531,8 @@ const AssetRegister = () => {
           <label>취득구분</label>
           <select name="acquisitionType" value={formData.acquisitionType} onChange={handleChange}>
             <option value="">선택</option>
-            <option value="구매자산(자산)">구매자산(자산)</option>
+            <option value="구매자산">구매자산</option>
+            <option value="이관자산">이관자산</option>
           </select>
           {errors.acquisitionType && (<div style={{ color: 'red', fontSize: '12px' }}>{errors.acquisitionType}</div>)}
         </div>

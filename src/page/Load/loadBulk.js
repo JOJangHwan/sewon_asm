@@ -167,10 +167,13 @@ const LoadBulk = () => {
           corpJson.data?.corporationList?.forEach(c => {
             map[c.name] = {};
             c.affiliationList?.forEach(a => {
-                map[c.name][a.department] = a.locations.map(l => ({
-                    name: l.location,
-                    id: l.id
-                  }));
+              a.locations.forEach(l => {
+                console.log('[디버그] location 원본:', l);
+              });
+              map[c.name][a.department] = a.locations.map(l => ({
+                name: l.location,
+                id: l.locationId || l.id || l.code  // 실제 있는 키로!
+              }));
             });
           });
           console.log('🗺️ [CORP] final map:', map);
@@ -254,7 +257,7 @@ const LoadBulk = () => {
           rowError.push('회사구분 오류');
         } else if (!(department in companyMap[company])) {
           rowError.push('부서구분 오류');
-        } else if (!companyMap[company][department].includes(location)) {
+        } else if (!companyMap[company][department].some(loc => loc.name === location)) {
           rowError.push('세부위치 오류');
         }
       
@@ -388,11 +391,9 @@ const LoadBulk = () => {
    headers: { 'Content-Type': 'application/json' },
    body: JSON.stringify({ list: payload }),
  });
-        console.log('📡 응답 상태코드:', res.status);   // ← 200, 403, 500 등 출력됨
-        console.log('📡 응답 ok:', res.ok);     
-
-
-        const result = await res.json();
+ console.log('📡 [POST /assets/bulk] fetch 응답:', res);
+ const result = await res.json();
+ console.log('📦 [POST /assets/bulk] 응답 JSON:', result);
 
         console.log('📦 응답 본문:', result);
         if (!res.ok) {
@@ -421,7 +422,11 @@ const LoadBulk = () => {
           body: JSON.stringify(payload),
           //body: JSON.stringify({ list: electronicRows.map(mapRowToBackend) }),
         });
-        const result = await res.json();
+        
+      console.log('📡 [POST /assets/electronic/bulk] fetch 응답:', res);
+      const result = await res.json();
+      console.log('📦 [POST /assets/electronic/bulk] 응답 JSON:', result);
+ 
         lastResponseMessage = result.message || '';
         if (result.code === 1) {
           const barcodes = result.data;
@@ -462,45 +467,49 @@ const LoadBulk = () => {
       alert(`🚨 서버 전송 실패: ${msg}`);
     }
   };
-
   const mapRowToBackend = (row) => {
-    const acquisitionTypeMap = {
-      '구매자산': 0,
-      '대여자산': 1
-    };
-    const statusMap = {
-      '사용': 0,
-      '미사용': 1
-    };
-      // ✅ 세부위치 ID 매핑
-  let locationId = null;
-  try {
-    const deptList = Object.entries(companyMap[row[0]] || {});
-    for (const [deptName, locList] of deptList) {
-      if (deptName === row[1]) {
-        const matchedLocation = locList.find(loc => loc.name === row[2]);
-        if (matchedLocation) {
-          locationId = matchedLocation.id;
-          break;
-        }
+    const acquisitionTypeMap = { '구매자산': 0, '이관자산': 1 };
+    const statusMap = { '사용': 0, '미사용': 1 };
+    
+  
+    // 1. 입력값 추출
+    const inputCompany  = (row[0] || '').trim();
+    const inputDept     = (row[1] || '').trim();
+    const inputLocation = (row[2] || '').trim();
+  
+    // 2. 이 위치에 콘솔 찍으세요!
+    console.log('입력값:', inputCompany, inputDept, inputLocation);
+    console.log('companyMap:', companyMap);
+    if (companyMap[inputCompany]) {
+      console.log('부서 리스트:', Object.keys(companyMap[inputCompany]));
+      if (companyMap[inputCompany][inputDept]) {
+        console.log('세부위치 리스트:', companyMap[inputCompany][inputDept].map(l => l.name));
       }
     }
-  } catch (e) {
-    console.warn('locationId 매핑 실패:', row[0], row[1], row[2]);
-  }
   
+    // 3. 매핑 시작
+    let locationId = null;
+    if (companyMap[inputCompany] && companyMap[inputCompany][inputDept]) {
+      const matchedLoc = companyMap[inputCompany][inputDept].find(
+        loc => (loc.name || '').trim() === inputLocation
+      );
+      if (matchedLoc) locationId = matchedLoc.id;
+    }
+    if (!locationId) {
+      console.warn('[locationId 매칭 실패]', {
+        inputCompany, inputDept, inputLocation,
+        map: companyMap[inputCompany]?.[inputDept]
+      });
+    }
+    console.log('row[6](자산상태):', row[6], '=> status:', statusMap[row[6]]);
     return {
-      corporation: row[0],
-      department: row[1],
-      location: row[2],
-      locationId,
-      division: acquisitionTypeMap[row[3]],
-      division: acquisitionTypeMap[row[3]] ?? 0,
+      locationId, // 반드시 map에서 조회된 id (ex: 12, 37) 값!
+      division: acquisitionTypeMap[(row[3] || '').trim()] ?? 0,
       parentType: row[4],
       childType: row[5],
-      status: statusMap[row[6]],
+      status: statusMap[(row[6] || '').trim()] ?? 0,
       manufacturer: row[7],
-      model: row[8],
+      model: (row[8] || '').trim(),
       acquisitionDate: row[9] + 'T00:00:00',
       acquisitionPrice: Number(row[10]),
       registrant: row[11] || '',
@@ -510,6 +519,9 @@ const LoadBulk = () => {
       storage: row[15] || ''
     };
   };
+  
+
+  
   
   
   
@@ -552,7 +564,7 @@ const formatDataForJson = (data) => {
       '평택공장',        // 회사구분
       '전산운영',        // 부서구분
       '전산실',          // 세부위치
-      '구매자산 또는 대여자산(2가지만 작성해야됨)',    // 취득구분
+      '구매자산 또는 이관자산(2가지만 작성해야됨)',    // 취득구분
       '전자자산',             // 자산분류
       '노트북',          // 품목
       '사용 또는 미사용(2가지만 작성해야됨)',            // 자산상태

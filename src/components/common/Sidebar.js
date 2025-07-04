@@ -7,6 +7,8 @@ import searchImg from '../../assets/img/search.png';
 import auditImg from '../../assets/img/audit.png';
 import reportImg from '../../assets/img/report.png';
 import myInforImg from '../../assets/img/myInfor.png';
+import RegisterCorpAndItemImg from '../../assets/img/b.png';
+import AssetTransImg from '../../assets/img/a.png';
 
 function Sidebar({ isSidebarOpen, toggleSidebar }) {
   const navigate = useNavigate();
@@ -33,7 +35,8 @@ function Sidebar({ isSidebarOpen, toggleSidebar }) {
       ],
     },
     // { path: '/report', icon: reportImg, label: '보고서' },
-    { path: '/RegisterCorpAndItem', icon: reportImg, label: '법인 및 품목등록' },
+    { path: '/RegisterCorpAndItem', icon: RegisterCorpAndItemImg, label: '법인 및 품목등록' },
+    { path: '/DualTransferSimple', icon: AssetTransImg, label: '이관 등록' },
     { path: '/profile', icon: myInforImg, label: '내정보' },
   ];
 

@@ -68,16 +68,19 @@ const InfoEditModal = ({ userInfo, onClose /*, onSave */ }) => {
   
     const targetAff = departments.find(d => d.department === department);
     const affiliationId = targetAff?.affiliationId;
-    
     if (!affiliationId) {
       alert('❌ 부서 선택이 올바르지 않습니다.');
       return;
     }
 
 
-    if (current.name !== userInfo.name) changed.name = current.name;
-    if (current.id !== userInfo.id) changed.username = current.id;  // ✅ username으로 변경
-    if (current.password) changed.password = current.password;
+// 소속(부서)도 변경 비교
+if (affiliationId !== userInfo.affiliationId) changed.affiliationId = affiliationId;
+
+// 기존과 같이
+if (current.name !== userInfo.name) changed.name = current.name;
+if (current.id !== userInfo.id) changed.username = current.id;
+if (current.password) changed.password = current.password;
   
     // 변경된 항목이 없다면
     if (Object.keys(changed).length === 0) {
@@ -87,15 +90,15 @@ const InfoEditModal = ({ userInfo, onClose /*, onSave */ }) => {
   
     // ID 등 식별자는 항상 포함 (백엔드가 필요로 할 경우)
     const payload = {
-      affiliationId,
+      //affiliationId,
       ...changed,
     };
   
     console.log('📤 서버로 전송할 수정 항목:', payload);
   
         try {
-            const res = await authFetchWithRefresh(`${API_BASE}/account/update`, {
-              method : 'POST',
+            const res = await authFetchWithRefresh(`${API_BASE}/account`, {
+              method : 'PUT',
               body   : JSON.stringify(payload),  // Content-Type 은 훅에서 자동 세팅
        });
       
@@ -108,33 +111,63 @@ const InfoEditModal = ({ userInfo, onClose /*, onSave */ }) => {
                         ...JSON.parse(localStorage.getItem('user') || '{}'),
                         name:         payload.name     ?? userInfo.name,
                         username:     payload.username ?? userInfo.id,
-                        affiliationId,
+                        company:      company,                 // 추가!
+                        department:   department,              // 추가!
+                        affiliationId // 그대로 유지
                       };
+                      
                 
                       /* 2️⃣  ── 토큰 재발급 요청 */
                       const refRes = await fetch(`${API_BASE}/account/auth/token-refresh`, {
-                        method : 'POST',
-                        headers: { 'Content-Type':'application/json' },
-                        body   : JSON.stringify({
-                          refreshToken: localStorage.getItem('refreshToken')
-                        })
-                      });
-                      const refJson = await refRes.json();
-                
-                      if (refJson.code !== 1) {
-                        alert('🚨 토큰 재발급 실패 - 다시 로그인해주세요.');
-                        return onClose();            // 모달만 닫고, 필요하면 로그아웃 처리
+                                                method : 'POST',
+                                                headers: {
+                                                  'Content-Type':'application/json',
+                                                  'Authorization-a': localStorage.getItem('accessToken') || '',
+                                                  'Authorization-r': localStorage.getItem('refreshToken') || '',
+                                                },
+                                                body   : JSON.stringify({
+                                                  refreshToken: localStorage.getItem('refreshToken')
+                                                })
+                                              });
+                                              // +++ 추가! 보내는 토큰 콘솔 출력
+console.log('[보내는 토큰]', {
+  'Authorization-a': localStorage.getItem('accessToken'),
+  'Authorization-r': localStorage.getItem('refreshToken'),
+});
+const refJson = await refRes.json();
+console.log('[토큰 재발급 응답]', refJson);
+                      // 여기! 헤더에서 토큰 꺼내기
+                      const newAccessToken  = refJson?.data?.accessToken?.token;
+                      const newRefreshToken = refJson?.data?.refreshToken?.token;
+
+                      //const refJson = await refRes.json();
+                      console.log('[토큰 재발급 응답]', refJson, newAccessToken, newRefreshToken);
+                       // 토큰이 둘 다 있으면 무조건 성공!
+                       if (newAccessToken && newRefreshToken) {
+                        localStorage.setItem('accessToken',  newAccessToken);
+                        localStorage.setItem('refreshToken', newRefreshToken);
+                        localStorage.setItem('user', JSON.stringify(newUser));
+                        setUser(newUser);
+                        onClose(newUser); // 모달 닫기 (부모 re-render)
+                        return;
                       }
-                
-                      /* 3️⃣  새 토큰 & 사용자 정보 localStorage + Context 업데이트 */
-                      localStorage.setItem('accessToken',  refJson.data.accessToken);
-                      localStorage.setItem('refreshToken', refJson.data.refreshToken);
-                      localStorage.setItem('user', JSON.stringify(newUser));
-                      setUser(newUser);
-                
-                      onClose(newUser);              // 모달 닫기 (부모가 re-render)
+                      // +++ 실패 조건 추가 (둘 중 하나라도 없으면) +++
+                      alert('🚨 토큰 재발급 실패 - 다시 로그인해주세요.');
+                      localStorage.removeItem('accessToken');
+                      localStorage.removeItem('refreshToken');
+                      localStorage.removeItem('user');
+                      return;
+
+                      
+
+
+
+               
             } else {
-              alert(`❌ 수정 실패: ${json.message || '알 수 없는 오류'}`);
+              alert('🚨 토큰이 없습니다. 다시 로그인해주세요.');
+              localStorage.removeItem('accessToken');
+              localStorage.removeItem('refreshToken');
+              localStorage.removeItem('user');
             }
           } catch (err) {
             // authFetchWithRefresh 가 throw한 Error 객체 처리

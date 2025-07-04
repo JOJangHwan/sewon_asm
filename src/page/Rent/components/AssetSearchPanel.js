@@ -52,7 +52,7 @@ export default function AssetSearchPanel({ isOpen, onClose, onSelect }) {
       const res = await authFetchWithRefresh(`${API_BASE_URL}/corporations`);
       const json = await res.json();
       if (json.code === 1) {
-        console.log("✅ 전체 corporation 응답:", JSON.stringify(json.data.corporationList, null, 2));
+        //console.log("✅ 전체 corporation 응답:", JSON.stringify(json.data.corporationList, null, 2));
         setCorporations(json.data.corporationList || []);
       }
     } catch (err) {
@@ -73,8 +73,8 @@ export default function AssetSearchPanel({ isOpen, onClose, onSelect }) {
     });
   
     const raw = await res.text();
-    console.log("법인 응답 status:", res.status);
-    console.log("법인 응답 body:", raw);
+    //console.log("법인 응답 status:", res.status);
+    //console.log("법인 응답 body:", raw);
 
 
   
@@ -97,7 +97,7 @@ export default function AssetSearchPanel({ isOpen, onClose, onSelect }) {
         const result =
         corporations.find(c => c.corporationId === Number(corporationId))
             ?.affiliationList || [];
-        console.log("▶ corpId:", corporationId, " / affiliations:", result);
+       // console.log("▶ corpId:", corporationId, " / affiliations:", result);
         return result;
     }, [corporationId, corporations]);
     const locations = useMemo(() => {
@@ -110,33 +110,32 @@ export default function AssetSearchPanel({ isOpen, onClose, onSelect }) {
 
   /* ----------------------- 검색 ----------------------- */
   const handleSearch = async () => {
-    console.log("🧪 검색조건 locationName:", locationName);
+    //console.log("🧪 검색조건 locationName:", locationName);
     setLoading(true);
     try {
       /* ① 바코드 검색 우선 */
-      if (barcode.trim()) {
-        const res  = await authFetchWithRefresh(
-          `${API_BASE_URL}/assets/barcode?value=${encodeURIComponent(barcode.trim())}`
-        );
-        const json = await res.json();
-        setAssets(json.code === 1 && json.data ? [json.data] : []);
-        return;
-      }
+      // if (barcode.trim()) {
+      //   const res  = await authFetchWithRefresh(
+      //     `${API_BASE_URL}/assets/barcode?value=${encodeURIComponent(barcode.trim())}`
+      //   );
+      //   const json = await res.json();
+      //   setAssets(json.code === 1 && json.data ? [json.data] : []);
+      //   return;
+      // }
 
       /* ② 조건별 페이징 검색 */
       const params = new URLSearchParams();
       if (locationId)   params.append("locationId", locationId);     // ✅ ID 기반 전송
       if (parentId)     params.append("parentTypeId", parentId);
       if (childId)      params.append("childTypeId", childId);
-      params.append("size", 50);
+      //params.append("size", 50);
 
       const res  = await authFetchWithRefresh(
-        `${API_BASE_URL}/assets/paged?${params.toString()}`
+        `${API_BASE_URL}/assets/paged/rental/enabled?${params.toString()}`
       );
       const json = await res.json();
       setAssets(json.code === 1 ? json.data.list : []);
     } catch (e) {
-      console.error("자산 검색 오류", e);
       setAssets([]);
     } finally {
       setLoading(false);
@@ -156,38 +155,7 @@ export default function AssetSearchPanel({ isOpen, onClose, onSelect }) {
       <div className="asp-body">
         {/* ---------- 필터 선택 ---------- */}
         <div className="asp-filters">
-          {/* 대분류(자산 유형) */}
-          <select
-  value={parentId}
-  onChange={e => {
-    const selected = parentTypes.find(p => p.parentId === Number(e.target.value));
-    setParentId(e.target.value);
-    setChildId("");
-    setParentName(selected?.name || ""); // ✅ 이름 저장
-    setChildName("");
-  }}
->
-  <option value="">자산분류(대분류)</option>
-  {(parentTypes || []).map(p => (
-  <option key={p.parentId} value={p.parentId}>{p.name}</option>
-))}
-</select>
 
-          {/* 중분류(품목) */}
-          <select
-  value={childId}
-  onChange={e => {
-    const selected = childOptions.find(c => c.childId === Number(e.target.value));
-    setChildId(e.target.value);
-    setChildName(selected?.name || "");  // ✅ 이름 저장
-  }}
-  disabled={!parentId}
->
-  <option value="">품목(중분류)</option>
-  {(childOptions || []).map(c => (
-  <option key={c.childId} value={c.childId}>{c.name}</option>
-))}
-</select>
 
           {/* 회사 */}
                     {/* ---------------- 회사(법인) 선택 ---------------- ⭐ NEW */}
@@ -239,10 +207,43 @@ export default function AssetSearchPanel({ isOpen, onClose, onSelect }) {
     </option>
   ))}
 </select>
+
+          {/* 대분류(자산 유형) */}
+          <select
+  value={parentId}
+  onChange={e => {
+    const selected = parentTypes.find(p => p.parentId === Number(e.target.value));
+    setParentId(e.target.value);
+    setChildId("");
+    setParentName(selected?.name || ""); // ✅ 이름 저장
+    setChildName("");
+  }}
+>
+  <option value="">자산분류(대분류)</option>
+  {(parentTypes || []).map(p => (
+  <option key={p.parentId} value={p.parentId}>{p.name}</option>
+))}
+</select>
+
+          {/* 중분류(품목) */}
+          <select
+  value={childId}
+  onChange={e => {
+    const selected = childOptions.find(c => c.childId === Number(e.target.value));
+    setChildId(e.target.value);
+    setChildName(selected?.name || "");  // ✅ 이름 저장
+  }}
+  disabled={!parentId}
+>
+  <option value="">품목(중분류)</option>
+  {(childOptions || []).map(c => (
+  <option key={c.childId} value={c.childId}>{c.name}</option>
+))}
+</select>
         </div>
 
         {/* ---------- 바코드 검색 ---------- */}
-        <div className="asp-search-box">
+        {/* <div className="asp-search-box">
           <input
             type="text"
             placeholder="바코드 검색"
@@ -256,7 +257,26 @@ export default function AssetSearchPanel({ isOpen, onClose, onSelect }) {
 >
   🔍
 </button>
-        </div>
+        </div> */}
+
+<div className="asp-search-box">
+  {/* 
+  <input
+    type="text"
+    placeholder="바코드 검색"
+    value={barcode}
+    onChange={e => setBarcode(e.target.value)}
+    onKeyDown={e => e.key === "Enter" && handleSearch()}
+  />
+  */}
+  <button
+    onClick={handleSearch}
+    disabled={!locationId} // ← locationId 없으면 비활성
+  >
+    🔍
+  </button>
+</div>
+        
 
         {/* ---------- 결과 테이블 ---------- */}
         <table className="asp-table">
