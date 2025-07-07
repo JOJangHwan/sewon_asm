@@ -141,6 +141,22 @@ html, body {
   background-color: #f1a500;
 }
 
+.sm-overlay{
+  position:fixed; inset:0; background:rgba(0,0,0,.4); display:flex;
+  align-items:center; justify-content:center; z-index:9999;
+}
+.sm-box{
+  background:#fff; padding:24px 32px; border-radius:12px;
+  box-shadow:0 4px 12px rgba(0,0,0,.15); text-align:center;
+}
+.sm-box button{
+  margin-top:16px; padding:6px 18px; border:none; border-radius:6px;
+  background:#ffb63e; color:#fff; cursor:pointer; font-weight:600;
+}
+
+
+
+
 /* 모달 애니메이션 */
 @keyframes fadeIn {
   from {

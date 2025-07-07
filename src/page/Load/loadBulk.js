@@ -150,11 +150,17 @@ const convertExcelDate = (value) => {
 // 서버에서 받아쓴 데이터를 담을 state
 const DUMMY_COMPANY_MAP = {  }
 const DUMMY_ASSET_MAP   = {  }
+// 🔑  자산분류·품목 → id 매핑용
+
 
 const LoadBulk = () => {
   //db에서 가져오는 정보들을 맵핑하기 위한 정보
   const [companyMap,        setCompanyMap]        = useState(DUMMY_COMPANY_MAP);
-  const [assetCategoryMap,  setAssetCategoryMap]  = useState(DUMMY_ASSET_MAP);
+   const [assetCategoryMap,  setAssetCategoryMap]  = useState(DUMMY_ASSET_MAP);
+
+ // ⬇️ 이름→ID 변환에 쓰일 새 맵
+ const [parentTypeIdMap, setParentTypeIdMap] = useState({});
+ const [childTypeIdMap,  setChildTypeIdMap]  = useState({});
 
   useEffect(() => {
     (async () => {
@@ -185,15 +191,38 @@ const LoadBulk = () => {
         const assetJson = await assetRes.json();
         console.log("방금"+JSON.stringify(assetJson, null, 2));
         if (assetJson.code === 1) {
-          const map = {};
+          const map    = {};   // 화면(이름)용
+          const pIdMap = {};   // 분류 id
+          const cIdMap = {};   //  └─ 품목 id
           assetJson.data?.parentList?.forEach(p => {
             // map[p.name] = p.childList.map(c => c.name);
-            map[p.name] = (p.childList || []).map(c => c.name);
+              map[p.name]         = (p.childList || []).map(c => c.name);
+                            // 📌 서버마다 id 필드 명이 조금씩 달라질 수 있으니, 후보를 모두 검사
+                          const parentIdRaw =
+                              p.parentTypeId ??      // ① 우리 앱이 원래 기대했던 이름
+                              p.parentId      ??      // ② 다른 팀에서 쓰는 이름
+                              p.typeId        ??      // ③ 혹시 이런 이름?
+                              p.id;                   // ④ 마지막 fallback
+              
+                            pIdMap[p.name] = Number(parentIdRaw); 
+              cIdMap[p.name]      = {};
+              (p.childList || []).forEach(c => {
+                                const childIdRaw =
+                                  c.childTypeId ??      // ①
+                                  c.childId      ??      // ②
+                                  c.typeId       ??      // ③
+                                  c.id;                 // ④
+                
+                                cIdMap[p.name][c.name] = Number(childIdRaw);
+              });
             console.log([p.name])
           });
+          console.log("✅ parentList 예시:", assetJson.data?.parentList);
           console.log('🗺️ [ASSET] final map:', map);
           console.log("map"+map)
-          setAssetCategoryMap(map);
+          setAssetCategoryMap(map);   // 이름 목록 (UI)
+          setParentTypeIdMap(pIdMap); // 🔑 분류 → id
+          setChildTypeIdMap(cIdMap);  // 🔑 (분류, 품목) → id
         }
       } catch (e) {
         console.error('서버 계층 데이터 불러오기 실패:', e);
@@ -249,7 +278,10 @@ const LoadBulk = () => {
         const rowError = [];
       
         const [company, department, location] = [newRow[0], newRow[1], newRow[2]];
-        const [category, item] = [newRow[4], newRow[5]];
+        const [category, item] = [
+            String(newRow[4] || '').trim(),
+            String(newRow[5] || '').trim()
+          ];
       
         if (!newRow[5]) rowError.push('품목 누락');
       
@@ -469,13 +501,30 @@ const LoadBulk = () => {
   };
   const mapRowToBackend = (row) => {
     const acquisitionTypeMap = { '구매자산': 0, '이관자산': 1 };
-    const statusMap = { '사용': 0, '미사용': 1 };
+    const statusMap          = { '사용': 0, '미사용': 1 };
     
   
-    // 1. 입력값 추출
-    const inputCompany  = (row[0] || '').trim();
-    const inputDept     = (row[1] || '').trim();
-    const inputLocation = (row[2] || '').trim();
+// 1. 입력값 추출 (trim 필수)
+const inputCompany  = String(row[0] || '').trim();
+const inputDept     = String(row[1] || '').trim();
+const inputLocation = String(row[2] || '').trim();
+
+// 1-1. 분류 / 품목 이름도 trim
+const categoryName  = String(row[4] || '').trim();
+const itemName      = String(row[5] || '').trim();
+
+  // 🔍 콘솔 로그 추가
+  console.log('🔍 자산분류 이름:', categoryName);
+  console.log('🔍 품목 이름:', itemName);
+  console.log('📦 parentTypeIdMap:', parentTypeIdMap);
+  console.log('📦 childTypeIdMap:', childTypeIdMap);
+
+  
+  const parentTypeId = parentTypeIdMap[categoryName] ?? null;
+  const childTypeId  = childTypeIdMap[categoryName]?.[itemName] ?? null;
+
+  console.log('✅ 추출된 parentTypeId:', parentTypeId);
+  console.log('✅ 추출된 childTypeId:', childTypeId);
   
     // 2. 이 위치에 콘솔 찍으세요!
     console.log('입력값:', inputCompany, inputDept, inputLocation);
@@ -503,13 +552,16 @@ const LoadBulk = () => {
     }
     console.log('row[6](자산상태):', row[6], '=> status:', statusMap[row[6]]);
     return {
-      locationId, // 반드시 map에서 조회된 id (ex: 12, 37) 값!
-      division: acquisitionTypeMap[(row[3] || '').trim()] ?? 0,
-      parentType: row[4],
-      childType: row[5],
+        locationId,                                           // 위치 ID
+        division: acquisitionTypeMap[String(row[3] || '').trim()] ?? 0,
+      
+        // ⭐️ 반드시 숫자(id)로 보내야 함
+          parentTypeId: parentTypeIdMap[categoryName]                ?? 0,
+          childTypeId : childTypeIdMap[categoryName]?.[itemName]     ?? 0,
+      
       status: statusMap[(row[6] || '').trim()] ?? 0,
       manufacturer: row[7],
-      model: (row[8] || '').trim(),
+      model: String(row[8] || '').trim(),
       acquisitionDate: row[9] + 'T00:00:00',
       acquisitionPrice: Number(row[10]),
       registrant: row[11] || '',

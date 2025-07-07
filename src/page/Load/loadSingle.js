@@ -183,6 +183,8 @@ const AssetRegister = () => {
     acquisitionType: '',
     assetCategory: '',
     item: '',
+    parentTypeId: '',
+    childTypeId: '',
     assetStatus: '사용',
     manufacturer: '',
     model: '',
@@ -200,9 +202,13 @@ const AssetRegister = () => {
   const [companyList, setCompanyList] = useState([]);
   const [companyMap, setCompanyMap] = useState({}); // ✅ 여기에 추가
   const [companyData, setCompanyData] = useState({});
-  const [assetCategoryData, setAssetCategoryData] = useState({});
+   const [assetCategoryData, setAssetCategoryData] = useState({});   // 드롭다운 표시용
+ const [parentTypeIdMap,   setParentTypeIdMap]   = useState({});   // {부모이름: id}
+ const [childTypeIdMap,    setChildTypeIdMap]    = useState({});   // {부모이름: {자식이름: id}}
   const [locationIdMap, setLocationIdMap] = useState({});  
   useEffect(() => {
+      console.log('✅ parentTypeIdMap state 업데이트:', parentTypeIdMap);
+  console.log('✅ childTypeIdMap  state 업데이트:', childTypeIdMap);
     const fetchCorporation = async () => {
       try {
         // const res = await authFetchWithRefresh('http://192.168.0.220:8888/corporations');
@@ -245,13 +251,40 @@ const AssetRegister = () => {
               
               if (typeResult.code === 1 && typeResult.data?.parentList) {
                 const nestedAssetType = {};
+                const parentMap        = {};
+                const childMap         = {};
                 console.log('자산 분류 데이터:', nestedAssetType);
-                typeResult.data.parentList.forEach(parent => {
-                  const parentName = parent.name;
+                   typeResult.data.parentList.forEach(parent => {
+                     console.log('🔍 서버에서 받은 parentList 원본:', typeResult.data.parentList);
+ console.log('🗺️ parentMap 만들고 나서:', parentMap);
+ console.log('🗺️ childMap 만들고 나서 :', childMap);
+ console.log('🗺️ nestedAssetType       :', nestedAssetType);
+                       const parentName = parent.name;
+                  
+                       // id 가 없으면 건너뛴다 (중복 key 예방)
+                        // 부모 ID  ➜  parentId 도 함께 검사
+ const pId = parent.parentId ?? parent.id ?? parent.parentTypeId;
+                       if (pId == null) return;
+                  
+                       parentMap[parentName] = pId;  
                   const children = Array.isArray(parent.childList) ? parent.childList : [];
-                  nestedAssetType[parentName] = children.map(child => child.name);
+                  // nestedAssetType[parentName] = children.map(child => child.name);
+                       nestedAssetType[parentName] = [];
+                     childMap[parentName]    = {};
+                  
+                       children.forEach(child => {
+                           // 자식 ID  ➜  childId 도 함께 검사
+                           const cId = child.childId ?? child.id ?? child.childTypeId;
+                         if (cId == null) return;           // 역시 id 없는 항목 제거
+                  
+                         nestedAssetType[parentName].push(child.name);
+                         childMap[parentName][child.name] = cId;      // ✅
+
+   });
                 });
                 setAssetCategoryData(nestedAssetType);
+                 setParentTypeIdMap(parentMap);
+ setChildTypeIdMap(childMap);
               } else {
                 alert(typeResult.message || '자산 유형 정보 조회 실패');
               }
@@ -284,7 +317,15 @@ const AssetRegister = () => {
       const id = locationIdMap[formData.company]?.[formData.department]?.[value] ?? '';
       setFormData({ ...formData, location: value, locationId: id });
     } else if (name === 'assetCategory') {
-      setFormData({ ...formData, assetCategory: value, item: '' });
+      // setFormData({ ...formData, assetCategory: value, item: '' });
+         setFormData({
+             ...formData,
+             assetCategory: value,
+             parentTypeId:  parentTypeIdMap[value] ?? '',
+             item: '',
+             childTypeId: '',
+           });
+
     } else if (name.startsWith('storage')) {
       const list = [...formData.storageList];
       if (idx !== null) {
@@ -292,8 +333,17 @@ const AssetRegister = () => {
         else if (name === 'storage-unit') list[idx].unit = value;
         setFormData({ ...formData, storageList: list });
       }
-    } else {
-      setFormData({ ...formData, [name]: value });
+        } else if (name === 'item') {
+            // ① 품목 전용 처리
+            setFormData(prev => ({
+              ...prev,
+              item: value,
+              childTypeId: childTypeIdMap[prev.assetCategory]?.[value] ?? '',
+            }));
+            
+          } else {
+            // ② 그 밖의 일반 텍스트/숫자 input
+            setFormData(prev => ({ ...prev, [name]: value }));
     }
   };
 
@@ -324,11 +374,17 @@ const AssetRegister = () => {
 
     
   
-    const required = [
-      'company', 'department', 'location', 'acquisitionType',
-      'assetCategory', 'item', 'manufacturer', 'model',
-      'acquisitionDate', 'acquisitionCost'
-    ];
+    // const required = [
+    //   'company', 'department', 'location', 'acquisitionType',
+    //   'assetCategory', 'item', 'manufacturer', 'model',
+    //   'acquisitionDate', 'acquisitionCost'
+    // ];
+     const required = [
+        'company', 'department', 'location', 'acquisitionType',
+         'parentTypeId', 'childTypeId',         // ⬅️ 이름 대신 ID 확인
+         'manufacturer', 'model',
+         'acquisitionDate', 'acquisitionCost'
+       ];
   
     if (!formData.locationId) {                     // ⭐ 추가
         newErrors.location = '세부위치를 선택해주세요.';
@@ -368,24 +424,18 @@ const AssetRegister = () => {
   
     const isElectronic = ['노트북', '컴퓨터'].includes(formData.item);
 
-  //   const url = isElectronic
-  // ? 'http://192.168.0.220:8888/assets/electronic'
-  // : 'http://192.168.0.220:8888/assets';
+
   const url = isElectronic
   ? `${API_BASE}/assets/electronic`
   : `${API_BASE}/assets`;
 
 
   const dataToSend = isElectronic ? {
-    // corporation: formData.company,
-    // department: formData.department,
-    // location: formData.location,
     locationId:   Number(formData.locationId),   // ⭐ 세부위치 ID 전송
-    division: 0, 
+     division: 0,
     corporation: formData.company,
-    division: 0,
-    parentType: formData.assetCategory,
-    childType: formData.item,
+     parentTypeId: Number(formData.parentTypeId),
+     childTypeId: Number(formData.childTypeId),
     status: formData.assetStatus === '사용' ? 0 : 1,
     manufacturer: formData.manufacturer,
     model: formData.model,
@@ -396,13 +446,11 @@ const AssetRegister = () => {
     ram: Number(formData.memory),
     storage: Number(formData.totalStorage),
   } : {
-    // corporation: formData.company,
-    // department: formData.department,
-    // location: formData.location,
     locationId: Number(formData.locationId),
     division: 0,
-    parentType: formData.assetCategory,
-    childType: formData.item,
+
+        parentTypeId: Number(formData.parentTypeId),
+        childTypeId:  Number(formData.childTypeId),
     status: formData.assetStatus === '사용' ? 0 : 1,
     manufacturer: formData.manufacturer,
     model: formData.model,
@@ -410,7 +458,11 @@ const AssetRegister = () => {
     acquisitionPrice: Number(formData.acquisitionCost),
   };
 
-  console.log('[POST /asset] payload ▶', JSON.stringify(dataToSend, null, 2));  // ⭐ 추가
+  console.log('[POST /asset] payload ▶', JSON.stringify(dataToSend, null, 2));  // parentType·childType 값이 숫자인지 꼭 확인
+   console.log('📦 parentTypeId to send:', formData.parentTypeId,
+                'typeof', typeof formData.parentTypeId);
+     console.log('📦 childTypeId  to send:', formData.childTypeId,
+                'typeof', typeof formData.childTypeId);
   try {
     const res = await authFetchWithRefresh(url, {
       method: 'POST',
@@ -540,15 +592,28 @@ const AssetRegister = () => {
 <div className="form-row">
   <label>자산분류</label>
   <select
-    name="assetCategory"
-    value={formData.assetCategory}
-    onChange={handleChange}
-  >
-    <option value="">선택</option>
-    {Object.keys(assetCategoryData).map(parent => (
-      <option key={parent} value={parent}>{parent}</option>
-    ))}
-  </select>
+  name="assetCategory"
+ value={formData.parentTypeId}
+  onChange={(e) => {
+    const selectedId = e.target.value;
+    const parsedId = Number(selectedId);
+    const selectedName = Object.keys(parentTypeIdMap).find(name => parentTypeIdMap[name] == selectedId);
+    console.log('🔸 자산분류 선택 → id:', selectedId, 'name:', selectedName);
+    setFormData({
+      ...formData,
+     assetCategory: selectedName,
+     //parentTypeId: selectedId,
+     parentTypeId: parsedId,
+      item: '',
+      childTypeId: '',
+    });
+  }}
+>
+  <option value="">선택</option>
+   {Object.entries(parentTypeIdMap).map(([name, id]) => (
+   <option key={`${id}-${name}`} value={id}>{name}</option>
+  ))}
+</select>
   {errors.assetCategory && (
     <div style={{ color: 'red', fontSize: '12px' }}>{errors.assetCategory}</div>
   )}
@@ -558,18 +623,31 @@ const AssetRegister = () => {
 <div className="form-row">
   <label>품목</label>
   <select
-    name="item"
-    value={formData.item}
-    onChange={handleChange}
-    disabled={!formData.assetCategory}
-  >
-    <option value="">선택</option>
-    {
-      assetCategoryData[formData.assetCategory]?.map((child) => (
-        <option key={child} value={child}>{child}</option>
-      ))
-    }
-  </select>
+  name="item"
+ value={formData.childTypeId}
+  onChange={(e) => {
+    const selectedId = e.target.value;
+    const parsedId = Number(selectedId);
+    const selectedName = Object.keys(childTypeIdMap[formData.assetCategory] || {})
+      .find(name => childTypeIdMap[formData.assetCategory][name] == selectedId);
+      console.log('🔹 품목 선택 → id:', selectedId, 'name:', selectedName);
+    setFormData({
+      ...formData,
+     item: selectedName,
+    //  childTypeId: selectedId,
+    childTypeId: parsedId,
+    });
+    
+  }}
+  disabled={!formData.assetCategory}
+>
+  <option value="">선택</option>
+  
+ {Object.entries(childTypeIdMap[formData.assetCategory] || {}).map(([name, id]) => (
+     <option key={`${id}-${name}`} value={id}>{name}</option>
+    ))
+  }
+</select>
   {errors.item && (
     <div style={{ color: 'red', fontSize: '12px' }}>{errors.item}</div>
   )}
@@ -594,8 +672,8 @@ const AssetRegister = () => {
             </div>
             <div className="form-row">
               <label>데이터 변환기 (PC 저장공간)</label>
-              {formData.storageList.map((s, idx) => (
-                <div key={idx} className="conversion-group">
+               {formData.storageList.map((s, idx) => (
+   <div key={`${idx}-${s.unit}-${s.value}`} className="conversion-group">
                   <input type="text" name="storage-value" value={s.value} placeholder="용량" onChange={(e) => handleChange(e, idx)} />
                   <select name="storage-unit" value={s.unit} onChange={(e) => handleChange(e, idx)}>
                     <option value="GB">GB</option>

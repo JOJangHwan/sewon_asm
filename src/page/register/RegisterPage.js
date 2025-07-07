@@ -1,33 +1,19 @@
 // "use client"
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import AlertModal from '../../components/common/AlertModal.js';
 import './Register.css';
-
-// 회사 및 부서 데이터
-// const companyData = {
-//   경영기획팀: ['회계', '감사인사', '원가', '전산운영'],
-//   관리팀: ['노무총무', '품질보증'],
-//   기술개발팀: ['기술', '개발'],
-//   생산운영팀: ['생산관리', '영업'],
-//   경산공장: [],
-//   우신에너지: ['경영관리', '자재관리', '구매관리'],
-//   덕주파니타: [],
-//   위해풍국: [],
-//   우신비나: ['1공장','2공장','3공장'],
-// };
-
-
 
 const API_BASE = window._env_?.REACT_APP_API_URL|| 'http://localhost:8888';
 
-console.log("환경변수확인 :", API_BASE);
+//console.log("환경변수확인 :", API_BASE);
 const SignupForm = () => {
   const navigate = useNavigate();
 
   const [corporationMap, setCorporationMap] = useState({});
 const [company, setCompany] = useState('');
 const [department, setDepartment] = useState('');
+const selectedCorporation = corporationMap[company]; // key가 이제 ID
+const selectedDepartment = selectedCorporation?.departments.find((d) => d.name === department);
 
   // 입력값 상태 관리
   const [id, setId] = useState('');
@@ -58,6 +44,16 @@ const [department, setDepartment] = useState('');
   const handleLogin = () => {
     navigate('/');
   };
+
+  // 추가: 간단한 성공 모달
+const SuccessModal = ({ text, onClose }) => (
+    <div className="sm-overlay">
+    <div className="sm-box">
+        <p>{text}</p>
+        <button onClick={onClose}>확인</button>
+      </div>
+    </div>
+  );
 
   // 아이디 유효성 검사
   const validateId = (value) => {
@@ -146,14 +142,14 @@ const [department, setDepartment] = useState('');
     setErrorMessage('');
     //setIsAlertOpen(true);
 
-const userData = {
-  username: id,            // ✅ 'id' → 'username'
-  password,
-  name,
-  corporation: company,    // ✅ 'company' → 'corporation'
-  department,
-  role: 1                  // ✅ 'role' 필드 추가
-};
+    const userData = {
+      username: id,
+      password,
+      name,
+      corporationId: Number(company), // ← 이젠 바로 ID
+      affiliationId: Number(selectedDepartment?.id),
+      role: 1
+    };
 
 
     // JSON 데이터 콘솔 출력
@@ -214,9 +210,14 @@ const userData = {
         if (result.code === 1 && result.data?.corporationList) {
           const newMap = {};
           result.data.corporationList.forEach((corp) => {
-            const companyName = corp.name;
-            const departments = corp.affiliationList.map((aff) => aff.department);
-            newMap[companyName] = departments;
+            console.log("법인이름 확인:", corp.name); // ✅ 확인
+            newMap[corp.corporationId] = {
+              name: corp.name,
+              departments: corp.affiliationList.map((aff) => ({
+                id: aff.affiliationId ?? aff.id,
+                name: aff.department
+              }))
+            };
           });
           setCorporationMap(newMap);
         } else {
@@ -269,16 +270,22 @@ const userData = {
         </select> */}
 
 <label htmlFor="company">회사구분:</label>
-<select id="company" value={company} onChange={(e) => {
-  setCompany(e.target.value);
-  setDepartment('');
-}} className="input-field__input">
+<select
+  id="company"
+  value={company}
+  onChange={(e) => {
+    setCompany(e.target.value);
+    setDepartment('');
+  }}
+  className="input-field__input"
+>
   <option value="">회사 선택</option>
-  {Object.keys(corporationMap).map((corp) => (
-    <option key={corp} value={corp}>{corp}</option>
+  {Object.entries(corporationMap).map(([id, corp]) => (
+    <option key={id} value={id}>
+      {corp.name ?? `법인-${id}`}
+    </option>
   ))}
 </select>
-
         {/* 부서 선택 */}
         {/* <label htmlFor="department">부서구분:</label>
         <select id="department" value={department} onChange={(e) => setDepartment(e.target.value)} disabled={!company} className="input-field__input">
@@ -288,10 +295,16 @@ const userData = {
           ))}
         </select> */}
         <label htmlFor="department">부서구분:</label>
-<select id="department" value={department} onChange={(e) => setDepartment(e.target.value)} disabled={!company} className="input-field__input">
+        <select
+  id="department"
+  value={department}
+  onChange={(e) => setDepartment(e.target.value)}
+  disabled={!company}
+  className="input-field__input"
+>
   <option value="">부서 선택</option>
-  {company && corporationMap[company]?.map((dept) => (
-    <option key={dept} value={dept}>{dept}</option>
+  {company && corporationMap[company]?.departments.map((dept) => (
+    <option key={dept.id} value={dept.name}>{dept.name}</option>
   ))}
 </select>
 
@@ -306,11 +319,11 @@ const userData = {
 
       {/* 회원가입 완료 알람 모달 */}
       {isAlertOpen && (
-        <AlertModal
-          message="회원가입이 완료되었습니다."
-          onClose={handleLogin}
-        />
-      )}
+  <SuccessModal
+    text="회원가입이 완료되었습니다."
+    onClose={handleLogin}
+  />
+)}
     </div>
   );
 };

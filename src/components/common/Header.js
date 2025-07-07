@@ -5,7 +5,7 @@ import rentImg  from '../../assets/img/rent.png';
 import alarmImg from '../../assets/img/alarm.png';
 import logoImg  from '../../assets/img/sewon.jpg';
 import { UserContext }        from '../../utils/UserContext';
-import { getValidAccessToken } from '../../utils/authFetchWithRefresh';
+import { getAccessToken } from '../../utils/token';
 import NotificationDropdown    from '../common/NotificationDropdown';
 
 const API_BASE_URL = window._env_?.REACT_APP_API_URL || "http://localhost:8888";
@@ -25,24 +25,30 @@ function Header({ toggleSidebar, isSidebarOpen }) {
   
     const connectSSE = async () => {
       const userId = user?.id;
-      console.log(user);
+     // console.log(user);
       if (!userId) {
         console.warn('❗ userId가 없습니다. SSE 연결 중단');
         return;
       }
   
-      const token = await getValidAccessToken();
-      if (!token) {
-        console.warn('❗ 토큰이 없습니다. SSE 연결 중단');
-        return;
-      }
-  
-      // ✅ userId 먼저, token 다음에 붙이기
+       const rawToken = getAccessToken();  // ✅ 간단하게 현재 토큰만 사용
+       if (!rawToken) {
+         console.warn('❗ accessToken 없음 → SSE 연결 중단');
+         return;
+       }
       
-      const url = `${API_BASE_URL}/notification/connect/${userId}?token=${token}`;
-      console.log("알림전송 url : "+url)
-      console.log('📡 SSE 연결 URL:', url);
+     // console.log('🔐 rawToken:', rawToken);
+      
+      const encodedToken = encodeURIComponent(rawToken);
+     // console.log('🔗 encodedToken:', encodedToken);
+      
+      const url = `${API_BASE_URL}/notification/connect/${userId}?token=${encodedToken}`;
+     // console.log('📡 SSE 연결 URL:', url);
       sse = new EventSource(url);
+
+
+
+
        sse.addEventListener('connect', (event) => {
          console.log('📨 [message] 기본 이벤트 수신:', event.data);
      });
@@ -102,17 +108,6 @@ console.log('🔔[notification] 알림 수신', event.data);
 
   const toggleAlarm = () => setIsAlarmOpen(prev => !prev);
 
-      // 처음 열릴 때만 DB 알림 가져오기 (예시)
-    if (!isAlarmOpen && dbNoti.length === 0) {
-      (async () => {
-        const token = await getValidAccessToken();
-        const res   = await fetch(`${API_BASE_URL}/notification/history`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        const list  = await res.json();          // [{id,text,time,read}, ...]
-        setDbNoti(list);
-      })();
-    }
 
     const markAsRead = (id) => {
      
