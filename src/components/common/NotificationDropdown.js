@@ -75,10 +75,53 @@ function formatDateTime(input) {
 
         {/* ───── 실시간 / DB 영역 ───── */}
         <section className="nd-section">
-  {activeTab === 'audit' ? (
-    // 실사 알림 탭은 추후 업데이트 예정 안내만 출력
-    <div className="nd-empty">🔧 실사 알림은 추후 업데이트 예정입니다.</div>
-  ) : (
+         {activeTab === 'audit' ? (
+   <>
+     {/* 🆕 실시간 실사 알림 */}
+     {sseAuditList.length > 0 && (
+       <>
+         <div className="nd-subtitle">🆕 새로운 실사 알림</div>
+         {sseAuditList.map((n) => (
+           <div
+             key={n.id}
+             className={`nd-item ${n.read ? 'read' : 'unread'}`}
+             onClick={() => onRead?.(n.id)}
+           >
+             <div className="nd-msg">{n.text}</div>
+             <div className="nd-meta">
+               <time>{formatDateTime(n.time)}</time>
+             </div>
+           </div>
+         ))}
+       </>
+     )}
+
+     {/* 📁 과거 실사 알림 (재사용) */}
+     {Array.isArray(dbList) && dbList.length > 0 && (
+       <>
+         <div className="nd-subtitle">🗂️ 알림 이력</div>
+         {dbList
+           .filter((n) => n.type === 'AUDIT') // 👈 필요 시 필터
+           .map((n) => (
+             <div
+               key={n.id}
+               className={`nd-item ${n.read ? 'read' : 'unread'}`}
+               onClick={() => onRead?.(n.id)}
+             >
+               <div className="nd-msg">{n.text}</div>
+               <div className="nd-meta">
+                 <time>{formatDateTime(n.time)}</time>
+               </div>
+             </div>
+         ))}
+       </>
+     )}
+
+     {sseAuditList.length === 0 && (!Array.isArray(dbList) || dbList.filter(n => n.type === 'AUDIT').length === 0) && (
+       <div className="nd-empty">실사 관련 알림이 없습니다.</div>
+     )}
+   </>
+ ) : (
     <>
     {/* 🆕 실시간 알림 */}
       {sseRentList.length > 0 && (
@@ -104,10 +147,13 @@ function formatDateTime(input) {
       )}
 
 {/* 📁 과거 알림 이력 */}
-{Array.isArray(dbList) && dbList.length > 0 && (
+{Array.isArray(dbList) && dbList.filter(n => n.type !== 'AUDIT').length > 0 && (
         <>
           <div className="nd-subtitle">🗂️ 알림 이력</div>
-          {dbList.map((n) => (
+          {dbList
+           .filter((n) => n.type !== 'AUDIT')
+          .map((n) => (
+            
             <div
               key={n.id}
               className={`nd-item ${n.read ? 'read' : 'unread'}`}
@@ -115,7 +161,7 @@ function formatDateTime(input) {
             >
               <div className="nd-msg">{n.text}</div>
               <div className="nd-meta">
-                <time>{n.time}</time>
+                <time>{formatDateTime(n.time)}</time>
                 {/* <button
   onClick={(e) => {
     e.stopPropagation();

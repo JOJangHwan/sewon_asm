@@ -128,19 +128,19 @@ export default function BasicDataPage() {
   // 소속(부서) 삭제
   if (level === 'dept') {
     const affiliationId = ids.affiliationId || affId[corp]?.[label];
-    if (!affiliationId) return alert('소속ID를 찾지 못했습니다.');
+    if (!affiliationId) return alert('소속ID를 찾지 못했습니다.(새로고침을 하시오)');
     endpoint = `${API_BASE}/affiliations/${affiliationId}`;
   } 
   // 세부위치 삭제
   else if (level === 'loc') {
     const locationId = ids.locationId;
-    if (!locationId) return alert('세부위치ID를 찾지 못했습니다.');
+    if (!locationId) return alert('세부위치ID를 찾지 못했습니다.(새로고침을 하시오)');
     endpoint = `${API_BASE}/locations/${locationId}`;
   }
            else if (level === 'cat') {
                // 자산분류(카테고리) 삭제
                  const assetTypeId = assetIdMap[label];
-                 if (!assetTypeId) return alert('자산분류 ID가 없습니다.');
+                 if (!assetTypeId) return alert('자산분류 ID가 없습니다.(새로고침을 하시오)');
                  endpoint = `${API_BASE}/asset-types/${assetTypeId}`;
                  method = 'DELETE';
                  body = null;

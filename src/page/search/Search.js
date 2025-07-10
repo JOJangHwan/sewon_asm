@@ -427,8 +427,8 @@ const data = resData.data?.list || [];
     <div className="search-container">
       <h1 className="search-title">자산 조회</h1>
 
-      <div className="search-bar-wrapper">
-        <div className="search-bar top-bar">
+      <div className="srch-bar-wrapper">
+      <div className="srch-bar top-bar">
           <select className="search-input" value={company} onChange={e => {
   const selected = e.target.value;
   setCompany(selected);
@@ -510,7 +510,7 @@ const data = resData.data?.list || [];
 </select>
           <input
             type="number"
-            className="search-input view-count"
+            className="srch-input view-count"
             placeholder="출력 개수"
             value={viewCount}
             onChange={e => setViewCount(Number(e.target.value))}
@@ -534,7 +534,7 @@ const data = resData.data?.list || [];
           </select> */}
           <button className="search-button" onClick={handleSearch}>🔍 조회</button>
           <button className="search-button print" onClick={handlePrint}>🖨️ 인쇄</button>
-          <button className="search-button reset" onClick={handleReset}>↺ 초기화</button>
+          <button className="srch-button reset" onClick={handleReset}>↺ 초기화</button>
           <button className="search-button download" onClick={handleExportExcel}>⬇️내려받기</button>
         </div>
       </div>

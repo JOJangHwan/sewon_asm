@@ -26,6 +26,21 @@
   gap: 0.6rem;          /* 내부 항목 간격 유지 */
 }
 
+/* === 로딩 스피너 === */
+.loginPage-spinner {
+  margin: 12px auto;          /* 가운데 정렬 */
+  width: 36px;
+  height: 36px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #3498db;  /* 포인트 색상은 원하는 대로 */
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 /* 로고 */
 .loginPage-logo {
   width: 100%;

@@ -99,6 +99,8 @@
 }
 
 .asp-filters select {
+   box-sizing: border-box;   /* ✅ 패딩 포함한 높이 계산 */
+ height: 40px;  
   width: 100%;
   padding: 10px;
   border-radius: 6px;

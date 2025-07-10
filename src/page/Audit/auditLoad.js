@@ -224,18 +224,16 @@ const AuditLoad = () => {
   
       const { matchItem = [], unmatchItem = [], disableItem = [] } = result.data || {};
       const barcodeStatusMap = {};
-  
-// MISMATCH
-matchItem.forEach(i => {
-  barcodeStatusMap[i.barcode] = {
-    status: 'MISMATCH',
-    errorMessage: '실사 위치가 자산 위치와 다릅니다.'
-  };
-});
-// MATCH
-unmatchItem.forEach(i => {
-  barcodeStatusMap[i.barcode] = { status: 'MATCH', errorMessage: '' };
-});
+
+            [...matchItem, ...unmatchItem].forEach(i => {
+                const assetLocation = i.assetLocation?.trim() || '';
+                const stockLocation = i.stockTakingLocation?.trim() || '';
+                const isMismatch = assetLocation !== stockLocation;
+                barcodeStatusMap[i.barcode] = {
+                  status: isMismatch ? 'MISMATCH' : 'MATCH',
+                  errorMessage: isMismatch ? '실사 위치가 자산 위치와 다릅니다.' : ''
+                };
+              });
       // DISABLE
       disableItem.forEach(i => {
         barcodeStatusMap[i.barcode] = {
@@ -318,6 +316,8 @@ unmatchItem.forEach(i => {
       auditingDate: new Date().toISOString().split('T')[0],
       realLocationId: Number(effectiveLocationId),
     };
+    console.log('[검증] 요청 payload:', payload);
+
     try {
       const response = await authFetchWithRefresh(`${API_BASE}/stock-takings`, {
         method: 'POST',

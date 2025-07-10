@@ -289,8 +289,8 @@ const handleDeleteDeptRequests = async () => {
   
     try {
       // delete는 body를 직접 넣을 수 있는 fetch 사용
-      const res = await authFetchWithRefresh(`${API_BASE}/rental`, {
-        method: 'DELETE',
+      const res = await authFetchWithRefresh(`${API_BASE}/rental/request/reject`, {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ids }), // 📌 형식: { ids: [1,2,3] }
       });
@@ -380,6 +380,7 @@ const handleDeleteDeptRequests = async () => {
           <thead>
             <tr>
               {title !== '대여중' && <th></th>}
+             
               <th>바코드</th>
               <th>회사구분</th>
               <th>부서구분</th>
@@ -448,14 +449,14 @@ const handleDeleteDeptRequests = async () => {
       {/* 타부서 대여신청 자산 */}
       {renderTable(
         formattedOthers,
-        '타부서에서 대여신청 자산',
+        '받은 대여 요청',
         <>
           <button className="primary-btn" onClick={handleApproveSelected}>
             승인
           </button>
           <button
   className="primary-btn"
-  style={{ backgroundColor: '#fecaca' }}
+  style={{ backgroundColor: '#fee2e2', color: '#e53e3e' }}
   onClick={handleRejectRequest}
 >
   거절
@@ -466,10 +467,10 @@ const handleDeleteDeptRequests = async () => {
       {/* 부서 대여 신청 자산 */}
       {renderTable(
   formattedDept,
-  '부서에서 대여 신청한 자산',
+  '보낸 대여 요청',
   <button
     className="primary-btn"
-    style={{ backgroundColor: '#fee2e2' }}
+    style={{ backgroundColor: '#fee2e2', color: '#e53e3e' }}
     onClick={handleDeleteDeptRequests}
   >
     삭제
@@ -477,7 +478,7 @@ const handleDeleteDeptRequests = async () => {
 )}
 
       {/* 대여중 */}
-      {renderTable(formattedInUse, '부서에서 대여중인 자산', null)}
+      {renderTable(formattedInUse, '대여 중인 자산', null)}
 
       <AssetFormModal
         isOpen={isModalOpen}

@@ -41,6 +41,9 @@
     font-weight: bold;
     font-size: 14px;
     color: #555;
+/* 추가 */
+     margin-top: 10px; 
+ display: block;
   }
   
   /* input, select 공통 */
@@ -48,10 +51,51 @@
   .modal-content select {
     width: 100%;
     padding: 8px 12px;
-    margin-top: 5px;
+    margin: 5px 0 10px;
     border: 1px solid #ccc;
     border-radius: 6px;
     font-size: 14px;
+    box-sizing: border-box;
+  }
+
+  /* 저장공간 입력줄 전체 그룹 */
+.conversion-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  
+  /* 숫자 입력 (input) */
+  .conversion-group input {
+
+      flex: 2.2;
+      min-width: 80px;
+    }
+  
+  /* 단위 선택 (select) */
+  .conversion-group select {
+    flex: 1;
+    width: 80px;
+    min-width: 60px;
+  }
+  
+  /* + 버튼 */
+  .add-btn {
+      width: 36px;                /* ✅ 고정 너비 */
+      padding: 4px 0;             /* ✅ 위아래만 여백 */
+      font-size: 16px;
+      flex: none;                 /* ✅ flex 분배 제외 */
+      min-width: unset;
+      max-width: unset;
+       background: #ffc107;
+       border: none;
+       border-radius: 6px;
+       cursor: pointer;
+    }
+  
+  .add-btn:hover {
+    background-color: #e0a800;
   }
   
   /* 수정완료/취소 버튼 그룹 */

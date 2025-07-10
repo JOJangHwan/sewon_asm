@@ -149,6 +149,10 @@ html, body {
   background:#fff; padding:24px 32px; border-radius:12px;
   box-shadow:0 4px 12px rgba(0,0,0,.15); text-align:center;
 }
+/* ✅ 추가 */
+.sm-box p{              /* 모달 문구만 초록색 */
+  color:#28a745;
+}
 .sm-box button{
   margin-top:16px; padding:6px 18px; border:none; border-radius:6px;
   background:#ffb63e; color:#fff; cursor:pointer; font-weight:600;

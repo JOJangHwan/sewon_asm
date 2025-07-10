@@ -130,7 +130,7 @@ const EXCEL_HEADERS = [
   '품목', '자산상태', '제조사', '모델', '취득일자', '취득가', '등록자',
   'CPU', 'RAM', '그래픽카드', '총 저장공간(GB)'
 ];
-const LOGIN_USER = '홍길동';
+//const LOGIN_USER = '홍길동';
 
 
 
@@ -270,7 +270,6 @@ const LoadBulk = () => {
       const validated = content.map((row, i) => {
         const newRow = [...row];
         newRow.length = 16;
-        if (i !== 0) newRow[11] = LOGIN_USER; // 인덱스 0 = 엑셀의 2번째 줄
       
         // 날짜 셀 처리
         newRow[9] = convertExcelDate(newRow[9]);
@@ -309,10 +308,25 @@ const LoadBulk = () => {
       
         // === 여기 추가! (노트북/컴퓨터일 때 CPU/메모리/그래픽카드 필수) ===
         if (['노트북', '컴퓨터'].includes(item)) {
-          if (!newRow[12] || String(newRow[12]).trim() === '') rowError.push('CPU 누락'); if (!newRow[13] || String(newRow[13]).trim() === '') rowError.push('메모리 누락');
-        if (!newRow[14] || String(newRow[14]).trim() === '') rowError.push('그래픽카드 누락');
-        if (!newRow[15] || String(newRow[15]).trim() === '') rowError.push('저장공간 누락');
+// RAM: 입력했으면 숫자인지 확인
+if (newRow[13] && !/^\d+$/.test(String(newRow[13]).trim())) {
+  rowError.push('RAM 숫자 아님');
+}
+
+// 저장공간: 입력했으면 숫자인지 확인
+if (newRow[15] && !/^\d+$/.test(String(newRow[15]).trim())) {
+  rowError.push('저장공간 숫자 아님');
+}
+          //if (!newRow[12] || String(newRow[12]).trim() === '') rowError.push('CPU 누락'); 
+          //if (!newRow[13] || String(newRow[13]).trim() === '') rowError.push('메모리 누락');
+        //if (!newRow[14] || String(newRow[14]).trim() === '') rowError.push('그래픽카드 누락');
+       // if (!newRow[15] || String(newRow[15]).trim() === '') rowError.push('저장공간 누락');
         }
+
+        // ✅ 등록자 필수
+if (!newRow[11] || String(newRow[11]).trim() === '') {
+  rowError.push('등록자 누락');
+}
       
         if (rowError.length > 0) {
           errors[i] = rowError.join(', ');
@@ -626,7 +640,7 @@ const formatDataForJson = (data) => {
       '1200000',        // 취득가
       '홍길동',          // 등록자
       'i5-1135G7',      // ✅ CPU
-      '16GB',           // ✅ RAM
+      '16',           // ✅ RAM
       'Intel Iris Xe',  // ✅ 그래픽카드
       '512'             // ✅ 저장공간(GB)
     ];

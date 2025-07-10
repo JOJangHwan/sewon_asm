@@ -296,78 +296,84 @@ const handleSearch = async () => {
   // ---- UI ----
   return (
     <div className="transfer-sketch-wrap">
-      <div className="search-section">
-        {/* 회사, 부서, 위치, 분류, 품명, 바코드, 버튼 */}
-        <select value={company} onChange={e => {
-          const val = e.target.value;
-          setCompany(val);
-          const corpId = companyIdMap[val]?.id;
-          setCorporationId(corpId || null);
-        }}>
-          <option value="">회사</option>
-          {companyList.map(c => <option key={c} value={c}>{c}</option>)}
-        </select>
-        <select value={department} onChange={e => {
-          const val = e.target.value;
-          setDepartment(val);
-          const companyEntry = companyIdMap[company];
-          if (companyEntry) {
-            const deptEntry = companyEntry.departments?.[val];
-            setAffiliationId(deptEntry?.id || null);
-          } else setAffiliationId(null);
-        }}>
-          <option value="">부서</option>
-          {Object.keys(companyData[company] || {}).map(d => <option key={d} value={d}>{d}</option>)}
-        </select>
-        <select value={location} onChange={e => {
-          const val = e.target.value;
-          setLocation(val);
-          const locId = companyIdMap[company]?.departments?.[department]?.locations?.[val];
-          setLocationId(locId || null);
-        }}>
-          <option value="">세부위치</option>
-          {(companyData[company]?.[department] || []).map(l => <option key={l} value={l}>{l}</option>)}
-        </select>
-        <select value={assetCategory} onChange={e => {
-          const val = e.target.value;
-          setAssetCategory(val);
-          setParentTypeId(assetCategoryMap[val]?.id || null);
-          setItemName("");
-          setChildTypeId(null);
-        }}>
-          <option value="">자산분류</option>
-          {Object.keys(assetCategoryData).map(a => <option key={a} value={a}>{a}</option>)}
-        </select>
-        <select value={itemName} onChange={e => {
-          const val = e.target.value;
-          setItemName(val);
-          setChildTypeId(assetCategoryMap[assetCategory]?.children?.[val] || null);
-        }}>
-          <option value="">품명</option>
-          {(assetCategoryData[assetCategory] || []).map(i => <option key={i} value={i}>{i}</option>)}
-        </select>
-        <input
-  type="number"
-  min={1}
-  className="search-input"
-  style={{ width: 80 }}
-  value={viewCount}
-  onChange={e => setViewCount(Number(e.target.value))}
-/>
-<div className="barcode-row">
-        <input
-          className="barcode-input"
-          placeholder="바코드 입력"
-          value={barcode}
-          onChange={e => setBarcode(e.target.value)}
-          onKeyDown={e => { if (e.key === "Enter") handleBarcodeSearch(); }}
-          style={{ minWidth: 140, marginLeft: 10, marginRight: 6 }}
-        />
-        <button onClick={handleBarcodeSearch}>바코드조회</button>
-        <button onClick={handleSearch}>검색</button>
+      {/* ── 검색 영역 ───────────────────────── */}
+      <div className="transfer-search-section">
+        {/* 1행 : 필터 */}
+        <div className="transfer-filter-row">
+          <select value={company} onChange={e => {
+            const v = e.target.value;
+            setCompany(v);
+            setCorporationId(companyIdMap[v]?.id || null);
+          }}>
+            <option value="">회사</option>
+            {companyList.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+
+          <select value={department} onChange={e => {
+            const v = e.target.value;
+            setDepartment(v);
+            const deptId = companyIdMap[company]?.departments?.[v]?.id;
+            setAffiliationId(deptId || null);
+          }}>
+            <option value="">부서</option>
+            {Object.keys(companyData[company] || {}).map(d => <option key={d}>{d}</option>)}
+          </select>
+
+          <select value={location} onChange={e => {
+            const v = e.target.value;
+            setLocation(v);
+            const locId = companyIdMap[company]?.departments?.[department]?.locations?.[v];
+            setLocationId(locId || null);
+          }}>
+            <option value="">세부위치</option>
+            {(companyData[company]?.[department] || []).map(l => <option key={l}>{l}</option>)}
+          </select>
+
+          <select value={assetCategory} onChange={e => {
+            const v = e.target.value;
+            setAssetCategory(v);
+            setParentTypeId(assetCategoryMap[v]?.id || null);
+            setItemName('');
+            setChildTypeId(null);
+          }}>
+            <option value="">자산분류</option>
+            {Object.keys(assetCategoryData).map(a => <option key={a}>{a}</option>)}
+          </select>
+
+          <select value={itemName} onChange={e => {
+            const v = e.target.value;
+            setItemName(v);
+            setChildTypeId(assetCategoryMap[assetCategory]?.children?.[v] || null);
+          }}>
+            <option value="">품명</option>
+            {(assetCategoryData[assetCategory] || []).map(i => <option key={i}>{i}</option>)}
+          </select>
+
+             <input className="transfer-count-input"
+            min={1}
+            value={viewCount}
+            onChange={e => setViewCount(Number(e.target.value))}
+          />
+
+          <button onClick={handleSearch} className="transfer-search-btn">검색</button>
+        </div>
+
+        {/* 2행 : 바코드 */}
+        <div className="transfer-barcode-row">
+          <input
+            className="transfer-barcode-input"
+            placeholder="바코드 입력"
+            value={barcode}
+            onChange={e => setBarcode(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleBarcodeSearch()}
+          />
+          <button onClick={handleBarcodeSearch} className="transfer-barcode-btn">바코드조회</button>
         </div>
       </div>
+
+      {/* ── 메인 영역 (좌/우 패널) ─────────────── */}
       <div className="transfer-main-row">
+        {/* FROM */}
         <div className="transfer-col">
           <div className="col-title">이동할 품목 <span className="from-label">from</span></div>
           <AssetListPanel
@@ -376,48 +382,80 @@ const handleSearch = async () => {
             setSelected={setSelectedFrom}
           />
         </div>
+
+        {/* 화살표 */}
         <div className="transfer-arrow-btns">
         <button
   className="arrow-btn"
-  type="button"
-  disabled={selectedFrom.length === 0 || !destCorp || !destDept || !destLoc}
+  data-tip="from과 to를 다 선택해야지 클릭이 됩니다."
+  
   onClick={moveToRight}
-  title={!destCorp || !destDept || !destLoc ? "이동할 회사/부서/세부위치를 선택하세요" : ""}
+  disabled={selectedFrom.length === 0 || !destCorp || !destDept || !destLoc}
 >
-  <svg width="54" height="54" viewBox="0 0 36 36">
-    <path
-      d="M9 18h18M21 12l6 6-6 6"
-      fill="none"
-      stroke="#222"
-      strokeWidth="4"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-</button>
+            <svg width="54" height="54" viewBox="0 0 36 36">
+              <path
+                d="M9 18h18M21 12l6 6-6 6"
+                fill="none"
+                stroke="#222"
+                strokeWidth="4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
         </div>
+
+        {/* TO */}
         <div className="transfer-col">
           <div className="col-title">이동한 품목 <span className="to-label">to</span></div>
-          <div className="transfer-to-select-row" style={{marginBottom:12, display:'flex', gap:6}}>
-            <select value={destCorp} onChange={e => { setDestCorp(e.target.value); setDestDept(''); setDestLoc(''); }}>
-              <option value="">회사</option>
-              {companyList.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
-            <select value={destDept} onChange={e => { setDestDept(e.target.value); setDestLoc(''); }}>
-              <option value="">부서</option>
-              {Object.keys(companyData[destCorp] || {}).map(d => <option key={d} value={d}>{d}</option>)}
-            </select>
-            <select value={destLoc} onChange={e => setDestLoc(e.target.value)}>
-              <option value="">세부위치</option>
-              {(companyData[destCorp]?.[destDept] || []).map(l => <option key={l} value={l}>{l}</option>)}
-            </select>
-          </div>
-          <ul>
-            {toItems.map(item => (
-              <li key={item.barcode || item.id}>{item.name || item.childCategory || item.model || '이름없음'}</li>
-            ))}
-            {toItems.length === 0 && <li className="empty-msg">아직 선택 없음</li>}
-          </ul>
+          {/* ▼▼▼  TO 위치 선택 Select 세트  ▼▼▼ */}
+<div className="transfer-to-select-row" style={{ marginBottom: 12, display: 'flex', gap: 6 }}>
+  {/* ── 회사 ── */}
+  <select
+    value={destCorp}
+    onChange={e => {
+      const corp = e.target.value;
+      setDestCorp(corp);
+      setDestDept('');   // 회사가 바뀌면 부서/위치 초기화
+      setDestLoc('');
+    }}
+  >
+    <option value="">회사</option>
+    {companyList.map(c => (
+      <option key={c} value={c}>{c}</option>
+    ))}
+  </select>
+
+  {/* ── 부서 ── */}
+  <select
+    value={destDept}
+    onChange={e => {
+      const dept = e.target.value;
+      setDestDept(dept);
+      setDestLoc('');    // 부서가 바뀌면 위치 초기화
+    }}
+    disabled={!destCorp}
+  >
+    <option value="">부서</option>
+    {Object.keys(companyData[destCorp] || {}).map(d => (
+      <option key={d} value={d}>{d}</option>
+    ))}
+  </select>
+
+  {/* ── 세부위치 ── */}
+  <select
+    value={destLoc}
+    onChange={e => setDestLoc(e.target.value)}
+    disabled={!destDept}
+  >
+    <option value="">세부위치</option>
+    {(companyData[destCorp]?.[destDept] || []).map(l => (
+      <option key={l} value={l}>{l}</option>
+    ))}
+  </select>
+</div>
+{/* ▲▲▲  TO 위치 선택 끝  ▲▲▲ */}
+
         </div>
       </div>
     </div>

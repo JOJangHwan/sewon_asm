@@ -10,6 +10,16 @@ import './editModal.css';
 
 const API_BASE = window._env_?.REACT_APP_API_URL || 'http://localhost:8888';
 
+ const convertToGB = (value, unit) => {
+     const num = parseFloat(value) || 0;
+     switch (unit) {
+       case 'TB': return num * 1024;
+       case 'MB': return num / 1024;
+       case 'GB': return num;
+       default  : return 0;
+     }
+   };
+
 const acquisitionTypeOptions = [
    { value: 0, label: '구매자산' },
    { value: 1, label: '대여자산' },
@@ -42,6 +52,12 @@ const EditModal = ({ item, onSave, onClose }) => {
     assetStatus: item.assetStatus !== undefined && item.assetStatus !== null
       ? String(item.assetStatus)
       : '',
+      storageList : item.storageList || [{ value: '', unit: 'GB' }],   // ⬅️ 추가
+      totalStorage: item.storage || item.totalStorage || '',
+      cpu         : item.cpu   || '',
+ memory      : item.ram   || item.memory || '',
+ gpu         : item.gpu   || '',
+ storage     : item.storage || item.totalStorage || '',
   });
 
   const [company,    setCompany]    = useState(item.company);
@@ -51,6 +67,32 @@ const EditModal = ({ item, onSave, onClose }) => {
 
   const [parent, setParent] = useState(item.assetCategory);
   const [child,  setChild]  = useState(item.itemName);
+
+  const onStorageChange = (idx, field, val) => {
+    setEdited(prev => {
+      const list = [...prev.storageList];
+      list[idx][field] = val;
+      return { ...prev, storageList: list };
+    });
+  };
+
+  const convertToGB = (value, unit) => {
+    const num = parseFloat(value) || 0;
+    switch (unit) {
+      case 'TB': return num * 1024;
+      case 'MB': return num / 1024;
+      case 'GB': return num;
+      default  : return 0;
+    }
+  };
+
+  const handleStorageConvert = () => {
+    const total = edited.storageList.reduce(
+      (sum, s) => sum + convertToGB(s.value, s.unit),
+      0
+    );
+    setEdited(prev => ({ ...prev, totalStorage: total.toFixed(2) }));
+  };
 
   /* ────────────────────────────────────
      초기 API 로딩
@@ -172,27 +214,42 @@ const EditModal = ({ item, onSave, onClose }) => {
    const childObj  = children.find(c => c.name === child);
    const parentTypeId = parentObj?.parentId ?? null;
    const childTypeId  = childObj?.childId ?? null;
-      const payload = {
-        locationId: locationId,
-        division: edited.acquisitionType === '' ? null : Number(edited.acquisitionType),
-        parentTypeId: parentTypeId,
-        childTypeId: childTypeId,
-        status: edited.assetStatus === '' ? null : Number(edited.assetStatus),
-        manufacturer: edited.manufacturer,
-        model: edited.model,
-        acquisitionDate: toISOStringWithSeconds(edited.acquisitionDate),  // ← 요기
-        acquisitionPrice: Number(edited.acquisitionPrice ?? 0),
-      };
+
+   const isElectronic = ['노트북', '컴퓨터'].includes(child);
+
+       const payload = {
+          locationId,
+          division: edited.acquisitionType === '' ? null : Number(edited.acquisitionType),
+          parentTypeId,
+          childTypeId,
+          status: edited.assetStatus === '' ? null : Number(edited.assetStatus),
+          manufacturer: edited.manufacturer,
+          model: edited.model,
+          acquisitionDate: toISOStringWithSeconds(edited.acquisitionDate),
+          acquisitionPrice: Number(edited.acquisitionPrice ?? 0),
+        };
+    
+        if (isElectronic) {
+          payload.cpu = edited.cpu;
+          payload.gpu = edited.gpu;
+          payload.ram = Number(edited.memory || 0);
+          payload.storage = Number(edited.totalStorage || 0);
+        }
       console.log('🔍 parentTypeId:', parentTypeId, 'childTypeId:', childTypeId);
       console.log('🔼 수정 요청 payload:', {
         // barcode,
         ...payload,
       });
       try {
-        const res = await authFetchWithRefresh(
-          `${API_BASE}/assets?barcode=${encodeURIComponent(barcode)}`,
-          { method: 'PUT', body: JSON.stringify(payload) }
-        );
+            const endpoint = isElectronic
+              ? `${API_BASE}/assets/electronic?barcode=${encodeURIComponent(barcode)}`
+              : `${API_BASE}/assets?barcode=${encodeURIComponent(barcode)}`;
+        
+            const res = await authFetchWithRefresh(endpoint, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload),
+            });
         const json = await res.json();
         if (json.code === 1) {
           alert('✅ 자산 정보가 수정되었습니다.');
@@ -274,6 +331,70 @@ const EditModal = ({ item, onSave, onClose }) => {
             <option key={c.childId} value={c.name}>{c.name}</option>
           ))}
         </select>
+        {/* ── 노트북·컴퓨터일 때 PC 스펙 ───────────────────── */}
+{/* ── 노트북·컴퓨터일 때 PC 스펙 ───────────────────── */}
+{['노트북', '컴퓨터'].includes(child) && (
+  <>
+    {/* 기존 CPU / 메모리 / GPU ... */}
+
+    {/* 저장공간(다중) 입력 */}
+     {['노트북', '컴퓨터'].includes(child) && (
+   <>
+     <label>CPU</label>
+     <input name="cpu" value={edited.cpu} onChange={onBasicChange} />
+
+     <label>메모리</label>
+     <input name="memory" value={edited.memory} onChange={onBasicChange} />
+
+     <label>GPU</label>
+     <input name="gpu" value={edited.gpu} onChange={onBasicChange} />
+
+     <label>데이터 변환기 (PC 저장공간)</label>
+     {edited.storageList.map((s, idx) => (
+       <div key={`${idx}-${s.unit}-${s.value}`} className="conversion-group">
+         <input
+           type="text"
+           placeholder="용량"
+           value={s.value}
+           onChange={(e) => onStorageChange(idx, 'value', e.target.value)}
+         />
+         <select
+           value={s.unit}
+           onChange={(e) => onStorageChange(idx, 'unit', e.target.value)}
+         >
+           <option value="GB">GB</option>
+           <option value="TB">TB</option>
+           <option value="MB">MB</option>
+         </select>
+         {idx === 0 && (
+           <button type="button" className="add-btn" onClick={() =>
+             setEdited(prev => ({
+               ...prev,
+               storageList: [...prev.storageList, { value: '', unit: 'GB' }],
+             }))
+           }>➕</button>
+         )}
+         {edited.storageList.length > 1 && (
+        <button type="button" className="add-btn" onClick={() =>
+             setEdited(prev => {
+               const list = [...prev.storageList];
+               list.splice(idx, 1);
+               return { ...prev, storageList: list };
+             })
+           }>➖</button>
+         )}
+       </div>
+     ))}
+     <button type="button" onClick={handleStorageConvert}>변환</button>
+
+     <label>총 저장공간(GB)</label>
+     <input name="totalStorage" value={edited.totalStorage} readOnly />
+   </>
+ )}
+  </>
+)}
+
+
 
 <label>자산상태</label>
 <select

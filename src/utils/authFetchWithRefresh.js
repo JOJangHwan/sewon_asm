@@ -76,10 +76,14 @@ export const authFetchWithRefresh = async (url, options = {}) => {
    //console.log('🔐 authFetchWithRefresh ▶ access:', accessToken);
 // console.log('🔐 authFetchWithRefresh ▶ refresh:', refreshToken);
 
-  const baseHeaders = {
-    ...(options.headers || {}),
-    Authorization: `Bearer ${accessToken}`,
-  };
+ // accessToken 이 객체면 token 필드 꺼냄
+ const extract = (tk) =>
+   tk && typeof tk === 'object' && 'token' in tk ? tk.token : tk;
+
+ const baseHeaders = {
+   ...(options.headers || {}),
+   Authorization: `Bearer ${extract(accessToken)}`,
+ };
 
   // GET 외의 요청에는 Content-Type 추가
   if ((options.method || 'GET').toUpperCase() !== 'GET') {
@@ -95,25 +99,26 @@ export const authFetchWithRefresh = async (url, options = {}) => {
       const refreshRes = await fetch(`${API_BASE}/account/auth/token-refresh`, {
         method: 'POST',
         headers: {
-          'Authorization-a': accessToken,
-          'Authorization-r': refreshToken,
+            'Authorization-a': extract(accessToken),
+             'Authorization-r': extract(refreshToken),
           'Content-Type': 'application/json',
         },
       });
 
       const refreshResult = await refreshRes.json();
 
-      if (refreshResult.code === 1) {
+      if (refreshResult?.code === 1 && refreshResult.data) {
         // 새 토큰 저장
         const { accessToken: newAccess, refreshToken: newRefresh } = refreshResult.data;
         // console.log('🔄 재발급 accessToken:', newAccess);
 // console.log('🔄 재발급 refreshToken:', newRefresh);
-        saveTokens({ accessToken: newAccess, refreshToken: newRefresh });
+saveTokens({ accessToken: extract(newAccess), refreshToken: extract(newRefresh) });
+
 
         // 재시도 요청
         const retryHeaders = {
           ...(options.headers || {}),
-          Authorization: `Bearer ${newAccess}`,
+          Authorization: `Bearer ${extract(newAccess)}`,
         };
         if ((options.method || 'GET').toUpperCase() !== 'GET') {
           retryHeaders['Content-Type'] = retryHeaders['Content-Type'] || 'application/json';
@@ -121,6 +126,7 @@ export const authFetchWithRefresh = async (url, options = {}) => {
 
         response = await fetch(url, { ...options, headers: retryHeaders });
       } else {
+        console.warn('❌ 토큰 갱신 실패 응답:', refreshResult);
         clearTokens();
         window.location.href = '/';
         throw new Error('토큰 갱신 실패');

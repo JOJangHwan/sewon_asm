@@ -1,6 +1,6 @@
-/* 전체 래퍼 */
+/* ─────────── 전체 래퍼 ─────────── */
 .transfer-sketch-wrap {
-  max-width: 900px;
+  max-width: 1160px;
   margin: 32px auto;
   border: 1.5px solid #e8e8e8;
   border-radius: 12px;
@@ -8,137 +8,128 @@
   background: #fff;
 }
 
-/* 상단 검색 필터 */
-.search-section {
+/* ─────────── 상단 검색 영역 (2행 구조) ─────────── */
+.transfer-search-section {
   display: flex;
+  flex-direction: column;     /* 2행 구성 */
+  align-items: center;        /* 가운데 정렬 */
   gap: 10px;
   background: #fbfbfd;
-  padding: 18px 18px 12px 18px;
+  padding: 18px;
   border-radius: 12px;
-  box-shadow: 0 2px 10px #d5d8e220;
   border: 1.2px solid #ececec;
-  align-items: center;
+  box-shadow: 0 2px 10px #d5d8e220;
   margin-bottom: 32px;
-  flex-wrap: wrap;
 }
 
-/* 모든 select/input 공통 */
-.search-section select,
-.search-section input[type="number"],
-.search-section input[type="text"] {
-  min-width: 104px;
-  max-width: 170px;
-  font-size: 15px;
-  border: 1.3px solid #e1e3ec;
-  border-radius: 7px;
-  padding: 7px 12px;
-  background: #fff;
-  transition: border 0.17s;
-  outline: none;
+/* 1행, 2행 공통 정렬 */
+ .transfer-filter-row,
+ .transfer-barcode-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;  /* 수평 가운데 정렬 */
+  gap: 10px;
+  width: 100%;
+  align-items: center;
 }
-.search-section select:focus,
-.search-section input:focus {
+
+/* ─────────── 공통 요소 스타일 ─────────── */
+ .transfer-search-section select,
+ .transfer-search-section input[type="number"],
+ .transfer-search-section input[type="text"],
+ .transfer-search-section button {
+  width: auto;
+  min-width: 100px;
+  max-width: 160px;
+  height: 34px;
+  font-size: 14px;
+  padding: 6px 10px;
+  box-sizing: border-box;
+}
+
+ .transfer-search-section select:focus,
+ .transfer-search-section input:focus {
   border-color: #8bb7fa;
 }
 
-/* 바코드 입력 + 버튼 한 줄 */
-.barcode-row {
-  display: flex;
-  gap: 6px;
-  width: 100%;
-  margin: 10px 0 0 0;
-  align-items: center;
+/* 입력창 개별 크기 */
+.transfer-count-input { width: 60px; text-align: center; }         /* 개수 */
+.transfer-barcode-input { width: 180px; }       /* 바코드 */
+
+/* ─────────── 버튼 스타일 ─────────── */
+.search-btn,
+.transfer-barcode-btn {
+  height: 34px;
+  padding: 0 8px;
+  font-weight: 600;
+  font-size: 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  min-width: 64px;
 }
 
-/* 바코드 input/버튼 (더 작게) */
-.barcode-input {
-  flex: 2 1 110px;
-  min-width: 90px;
-  max-width: 200px;
-  font-size: 13px;
-  padding: 4px 8px;
-  border-radius: 5px;
-  border: 1.2px solid #222;
-  height: 28px;
-  box-sizing: border-box;
-}
-.barcode-btn,
-.search-btn {
-  flex: 1 1 50px;
-  padding: 4px 0;
-  font-weight: 600;
-  font-size: 13px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  box-shadow: 0 1px 3px #ffe6b980;
-  transition: background 0.15s;
-  height: 28px;
-}
-.barcode-btn {
-  background: #ffbe2e;
-  color: #fff;
-  margin-left: 2px;
-}
-.barcode-btn:hover { background: #ffd400; color: #333; }
-.search-btn {
+.transfer-search-btn {
   background: #2255d0;
   color: #fff;
-  margin-left: 2px;
 }
-.search-btn:hover { background: #1546af; }
+.transfer-search-btn:hover {
+  background: #1546af;
+}
 
-/* 좌우 패널 그리드 */
+.transfer-barcode-btn {
+  background: #ffbe2e;
+  color: #fff;
+}
+.transfer-barcode-btn:hover {
+  background: #ffd400;
+  color: #222;
+}
+
+/* ─────────── 자산 이동 메인 (좌우 컬럼) ─────────── */
 .transfer-main-row {
   display: flex;
   gap: 28px;
   align-items: flex-start;
   justify-content: center;
 }
+
 .transfer-col {
   min-width: 420px;
   max-width: 520px;
   width: 100%;
   flex: 1 1 0;
-  box-sizing: border-box;
   background: #f7f8fa;
   border-radius: 8px;
   padding: 18px 14px;
   border: 1px solid #ececec;
+  box-sizing: border-box;
 }
+
 .col-title {
-  font-weight: bold;
+  font-weight: 700;
   font-size: 1.1rem;
   margin-bottom: 12px;
   text-align: center;
 }
-.to-label { color: #2255d0; font-size: 0.98em; }
-.from-label { color: #e79c1b; font-size: 0.98em; }
-.transfer-col ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-.transfer-col li {
-  margin-bottom: 7px;
-  font-size: 1.01rem;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.empty-msg {
-  color: #aaa;
-  text-align: center;
-  padding: 8px 0;
-}
 
-/* 화살표 버튼 */
+.from-label { color: #e79c1b; }
+.to-label { color: #2255d0; }
+
+/* ─────────── 화살표 버튼 ─────────── */
 .transfer-arrow-btns {
   display: flex;
   align-items: center;
   justify-content: center;
   min-width: 44px;
 }
+.transfer-count-input {
+  width: 70px !important;        /* <- ⭐ 강제로 줄이기 */
+  min-width: 50px !important;
+  max-width: 80px !important;
+  text-align: center;
+}
+
 .arrow-btn {
   min-width: 70px;
   min-height: 70px;
@@ -148,106 +139,86 @@
   border: 2px solid #ffd33b;
   box-shadow: 0 2px 12px #f6e58450;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.2s, border-color 0.2s, box-shadow 0.15s;
+  transition: 0.2s;
 }
+
 .arrow-btn:disabled {
   opacity: 0.5;
   background: #fafbfc;
   border-color: #eee;
   cursor: not-allowed;
-  box-shadow: none;
-}
-.arrow-btn:hover:not(:disabled) {
-  background: #ffe16b;
-  border-color: #ffcd00;
-  box-shadow: 0 4px 16px #ffe17660;
 }
 
-/* 오른쪽 패널 select */
-.transfer-to-select-row {
-  display: flex;
-  gap: 14px;
-  width: 100%;
-  margin-bottom: 15px;
+.arrow-btn[data-tip] {
+  position: relative;
 }
-.transfer-to-select-row select {
-  min-width: 120px;
-  max-width: 180px;
-  flex: 1 1 0;
-  font-size: 15px;
-  padding: 6px 14px 6px 8px;
+
+/* 🔹 disabled 상태일 때만 툴팁 표시 */
+.arrow-btn[disabled][data-tip]:hover::after {
+  content: attr(data-tip);
+  position: absolute;
+  top: -42px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #f44336;
+  color: #fff;
+  padding: 6px 10px;
   border-radius: 6px;
-  border: 1px solid #ccc;
-  background: #fff;
-  box-sizing: border-box;
+  font-size: 13px;
+  white-space: nowrap;
+  z-index: 1000;
+  pointer-events: none;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
 }
+/* 호버 시 풍선말 */
+.arrow-btn[data-tip]:hover::after {
+  content: attr(data-tip);
+  position: absolute;
+  top: -42px;                 /* 버튼 위에 배치 */
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: #333;
+  color: #fff;
+  font-size: 13px;
+  white-space: nowrap;
+  z-index: 1000;
+  pointer-events: none;       /* 클릭 방해 X */
+  box-shadow: 0 2px 6px rgba(0,0,0,.25);
+}
+/* ─────────── 모바일 대응 ─────────── */
+@media (max-width: 768px) {
+  .transfer-sketch-wrap {
+    max-width: 100%;
+    padding: 18px 10px;
+  }
 
-/* 테이블 스타일 (AssetListPanel 등) */
-.asset-table {
-  width: 100%;
-  min-width: 260px;
-  border-collapse: collapse;
-}
-.asset-table th,
-.asset-table td {
-  padding: 9px 12px;
-  font-size: 15px;
-  text-align: left;
-}
-.asset-table th {
-  background: #f1f3f9;
-  color: #333;
-  font-weight: bold;
-}
-.asset-table tr {
-  border-bottom: 1px solid #ececec;
-}
-.asset-table tr.selected {
-  background: #f6faff;
-}
-
-/* 모바일 대응 */
-@media (max-width: 700px) {
-  .search-section {
-    flex-direction: column;
+  .transfer-search-section {
     gap: 12px;
-    padding: 16px 7px 10px 7px;
   }
-  .search-section select,
-  .search-section input {
-    min-width: 90px;
-    font-size: 14px;
-    padding: 6px 8px;
+
+     .transfer-filter-row,
+     .transfer-barcode-row {
+    gap: 8px;
+    justify-content: center;
   }
-  .barcode-row {
-    flex-direction: column;
-    gap: 5px;
-  }
-  .barcode-btn, .search-btn, .barcode-input {
+
+     .transfer-search-section select,
+     .transfer-search-section input,
+     .transfer-search-section button {
     width: 100%;
     max-width: none;
-    min-width: 0;
-    height: 28px;
-    font-size: 13px;
-  }
-  .search-section button {
-    min-width: 80px;
-    padding: 8px 0;
     font-size: 14px;
   }
+
   .transfer-main-row {
     flex-direction: column-reverse;
     gap: 14px;
   }
+
   .transfer-col {
     min-width: 0;
     width: 100%;
-  }
-  .arrow-btn {
-    font-size: 1.4rem;
-    padding: 4px 20px;
   }
 }

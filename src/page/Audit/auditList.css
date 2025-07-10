@@ -17,6 +17,57 @@
   align-items: center;
   justify-content: center;
 }
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.loading-spinner {
+  width: 64px;
+  height: 64px;
+  border: 6px solid #eee;
+  border-top: 6px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.table-loading-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(255, 255, 255, 0.6); /* 밝은 반투명 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+}
+
+.audit-table-wrapper {
+  position: relative;  /* 오버레이를 이 영역 기준으로 표시하기 위해 */
+  min-height: 300px;   /* 테이블이 없을 때도 오버레이 공간 확보 */
+}
+
+.loading-spinner {
+  width: 48px;
+  height: 48px;
+  border: 5px solid #f3f3f3;
+  border-top: 5px solid #3498db;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+
+
 
 /* ✅ PC 전용: 두 번째 행(날짜 + 버튼)만 줄바꿈 금지 */
 @media (min-width: 769px) {

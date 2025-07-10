@@ -11,6 +11,7 @@ const API_BASE = window._env_?.REACT_APP_API_URL || 'http://localhost:8080';
    ───────────────────────────────────────── */
 
 const InfoEditModal = ({ userInfo, onClose /*, onSave */ }) => {
+  //const { login } = useContext(UserContext);
   const { setUser } = useContext(UserContext);
   /* 동적 목록용 상태 */
   const [companies,   setCompanies]   = useState([]); // [{id,name,affiliationList:[]}]
@@ -147,6 +148,7 @@ console.log('[토큰 재발급 응답]', refJson);
                         localStorage.setItem('accessToken',  newAccessToken);
                         localStorage.setItem('refreshToken', newRefreshToken);
                         localStorage.setItem('user', JSON.stringify(newUser));
+                        //login(newUser)
                         setUser(newUser);
                         onClose(newUser); // 모달 닫기 (부모 re-render)
                         return;

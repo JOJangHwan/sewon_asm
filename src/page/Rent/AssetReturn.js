@@ -72,11 +72,9 @@ export default function AssetReturnListPage() {
       }
   
       alert('반납 신청 완료!');
-      setAssets((prev) =>
-        prev.map((a) =>
-          toRequest.includes(a.id) ? { ...a, borrower: '신청중' } : a
-        )
-      );
+           const moved = assets.filter(a => toRequest.includes(a.id));
+           setDeptRequests(prev => [...prev, ...moved]);
+           setAssets(prev => prev.filter(a => !toRequest.includes(a.id)));
       setCheckedItems((prev) =>
         prev.filter((barcode) => {
           const asset = assets.find((a) => a.barcode === barcode);
@@ -119,7 +117,9 @@ const handleCancelReturn = async () => {
     const json = await res.json();
     if (json.code === 1) {
       alert('반납 신청 취소 완료');
-      setDeptRequests(prev => prev.filter(item => !ids.includes(item.id)));
+           const moved = deptRequests.filter(item => ids.includes(item.id));
+           setAssets(prev => [...prev, ...moved]);
+           setDeptRequests(prev => prev.filter(item => !ids.includes(item.id)));
       setCheckedItems(prev => prev.filter(b => {
         const item = deptRequests.find(d => d.barcode === b);
         return !item || !ids.includes(item.id);
@@ -179,6 +179,50 @@ const handleApprove = async () => {
     console.error('반납 승인 오류:', err);
   }
 };
+
+const handleReject = async () => {
+  const ids = checkedItems
+    .map(bc => {
+      const item = incomingRequests.find(req => req.barcode === bc);
+      return item ? item.id : null;
+    })
+    .filter(Boolean);
+
+  if (ids.length === 0) {
+    alert('거절할 항목이 없습니다.');
+    return;
+  }
+  if (!window.confirm('선택한 반납 신청을 거절하시겠습니까?')) return;
+
+  try {
+    const res = await authFetchWithRefresh(
+      `${API_BASE_URL}/return/request/reject`,  // ← POST API 경로
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids }), // ← 거절할 자산 ID 목록
+      }
+    );
+    const json = await res.json();
+    if (json.code === 1) {
+      alert('거절 완료');
+      // 거절한 항목 삭제
+      setIncomingRequests(prev => prev.filter(req => !ids.includes(req.id)));
+      setCheckedItems(prev =>
+        prev.filter(bc => {
+          const item = incomingRequests.find(req => req.barcode === bc);
+          return !item || !ids.includes(item.id);
+        })
+      );
+    } else {
+      alert(`거절 실패: ${json.message || '서버 오류'}`);
+    }
+  } catch (err) {
+    alert('서버와 통신할 수 없습니다.');
+    console.error('반납 거절 오류:', err);
+  }
+};
+
 
 
     // 3가지 상태로 필터링
@@ -380,7 +424,7 @@ const handleApprove = async () => {
   
       {/* 1. 대여 중인 자산 */}
       {renderTable(
-        '부서에서 대여 신청한 자산',
+        '대여 중인 자산',
         borrowedAssets,
         <button
           className="primary-btn"
@@ -393,7 +437,7 @@ const handleApprove = async () => {
   
       {/* 2. 반납 신청한 자산 */}
       {renderTable(
-  '부서에서 반납 신청한 자산',
+  '보낸 반납 요청',
   deptRequests,   // ← 이렇게 직접 넣는 것도 실무에서 흔함!
   <button
     className="primary-btn"
@@ -407,9 +451,24 @@ const handleApprove = async () => {
   
       {/* 3. 반납 신청 내역 (내 자산에 타인이 반납 요청) */}
       {renderTable(
-  '타부서에서 반납 신청한 자산',
-  incomingRequests,  // ← 반드시 이 변수!
-  <button className="primary-btn" onClick={handleApprove}>승인</button>
+  '받은 반납 요청',
+  incomingRequests,
+  <>
+    <button
+      className="primary-btn"
+      onClick={handleApprove}
+      style={{ marginRight: 8 }}
+    >
+      승인
+    </button>
+    <button
+      className="primary-btn"
+      onClick={handleReject}
+      style={{ backgroundColor: '#fee2e2', color: '#e53e3e' }}
+    >
+      거절
+    </button>
+  </>
 )}
 
     </div>

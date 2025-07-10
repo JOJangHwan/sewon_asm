@@ -3,6 +3,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import "./AssetSearchPanel.css";
 import { authFetchWithRefresh } from "../../../utils/authFetchWithRefresh";
+import { useContext } from "react";
+import { UserContext } from "../../../utils/UserContext";
 
 const API_BASE_URL =
   window._env_?.REACT_APP_API_URL || "http://localhost:8888";
@@ -29,38 +31,45 @@ export default function AssetSearchPanel({ isOpen, onClose, onSelect }) {
   const [locationName, setLocationName] = useState("");
   const [parentName, setParentName] = useState("");
   const [childName, setChildName] = useState("");
+
+  const { user } = useContext(UserContext);
   /* ----------------------- 초기 데이터 로딩 ----------------------- */
+  
   useEffect(() => {
-    if (!isOpen) return;                         // 패널이 열릴 때마다 한 번만
-    /* 1) 자산 유형 계층                                                    */
-    
-    (async () => {
+    if (!isOpen) return;
+  
+    const fetchData = async () => {
       try {
-        const res  = await authFetchWithRefresh(
-          `${API_BASE_URL}/asset-types/hierarchy`
-        );
-        const json = await res.json();
-        if (json.code === 1) setParentTypes(json.data.parentList);
+        // ① 자산 유형 불러오기
+        const res1 = await authFetchWithRefresh(`${API_BASE_URL}/asset-types/hierarchy`);
+        const json1 = await res1.json();
+        if (json1.code === 1) setParentTypes(json1.data.parentList);
+  
+        // ② 법인 불러오기
+        const res2 = await authFetchWithRefresh(`${API_BASE_URL}/corporations`);
+        const json2 = await res2.json();
+  
+        if (json2.code === 1) {
+          const corpList = json2.data.corporationList || [];
+          setCorporations(corpList);
+  
+ 
+         const matched = corpList.find(c => c.name === user?.company);
+          if (matched) {
+           setCorporationId(matched.corporationId); // 🔐 문자열 비교 후 ID 저장
+            const matchedAff = matched.affiliationList.find(a => a.department === user?.department);
+ if (matchedAff) {
+   setAffiliationId(matchedAff.affiliationId);
+}
+          }
+        }
+  
       } catch (e) {
-        console.error("자산 유형 로딩 오류", e);
+        console.error("초기 데이터 로딩 오류", e);
       }
-    })();
-
-   /* 2) 법인 트리 불러오기 --------------------------------------- ⭐ NEW */
-   (async () => {
-    try {
-      const res = await authFetchWithRefresh(`${API_BASE_URL}/corporations`);
-      const json = await res.json();
-      if (json.code === 1) {
-        //console.log("✅ 전체 corporation 응답:", JSON.stringify(json.data.corporationList, null, 2));
-        setCorporations(json.data.corporationList || []);
-      }
-    } catch (err) {
-      console.error("법인 불러오기 오류 ❗", err);
-    }
-  })();
-
-
+    };
+  
+    fetchData();
   }, [isOpen]);
 
   const loadCorporations = async () => {
@@ -159,33 +168,41 @@ export default function AssetSearchPanel({ isOpen, onClose, onSelect }) {
 
           {/* 회사 */}
                     {/* ---------------- 회사(법인) 선택 ---------------- ⭐ NEW */}
-          <select value={corporationId} onChange={e => {
-         setCorporationId(e.target.value);
-            setAffiliationId("");
-            setLocationId("");
-          }}>
-            <option value="">회사 선택</option>
+                    <input
+  type="text"
+  value={
+    corporations.find(c => String(c.corporationId) === String(corporationId))?.name || ''
+  }
+  readOnly
+  style={{
+    backgroundColor: '#f1f1f1',
+    border: '1px solid #ccc',
+    borderRadius: '4px',
+    height: '36px',
+    padding: '0 10px',
+    fontSize: '14px',
+  }}
+/>
 
-
-             {corporations.map(c => (
-   <option key={c.corporationId} value={c.corporationId}>
-    {c.name}
-   </option>
- ))}
-          </select>
 
           {/* ---------------- 부서 선택 ---------------------- ⭐ NEW */}
-          <select value={affiliationId} onChange={e => {
-            setAffiliationId(e.target.value);
-            setLocationId("");
-          }} disabled={!corporationId}>
-            <option value="">부서 선택</option>
-            {(affiliations || []).map(a => (
-  <option key={a.affiliationId} value={a.affiliationId}>
-    {a.department}
-  </option>
-))}
-          </select>
+          <select
+  value={affiliationId}
+  onChange={e => {
+    setAffiliationId(e.target.value);
+    setLocationId("");
+  }}
+  disabled={!corporationId}
+>
+  <option value="">부서 선택</option>
+ {(affiliations || [])
+   .filter(a => a.department !== user?.department) // ✅ 내 부서 제외
+   .map(a => (
+     <option key={a.affiliationId} value={a.affiliationId}>
+       {a.department}
+     </option>
+ ))}
+</select>
 
           {/* ---------------- 세부위치 선택 ------------------- ⭐ NEW */}
           <select

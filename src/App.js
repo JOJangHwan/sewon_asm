@@ -1,12 +1,9 @@
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate
-} from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import i18n from '../src/utils/lang/i18n.js';
-import React, { useContext ,useState,useEffect } from 'react';
-import { UserContext } from './utils/UserContext.js';
+import React, { useContext, useEffect } from 'react';
+import { UserProvider, UserContext } from './utils/UserContext.js';
+
+// 페이지 컴포넌트
 import LoginPage from './page/login/loginPage';
 import HomePage from './page/main/Home';
 import RegisterPage from './page/register/RegisterPage';
@@ -20,84 +17,89 @@ import MyInforPage from './page/MyInfor/myInfor';
 import AssetRentPage from './page/Rent/components/CommonPage';
 import ScanPage from './page/Scan/Scan';
 import AssetDetailPage from './page/Scan/AssetDetailPage';
+import RegisterCorpAndItem from './page/admin/RegisterCorpAndItem';
+import DualTransferSimple from './page/Load/DualTransferSimple';
 import Layout from './components/layout/Layout';
-import RegisterCorpAndItem from './page/admin/RegisterCorpAndItem.js'
-import DualTransferSimple from './page/Load/DualTransferSimple.js'
 
 import './index';
 
-// 개발: process.env, Docker: window._env_ 둘 다 지원하고 싶다면
 const apiUrl = window._env_?.REACT_APP_API_URL || process.env.REACT_APP_API_URL;
 
-
-// 언어 설정 적용 (URL 없이 헤더 기반)
+/* ───────────────────────────────────────
+🌐 언어 초기화
+─────────────────────────────────────── */
 const LanguageInitializer = ({ children }) => {
   useEffect(() => {
-    // + 언어만 초기화
     const lang = localStorage.getItem('language') || 'ko';
     i18n.changeLanguage(lang);
     document.documentElement.lang = lang;
-    // - 아래 코드 전부 삭제!
-    // const onStorage = () => {
-    //   const saved = localStorage.getItem('user');
-    //   setUser(saved ? JSON.parse(saved) : null);
-    // };
-    // window.addEventListener('storage', onStorage);
-    // return () => window.removeEventListener('storage', onStorage);
   }, []);
-
-  // + children만 반환!
   return children;
 };
 
+/* ───────────────────────────────────────
+🔐 보호 라우트
+─────────────────────────────────────── */
+ const PrivateRoute = ({ element }) => {
+     const { user, isLoading } = useContext(UserContext);
+  
+     if (isLoading) {
+       return <div>로딩 중...</div>; // 또는 커스텀 스피너
+     }
+  
+     return user ? element : <Navigate to="/" replace />;
+   };
 
+/* ───────────────────────────────────────
+🚦 전체 라우트 정의
+─────────────────────────────────────── */
 const AppRoutes = () => (
   <Routes>
+    {/* 공개 페이지 */}
     <Route path="/" element={<LoginPage />} />
     <Route path="/join" element={<RegisterPage />} />
+
+    {/* 보호 페이지 */}
     <Route element={<Layout />}>
-      <Route path="/main" element={<HomePage />} />
-      <Route path="/load/single" element={<LoadSiglePage />} />
-      <Route path="/load/bulk" element={<LoadBulkPage />} />
-      <Route path="/search" element={<SearchPage />} />
-      <Route path="/audit/upload" element={<AuditLoadpage />} />
-      <Route path="/audit/list" element={<AuditListpage />} />
-      <Route path="/report" element={<ReportPage />} />
-      <Route path="/profile" element={<MyInforPage />} />
-      <Route path="/scan" element={<ScanPage />} />
-      <Route path="/asset" element={<AssetDetailPage />} />
-      <Route path="/rent" element={<AssetRentPage />} />
-      <Route path="/RegisterCorpAndItem" element={<RegisterCorpAndItem/>}/>
-      <Route path="/DualTransferSimple" element={<DualTransferSimple/>}/>
+      <Route path="/main"               element={<PrivateRoute element={<HomePage />} />} />
+      <Route path="/load/single"        element={<PrivateRoute element={<LoadSiglePage />} />} />
+      <Route path="/load/bulk"          element={<PrivateRoute element={<LoadBulkPage />} />} />
+      <Route path="/search"             element={<PrivateRoute element={<SearchPage />} />} />
+      <Route path="/audit/upload"       element={<PrivateRoute element={<AuditLoadpage />} />} />
+      <Route path="/audit/list"         element={<PrivateRoute element={<AuditListpage />} />} />
+      <Route path="/report"             element={<PrivateRoute element={<ReportPage />} />} />
+      <Route path="/profile"            element={<PrivateRoute element={<MyInforPage />} />} />
+      <Route path="/scan"               element={<PrivateRoute element={<ScanPage />} />} />
+      <Route path="/asset"              element={<PrivateRoute element={<AssetDetailPage />} />} />
+      <Route path="/rent"               element={<PrivateRoute element={<AssetRentPage />} />} />
+      <Route path="/RegisterCorpAndItem" element={<PrivateRoute element={<RegisterCorpAndItem />} />} />
+      <Route path="/DualTransferSimple"  element={<PrivateRoute element={<DualTransferSimple />} />} />
     </Route>
   </Routes>
 );
 
+/* ───────────────────────────────────────
+🚀 사용자 초기화 (로딩 처리 포함)
+─────────────────────────────────────── */
+ const UserInitializer = () => {
+     return (
+       <Router>
+         <LanguageInitializer>
+           <AppRoutes />
+         </LanguageInitializer>
+       </Router>
+     );
+   };
+
+/* ───────────────────────────────────────
+📦 최상위 App 컴포넌트
+─────────────────────────────────────── */
 function App() {
-  const [user, setUser] = useState(() => {
-    const saved = localStorage.getItem('user');
-    return saved ? JSON.parse(saved) : null;
-  });
-
-// + user/setUser를 여기서 관리!
-useEffect(() => {
-  const onStorage = () => {
-    const saved = localStorage.getItem('user');
-    setUser(saved ? JSON.parse(saved) : null);
-  };
-  window.addEventListener('storage', onStorage);
-  return () => window.removeEventListener('storage', onStorage);
-}, []);
-
-return (
-  <UserContext.Provider value={{ user, setUser }}>
-    <Router>
-      <LanguageInitializer>
-        <AppRoutes />
-      </LanguageInitializer>
-    </Router>
-  </UserContext.Provider>
-);
+  return (
+    <UserProvider>
+      <UserInitializer />
+    </UserProvider>
+  );
 }
 
 export default App;

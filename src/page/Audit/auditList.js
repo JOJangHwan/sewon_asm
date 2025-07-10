@@ -85,6 +85,7 @@ export default function StockTakingSearch() {
   const [assetCategoryData, setAssetCategoryData] = useState({});
   const [items, setItems] = useState([]);
   const [filteredItems, setFilteredItems] = useState([]);
+  const [loading, setLoading] = useState(false);  // ✅ 로딩 상태 추가
   const [searched, setSearched] = useState(false);
   const [selectedItems, setSelectedItems] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -176,11 +177,15 @@ export default function StockTakingSearch() {
 
 
     const handleSearch = async () => {
+      if (loading) return;         // 중복 클릭 방지
+      setLoading(true);            // ⏳ 로딩 시작
         // ── [NEW] 필수값 알림 ───────────────────────
   if (!locationId || !startDate || !endDate) {
+    setLoading(false);
     return alert("❌ 세부위치와 시작/종료 날짜를 모두 선택해야 조회할 수 있습니다.");
   }
         if (startDate > endDate) {
+          setLoading(false);
           return alert("시작일이 종료일보다 늦을 수 없습니다.");
         }
     
@@ -224,6 +229,8 @@ export default function StockTakingSearch() {
         } catch (err) {
           console.error("❌ 실사 조회 실패:", err);
           alert("🚨 서버 오류 또는 통신 실패");
+        } finally {
+           setLoading(false);  // ⏹️ 로딩 종료
         }
       };
 
@@ -372,6 +379,11 @@ value={company} onChange={e=>{
       </div>
 
       <div className="audit-table-wrapper">
+      {loading && (
+    <div className="table-loading-overlay">
+      <div className="loading-spinner" />
+    </div>
+  )}
         <table className="audit-table">
           <thead>
             <tr>

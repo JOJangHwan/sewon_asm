@@ -10,7 +10,7 @@ export default function CommonPage() {
   return (
     <div className="page-container">
       <div className="page-header">
-        <h2>자산 {mode === 'rent' ? '대여' : '반납'} 관리</h2>
+        <h2>부서 자산 {mode === 'rent' ? '대여' : '반납'} 관리</h2>
         <div className="row" style={{ gap: '20px' }}>
           <label>
             <input

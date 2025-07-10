@@ -66,7 +66,7 @@ const [selectedItemId, setSelectedItemId]         = useState("");
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [viewCount, setViewCount] = useState(30);
-
+  const [loading, setLoading] = useState(false);// 로딩창
 
   // ── 필터된 결과 & 검색 여부
   const [filteredItems, setFilteredItems] = useState([]);
@@ -535,9 +535,16 @@ const toPrint = listToShow.filter(row => selectedBarcodes.has(row.barcode));
   };
 
   const handleSearch = async () => {
+       if (!selectedLocId) {
+           alert("세부위치를 선택하세요.");
+           return;
+         }
+    if (loading) return;        // 중복 방지
+   setLoading(true);           // ⏳ 로딩 시작
     // … 검색 로직 …
     // 기본 유효성 검사 (날짜 범위)
     if (startDate && endDate && startDate > endDate) {
+      setLoading(false);
         return alert("시작일이 종료일보다 클 수 없습니다.");
       }
   
@@ -552,7 +559,9 @@ const toPrint = listToShow.filter(row => selectedBarcodes.has(row.barcode));
 
   
       try {
+
         const url = `${API_BASE_URL}/assets/paged?${params.toString()}`;
+        console.log("자산 받을때 url : "+url)
         const res = await authFetchWithRefresh(url);
         const json = await res.json();
         if (json.code !== 1 || json.data.list.length === 0) {
@@ -585,6 +594,8 @@ const toPrint = listToShow.filter(row => selectedBarcodes.has(row.barcode));
       } catch (err) {
         console.error(err);
         alert("서버 통신 중 오류가 발생했습니다.");
+         } finally {
+             setLoading(false);        // ⏹️ 로딩 종료
       }
   };
 
@@ -611,76 +622,56 @@ const toPrint = listToShow.filter(row => selectedBarcodes.has(row.barcode));
 </div>
 
     {/* 2. 조회 필터 */}
-<div className="search-section">
-  <h2 className="section-title">자산 조회</h2>
-  <div className="search-bar-wrapper">
-  <div className="search-bar-row">
-    {/* === 1행: 드롭다운 + 출력개수 === */}
-    <div className="search-bar-row">
+      <div className="search-section">
+    <h2 className="section-title asset-search-title">자산 조회</h2>
+    {/* ✅ 가운데 정렬용 래퍼 */}
+    <div className="mi-search-row">
+
       {/* 세부위치 */}
-      <select
-        className="search-input"
-        value={selectedLocId}
-        onChange={e => setSelectedLocId(e.target.value)}
-      >
+      <select className="search-input" value={selectedLocId}
+              onChange={e=>setSelectedLocId(e.target.value)}>
         <option value="">세부위치</option>
-        {locations.map(loc => (
+        {locations.map(loc=>(
           <option key={loc.id} value={loc.id}>{loc.name}</option>
         ))}
       </select>
+
       {/* 분류 */}
-      <select
-        className="search-input"
-        value={selectedCategoryId}
-        onChange={e => setSelectedCategoryId(Number(e.target.value))}
-      >
+      <select className="search-input" value={selectedCategoryId}
+              onChange={e=>setSelectedCategoryId(Number(e.target.value))}>
         <option value="">분류</option>
-        {assetCategories.map(cat => (
+        {assetCategories.map(cat=>(
           <option key={cat.parentId} value={cat.parentId}>{cat.name}</option>
         ))}
       </select>
+
       {/* 품목 */}
-      <select
-        className="search-input"
-        value={selectedItemId}
-        onChange={e => setSelectedItemId(Number(e.target.value))}
-        disabled={!selectedCategoryId}
-      >
+      <select className="search-input" value={selectedItemId}
+              onChange={e=>setSelectedItemId(Number(e.target.value))}
+              disabled={!selectedCategoryId}>
         <option value="">품목</option>
-        {items.map(item => (
-          <option key={item.id} value={item.id}>{item.name}</option>
+        {items.map(it=>(
+          <option key={it.id} value={it.id}>{it.name}</option>
         ))}
       </select>
-      {/* 출력개수 */}
-      <input
-        type="number"
-        className="search-input view-count"
-        placeholder="출력개수"
-        value={viewCount}
-        onChange={e => setViewCount(+e.target.value)}
-      />
-    </div>
 
-    {/* === 2행: 날짜 + 버튼 === */}
-    <div className="search-bar-row buttons">
-      <input
-        type="date"
-        className="search-input"
-        value={startDate}
-        onChange={e => setStartDate(e.target.value)}
-      />
-      <span style={{ fontWeight: 500 }}>~</span>
-      <input
-        type="date"
-        className="search-input"
-        value={endDate}
-        onChange={e => setEndDate(e.target.value)}
-      />
-      <button className="btn-search" onClick={handleSearch}>🔍 조회</button>
-      <button className="btn-reset" onClick={handleReset}>↺ 초기화</button>
-      </div>
+      {/* 출력개수 */}
+      <input type="number" className="search-input view-count"
+             value={viewCount} onChange={e=>setViewCount(+e.target.value)} />
+
+      {/* 날짜 1 */}
+      <input type="date" className="search-input"
+             value={startDate} onChange={e=>setStartDate(e.target.value)} />
+      <span className="date-tilde">~</span>
+
+      {/* 날짜 2 */}
+      <input type="date" className="search-input"
+             value={endDate} onChange={e=>setEndDate(e.target.value)} />
+
+      {/* 버튼 2개 */}
+      <button className="mi-btn-search" onClick={handleSearch}>🔍 조회</button>
+      <button className="btn-reset"  onClick={handleReset}>↺ 초기화</button>
     </div>
-  </div>
 </div>
 
 
@@ -688,17 +679,18 @@ const toPrint = listToShow.filter(row => selectedBarcodes.has(row.barcode));
       <div className="bottom-header">
         <h2 className="section-title">부서 자산 정보</h2>
         <div className="button-group">
-          <button className="action-button" onClick={handleModify} disabled={selectedBarcodes.size !== 1}>
+          <button className="action-button" data-tip="1개만 선택하시오." onClick={handleModify} disabled={selectedBarcodes.size !== 1}>
             수정하기
           </button>
 <button
   className="action-button"
+  data-tip="1개이상 선택하시오."
   onClick={handleDelete}
   disabled={!selectedBarcodes.size}
 >
   삭제하기
 </button>
-          <button className="action-button" onClick={handlePrint} disabled={!selectedBarcodes.size}>
+          <button className="action-button" data-tip="1개이상 선택하시오." onClick={handlePrint} disabled={!selectedBarcodes.size}>
             인쇄하기
           </button>
         </div>
@@ -707,6 +699,11 @@ const toPrint = listToShow.filter(row => selectedBarcodes.has(row.barcode));
       {/* 4. 테이블 & 페이징 */}
       <div className="table-section">
         <div className="table-container">
+        {loading && (
+    <div className="table-loading-overlay">
+      <div className="loading-spinner" />
+    </div>
+  )}
           <table>
             <thead>
               <tr>
@@ -779,7 +776,7 @@ const toPrint = listToShow.filter(row => selectedBarcodes.has(row.barcode));
             setItems(arr);
             setIsModalOpen(false);
             setSelectedBarcodes(new Set()); setSelectAll(false);
-            alert('수정되었습니다.');
+           // alert('수정되었습니다.');
           }}
           onClose={()=>setIsModalOpen(false)}
         />

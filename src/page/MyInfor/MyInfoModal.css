@@ -1,51 +1,73 @@
-
 .modal-background {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100vw; height: 100vh;
-    background: rgba(0, 0, 0, 0.4);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-  }
-  
-  .modal-content {
-    background: #fff;
-    padding: 30px;
-    border-radius: 12px;
-    width: 400px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.2);
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
 
-  .modal-actions {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 10px;
-  }
-  .save-btn {
-    background-color: #f9aa00;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: bold;
-  }
-  .save-btn:hover {
-    background-color: #e09000;
-  }
-  
-  .modal-close-btn {       /* ← 기존 close-btn 과 동일한 스타일 적용 */
-    background-color: #ccc;
-    color: #333;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 6px;
-    cursor: pointer;
-  }
-  .modal-close-btn:hover { background-color: #999; }
-  
+.modal-content {
+  background: #fff;
+  padding: 30px;
+  border-radius: 12px;
+  width: 360px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.modal-content input,
+.modal-content select {
+  height: 36px;
+  padding: 6px 10px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end; /* 또는 center */
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.save-btn,
+.modal-close-btn {
+  width: 90px;             /* ✅ input과 유사한 너비 */
+  height: 36px;            /* ✅ input 높이와 일치 */
+  padding: 6px 14px;
+  font-size: 14px;
+  box-sizing: border-box;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+}
+
+/* 저장 버튼 스타일 */
+.save-btn {
+  background-color: #f9aa00;
+  color: white;
+  font-weight: bold;
+}
+
+.save-btn:hover {
+  background-color: #e09000;
+}
+
+/* 닫기 버튼 스타일 */
+.modal-close-btn {
+  background-color: #ccc;
+  color: #333;
+}
+
+.modal-close-btn:hover {
+  background-color: #999;
+}

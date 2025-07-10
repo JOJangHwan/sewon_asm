@@ -5,10 +5,15 @@ import rentImg  from '../../assets/img/rent.png';
 import alarmImg from '../../assets/img/alarm.png';
 import logoImg  from '../../assets/img/sewon.jpg';
 import { UserContext }        from '../../utils/UserContext';
-import { getAccessToken } from '../../utils/token';
+import { getValidAccessToken, authFetchWithRefresh } from '../../utils/authFetchWithRefresh';
 import NotificationDropdown    from '../common/NotificationDropdown';
 
 const API_BASE_URL = window._env_?.REACT_APP_API_URL || "http://localhost:8888";
+
+// ──────────────────────────────────────────────
+// 📌 type 값이 없을 때 content 로 분류
+const classifyByContent = (text = '') =>
+    text.includes('실사') ? 'AUDIT' : 'RENT_RETURN';
 
 function Header({ toggleSidebar, isSidebarOpen }) {
   const [isAlarmOpen, setIsAlarmOpen] = useState(false);
@@ -31,19 +36,28 @@ function Header({ toggleSidebar, isSidebarOpen }) {
         return;
       }
   
-       const rawToken = getAccessToken();  // ✅ 간단하게 현재 토큰만 사용
-       if (!rawToken) {
-         console.warn('❗ accessToken 없음 → SSE 연결 중단');
-         return;
-       }
+            /* 1️⃣ 토큰을 안전하게 얻어오기 ─ 예외가 나더라도 화면이 죽지 않도록     */
+            let rawToken;
+            try {
+              rawToken = await getValidAccessToken();      // ← 유효 accessToken or null
+            } catch (err) {
+              console.error('🔑 토큰 갱신 실패:', err);
+              return;                                      // → SSE 연결 시도 중단
+            }
+      
+            /* 2️⃣ 토큰이 없으면 그냥 종료 (로그아웃 상태)                              */
+            if (!rawToken) {
+              console.warn('❗ accessToken 없음 → SSE 연결 중단');
+              return;
+            }
       
      // console.log('🔐 rawToken:', rawToken);
       
       const encodedToken = encodeURIComponent(rawToken);
-     // console.log('🔗 encodedToken:', encodedToken);
+      console.log('🔗 encodedToken:', encodedToken);
       
-      const url = `${API_BASE_URL}/notification/connect/${userId}?token=${encodedToken}`;
-     // console.log('📡 SSE 연결 URL:', url);
+      const url = `${API_BASE_URL}/notifications/connect/${userId}?token=${encodedToken}`;
+      console.log('📡 SSE 연결 URL:', url);
       sse = new EventSource(url);
 
 
@@ -55,39 +69,25 @@ function Header({ toggleSidebar, isSidebarOpen }) {
   
       sse.addEventListener('notification', (event) => {
 console.log('🔔[notification] 알림 수신', event.data);
-        let parsed;
+        const outer   = JSON.parse(event.data);             // {data:{…}} or {…}
+        const parsed  = outer.data ?? outer;                // 래퍼 제거
 
-        try {
-          parsed = JSON.parse(event.data);           // { message, notifyTime }
-        } catch (err) {
-          console.warn('⚠️ JSON 파싱 실패:', parsed.data);
-          return;
+        const text = parsed.content ?? parsed.message;
+        const type = parsed.type ?? classifyByContent(text); // ← 핵심
 
-        } 
-        console.log('🔔 알림 수신:', parsed); // ✔️ 여기에 진짜 로그가 뜸
-          // 1) JSON 파싱
-          //const content = JSON.parse(event.data);   // { id, text, read, time } 구조여야 함
-          //console.log('🔔 알림 수신:', content);
+        const formatted = {
+          id   : parsed.id ?? Date.now(),
+          text : text,
+          time : parsed.notifyTime,
+          read : false,
+          type
+        };
 
-             const formatted = {
-                 id: Date.now(),
-                 text : parsed.message,
-                 time : parsed.notifyTime,
-                 read : false,
-               };
-            
-               // 📌 유형 구분: parsed.type 값이 'RENT_RETURN' 이면 rent, 그 외 audit
-              //  if (parsed.type === 'RENT_RETURN') {
-              //    setSseRent(prev  => [formatted, ...prev]);
-              //  } else {
-              //    setSseAudit(prev => [formatted, ...prev]);
-              //  }
-               // 📌 type 이 없으면 기본적으로 대여·반납 알림으로 간주
- if (parsed.type === 'RENT_RETURN' || parsed.type === undefined) {
-   setSseRent(prev => [formatted, ...prev]);
- } else {
-   setSseAudit(prev => [formatted, ...prev]);
- }
+        if (type === 'RENT_RETURN') {
+          setSseRent (prev => [formatted, ...prev]);
+        } else {
+          setSseAudit(prev => [formatted, ...prev]);
+        }
 
 
       });
@@ -95,25 +95,90 @@ console.log('🔔[notification] 알림 수신', event.data);
       sse.onerror = (err) => {
         console.error('❌ SSE 오류:', err);
         sse.close();
+        setTimeout(connectSSE, 10_000);
       };
     };
   
-    connectSSE();
+        // connectSSE();
+         if (user?.id) {
+             connectSSE();
+           }
+        fetchDbNotifications();          // 📥 과거 알림 이력 로드
   
     return () => {
       if (sse) sse.close();
     };
   }, [user]); // user 변경될 때마다 재연결
+
+    /* ──────────────────────────────────────
+     과거 알림 GET /notifications
+     ────────────────────────────────────── */
+  const fetchDbNotifications = async () => {
+    try {
+       const url = `${API_BASE_URL}/notifications`;
+       console.log("db 알림조회 url : " + url);
+       const res = await authFetchWithRefresh(url, {
+        method: 'GET',
+      });
+      console.log("🔗 알림 응답 res:", res); // ✅ 이 위치는 OK
+
+       const payload = await res.json();          
+       console.log("📦 받은 데이터:", payload);
+       
+                 const mapped  = (payload.data?.list || []).map((n) => ({
+                    id  : n.id,
+                    text: n.content,
+                    time: n.notifyTime,
+                    read: n.read,
+                    type: n.type ?? classifyByContent(n.content)   // ← 추가
+                  }));
+      setDbNoti(mapped);
+    } catch (e) {
+      console.error('📁 DB 알림 로드 실패:', e);
+    }
+  };
   
 
-  const toggleAlarm = () => setIsAlarmOpen(prev => !prev);
+    const toggleAlarm = () => {
+        setIsAlarmOpen(prev => {
+          const next = !prev;          // 열릴 상태를 미리 계산
+    
+          // 알림창을 **열 때(= 이전에 닫혀 있었을 때)**만 DB 재조회
+          if (!prev) {
+            fetchDbNotifications();    // ← 🔄 GET /notifications
+          }
+    
+          return next;
+        });
+      };
 
 
-    const markAsRead = (id) => {
-     
-         setSseRent (prev => prev.map(n => (n.id === id ? { ...n, read: true } : n)));
-         setSseAudit(prev => prev.map(n => (n.id === id ? { ...n, read: true } : n)));
-        };
+       const markAsRead = async (id) => {
+           let alreadyRead = false;
+        
+           // 프론트 기준 읽음 여부 확인
+           const all = [...sseRent, ...sseAudit, ...dbNoti];
+           const target = all.find(n => n.id === id);
+           if (target?.read) {
+             alreadyRead = true;
+           }
+        
+           // UI 상태 업데이트는 항상 수행
+           setSseRent (prev => prev.map(n => (n.id === id ? { ...n, read: true } : n)));
+           setSseAudit(prev => prev.map(n => (n.id === id ? { ...n, read: true } : n)));
+           setDbNoti  (prev => prev.map(n => (n.id === id ? { ...n, read: true } : n)));
+        
+           // 서버에는 아직 안 읽은 경우만 요청
+           if (!alreadyRead) {
+             try {
+               await authFetchWithRefresh(`${API_BASE_URL}/notifications/read/${id}`, {
+                 method: 'POST',
+               });
+             } catch (e) {
+               console.warn('❗ 읽음 처리 실패:', e);
+             }
+           }
+         };
 
          const markAllAsRead = () => {
              setSseRent (prev => prev.map(n => ({ ...n, read: true })));
