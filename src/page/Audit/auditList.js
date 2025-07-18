@@ -48,10 +48,16 @@ function FullPageDetail({ item, onClose }) {
       <button className="detail-back" onClick={onClose}>← 뒤로</button>
       <h2>자산 상세</h2>
       <ul>
-        {COLUMN_LABELS.map(col => (
-          <li key={col.key}><strong>{col.label}:</strong> {item[col.key]}</li>
-        ))}
-      </ul>
+  {COLUMN_LABELS.map(col => (
+    <li key={col.key}>
+      <strong>{col.label}:</strong>{" "}
+      {col.key === "isStockTaking"
+        ? (item[col.key] ? "완료" : "미완료")
+        : item[col.key]}
+    </li>
+  ))}
+</ul>
+
     </div>
   );
 }
@@ -64,10 +70,16 @@ function SideDrawerDetail({ item, onClose }) {
         <button className="drawer-close" onClick={onClose}>×</button>
         <h2>자산 상세</h2>
         <ul>
-          {COLUMN_LABELS.map(col => (
-            <li key={col.key}><strong>{col.label}:</strong> {item[col.key]}</li>
-          ))}
-        </ul>
+  {COLUMN_LABELS.map(col => (
+    <li key={col.key}>
+      <strong>{col.label}:</strong>{" "}
+      {col.key === "isStockTaking"
+        ? (item[col.key] ? "완료" : "미완료")
+        : item[col.key]}
+    </li>
+  ))}
+</ul>
+
       </div>
     </>
   );
@@ -207,7 +219,8 @@ export default function StockTakingSearch() {
     
           const res  = await authFetchWithRefresh(url);
           const json = await res.json();
-    
+          console.log(JSON.stringify(json, null, 2));
+ 
           if (
             json.code !== 1 ||
             (!Array.isArray(json.data?.competedList) &&

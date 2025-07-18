@@ -1,0 +1,64 @@
+/* ScanPage.css */
+.scan-container {
+    width: 100%;
+    max-width: 400px;
+    margin: 60px auto;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    border-radius: 12px;
+    background: #fff;
+    text-align: center;
+  }
+  
+  .scan-container h3 {
+    margin-bottom: 20px;
+    font-size: 22px;
+    font-weight: bold;
+    color: #333;
+  }
+  
+  /* 바코드 입력 */
+  .scan-input {
+    width: 80%;
+    max-width: 300px;
+    padding: 12px 14px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-sizing: border-box;
+    margin-bottom: 14px;
+  }
+  
+  /* 조회 버튼 */
+  .scan-button {
+    width: 80%;
+    max-width: 300px;
+    padding: 12px 14px;
+    font-size: 16px;
+    background: #4caf50;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+  
+  .scan-button:hover {
+    background: #388e3c;
+  }
+  
+  /* 반응형 */
+  @media (max-width: 480px) {
+    .scan-container {
+      margin: 20px auto;
+      padding: 15px;
+    }
+  
+    .scan-input,
+    .scan-button {
+      width: 100%;
+      font-size: 14px;
+    }
+  }
+  
+  

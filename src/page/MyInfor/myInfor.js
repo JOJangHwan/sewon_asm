@@ -794,6 +794,7 @@ function DetailWrapper({ item, onClose }) {
 }
 
 function FullPageDetail({ item, onClose }) {
+  const isElectronic = item.parentCategory === "노트북" || item.parentCategory === "컴퓨터";
   return (
     <div className="detail-fullpage">
       <button className="detail-back" onClick={onClose}>← 뒤로</button>
@@ -804,7 +805,24 @@ function FullPageDetail({ item, onClose }) {
         <li><strong>부서:</strong> {item.department}</li>
         <li><strong>위치:</strong> {item.location}</li>
         <li><strong>취득일자:</strong> {item.acquisitionDate}</li>
-        <li><strong>취득가:</strong> {item.acquisitionPrice}</li>
+        <li><strong>취득가:</strong> {item.acquisitionPrice.toLocaleString()} 원</li>
+        <li><strong>취득구분:</strong> {item.division}</li>
+        <li><strong>자산분류:</strong> {item.parentCategory}</li>
+        <li><strong>품목:</strong> {item.childCategory}</li>
+        <li><strong>제조사:</strong> {item.manufacturer}</li>
+        <li><strong>모델:</strong> {item.model}</li>
+        <li><strong>자산상태:</strong> {item.status}</li>
+        <li><strong>등록자:</strong> {item.registerName}</li>
+        <li><strong>등록일:</strong> {item.registrationDate}</li>
+
+        {isElectronic && (
+          <>
+            <li><strong>CPU:</strong> {item.cpu}</li>
+            <li><strong>GPU:</strong> {item.gpu}</li>
+            <li><strong>RAM:</strong> {item.ram} GB</li>
+            <li><strong>Storage:</strong> {item.storage} GB</li>
+          </>
+        )}
       </ul>
     </div>
   );
@@ -812,6 +830,7 @@ function FullPageDetail({ item, onClose }) {
 
 
 function SideDrawerDetail({ item, onClose }) {
+  const isElectronic = ["노트북", "컴퓨터"].includes(item.childCategory);
   
   return (
     <>
@@ -825,7 +844,24 @@ function SideDrawerDetail({ item, onClose }) {
           <li><strong>부서:</strong> {item.department}</li>
           <li><strong>위치:</strong> {item.location}</li>
           <li><strong>취득일자:</strong> {item.acquisitionDate}</li>
-          <li><strong>취득가:</strong> {item.acquisitionPrice}</li>
+          <li><strong>취득가:</strong> {item.acquisitionPrice.toLocaleString()} 원</li>
+          <li><strong>취득구분:</strong> {item.division}</li>
+          <li><strong>자산분류:</strong> {item.parentCategory}</li>
+          <li><strong>품목:</strong> {item.childCategory}</li>
+          <li><strong>제조사:</strong> {item.manufacturer}</li>
+          <li><strong>모델:</strong> {item.model}</li>
+          <li><strong>자산상태:</strong> {item.status}</li>
+          <li><strong>등록자:</strong> {item.registerName}</li>
+          <li><strong>등록일:</strong> {item.registrationDate}</li>
+
+          {isElectronic && (
+            <>
+              <li><strong>CPU:</strong> {item.cpu}</li>
+              <li><strong>GPU:</strong> {item.gpu}</li>
+              <li><strong>RAM:</strong> {item.ram} GB</li>
+              <li><strong>Storage:</strong> {item.storage} GB</li>
+            </>
+          )}
         </ul>
       </div>
     </>

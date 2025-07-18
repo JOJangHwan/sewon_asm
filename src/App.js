@@ -19,6 +19,7 @@ import ScanPage from './page/Scan/Scan';
 import AssetDetailPage from './page/Scan/AssetDetailPage';
 import RegisterCorpAndItem from './page/admin/RegisterCorpAndItem';
 import DualTransferSimple from './page/Load/DualTransferSimple';
+import DisposalRegister from './page/Load/DisposalRegister'
 import Layout from './components/layout/Layout';
 
 import './index';
@@ -64,6 +65,7 @@ const AppRoutes = () => (
       <Route path="/main"               element={<PrivateRoute element={<HomePage />} />} />
       <Route path="/load/single"        element={<PrivateRoute element={<LoadSiglePage />} />} />
       <Route path="/load/bulk"          element={<PrivateRoute element={<LoadBulkPage />} />} />
+      <Route path="/load/disposal"      element={<PrivateRoute element={<DisposalRegister/>}/>}/>
       <Route path="/search"             element={<PrivateRoute element={<SearchPage />} />} />
       <Route path="/audit/upload"       element={<PrivateRoute element={<AuditLoadpage />} />} />
       <Route path="/audit/list"         element={<PrivateRoute element={<AuditListpage />} />} />

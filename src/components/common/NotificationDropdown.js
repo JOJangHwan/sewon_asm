@@ -1,5 +1,5 @@
 // src/components/NotificationDropdown.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './NotificationDropdown.css';
 
 function formatDateTime(input) {
@@ -26,21 +26,30 @@ function formatDateTime(input) {
   // ───────────────────────────────────────────
   // ESC 키, 바깥 클릭 시 닫기
   // ───────────────────────────────────────────
-  useEffect(() => {
-    const handleKey = e => e.key === 'Escape' && onClose?.();
-    const handleClick = e =>
-      anchorRef?.current &&
-      !anchorRef.current.contains(e.target) &&
-      !e.target.closest('.nd-panel') &&
-      onClose?.();
-
-    document.addEventListener('keydown', handleKey);
-    document.addEventListener('mousedown', handleClick);
-    return () => {
-      document.removeEventListener('keydown', handleKey);
-      document.removeEventListener('mousedown', handleClick);
-    };
-  }, [anchorRef, onClose]);
+  const panelRef = useRef();
+   useEffect(() => {
+       const handleClickOutside = (e) => {
+         if (
+           panelRef.current &&
+           !panelRef.current.contains(e.target) &&
+           (!anchorRef?.current || !anchorRef.current.contains(e.target))
+         ) {
+           onClose?.();
+         }
+       };
+     
+       const handleKey = e => {
+         if (e.key === 'Escape') onClose?.();
+       };
+     
+       document.addEventListener('mousedown', handleClickOutside);
+       document.addEventListener('keydown', handleKey);
+     
+       return () => {
+       document.removeEventListener('mousedown', handleClickOutside);
+         document.removeEventListener('keydown', handleKey);
+       };
+     }, [anchorRef, onClose]);
 
   // 탭별 데이터
 //    const listToRender =
@@ -49,8 +58,8 @@ function formatDateTime(input) {
 //        : []; // audit 탭은 아직 미사용
 
   return (
-    <div className="nd-root">
-      <div className="nd-panel">
+    <>
+<div ref={panelRef} className="nd-panel">
         {/* ───── 상단 헤더 ───── */}
         <header className="nd-header">
           <h3>알림창</h3>
@@ -82,15 +91,27 @@ function formatDateTime(input) {
        <>
          <div className="nd-subtitle">🆕 새로운 실사 알림</div>
          {sseAuditList.map((n) => (
-           <div
-             key={n.id}
-             className={`nd-item ${n.read ? 'read' : 'unread'}`}
-             onClick={() => onRead?.(n.id)}
-           >
+ <div
+   key={n.id}
+   className={`nd-item ${n.read ? 'read' : 'unread'}`}
+ >
              <div className="nd-msg">{n.text}</div>
              <div className="nd-meta">
-               <time>{formatDateTime(n.time)}</time>
-             </div>
+  <div className="nd-time">{formatDateTime(n.time)}</div>
+  <div className="nd-actions">
+    {!n.read && (
+      <button
+        className="nd-read-btn"
+        onClick={(e) => {
+          e.stopPropagation();
+          onRead?.(n.notificationId || n.id);
+        }}
+      >
+        읽음
+      </button>
+    )}
+  </div>
+</div>
            </div>
          ))}
        </>
@@ -100,18 +121,30 @@ function formatDateTime(input) {
      {Array.isArray(dbList) && dbList.length > 0 && (
        <>
          <div className="nd-subtitle">🗂️ 알림 이력</div>
-         {dbList
-           .filter((n) => n.type === 'AUDIT') // 👈 필요 시 필터
+          {dbList
+  .filter((n) => n.type === 'AUDIT' && !n.read)  // ✅ 안읽은 것만 출력
            .map((n) => (
              <div
                key={n.id}
                className={`nd-item ${n.read ? 'read' : 'unread'}`}
-               onClick={() => onRead?.(n.id)}
              >
                <div className="nd-msg">{n.text}</div>
                <div className="nd-meta">
-                 <time>{formatDateTime(n.time)}</time>
-               </div>
+  <div className="nd-time">{formatDateTime(n.time)}</div>
+  <div className="nd-actions">
+    {!n.read && (
+      <button
+        className="nd-read-btn"
+        onClick={(e) => {
+          e.stopPropagation();
+          onRead?.(n.notificationId || n.id);
+        }}
+      >
+        읽음
+      </button>
+    )}
+  </div>
+</div>
              </div>
          ))}
        </>
@@ -128,19 +161,27 @@ function formatDateTime(input) {
         <>
           <div className="nd-subtitle">🆕 새로운 알림</div>
           {sseRentList.map((n) => (
-            <div
-              key={n.id}
-              className={`nd-item ${n.read ? 'read' : 'unread'}`}
-              onClick={() => onRead?.(n.id)}
-            >
+ <div
+   key={n.id}
+   className={`nd-item ${n.read ? 'read' : 'unread'}`}
+ >
               <div className="nd-msg">{n.text}</div>
               <div className="nd-meta">
-              <time>{formatDateTime(n.time)}</time>
-                {/* <button onClick={(e) => {
-                  e.stopPropagation();
-                  onDelete?.(n.id);
-                }}>삭제</button> */}
-              </div>
+  <div className="nd-time">{formatDateTime(n.time)}</div>
+  <div className="nd-actions">
+    {!n.read && (
+      <button
+        className="nd-read-btn"
+        onClick={(e) => {
+          e.stopPropagation();
+          onRead?.(n.notificationId || n.id);
+        }}
+      >
+        읽음
+      </button>
+    )}
+  </div>
+</div>
             </div>
           ))}
         </>
@@ -150,27 +191,31 @@ function formatDateTime(input) {
 {Array.isArray(dbList) && dbList.filter(n => n.type !== 'AUDIT').length > 0 && (
         <>
           <div className="nd-subtitle">🗂️ 알림 이력</div>
-          {dbList
-           .filter((n) => n.type !== 'AUDIT')
+           {dbList
+   .filter((n) => n.type !== 'AUDIT' && !n.read) // ✅ 안읽은 것만 출력
           .map((n) => (
             
-            <div
-              key={n.id}
-              className={`nd-item ${n.read ? 'read' : 'unread'}`}
-              onClick={() => onRead?.(n.id)}
-            >
+             <div
+               key={n.id}
+               className={`nd-item ${n.read ? 'read' : 'unread'}`}
+             >
               <div className="nd-msg">{n.text}</div>
               <div className="nd-meta">
-                <time>{formatDateTime(n.time)}</time>
-                {/* <button
-  onClick={(e) => {
-    e.stopPropagation();
-    if (onDelete) onDelete(n.id);
-  }}
->
-  삭제
-</button> */}
-              </div>
+  <div className="nd-time">{formatDateTime(n.time)}</div>
+  <div className="nd-actions">
+    {!n.read && (
+      <button
+        className="nd-read-btn"
+        onClick={(e) => {
+          e.stopPropagation();
+          onRead?.(n.notificationId || n.id);
+        }}
+      >
+        읽음
+      </button>
+    )}
+  </div>
+</div>
             </div>
           ))}
         </>
@@ -184,6 +229,6 @@ function formatDateTime(input) {
 </section>
 
       </div>
-    </div>
+      </>
   );
 }

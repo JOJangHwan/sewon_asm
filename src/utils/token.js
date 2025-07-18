@@ -1,9 +1,7 @@
 // utils/token.js
 export const saveTokens = ({ accessToken, refreshToken }) => {
-  localStorage.setItem('accessToken', accessToken.token);
-  localStorage.setItem('refreshToken', refreshToken.token);
-  localStorage.setItem('accessExp', accessToken.expiration);
-  localStorage.setItem('refreshExp', refreshToken.expiration);
+  localStorage.setItem('accessToken', typeof accessToken === 'object' ? accessToken.token : accessToken);
+  localStorage.setItem('refreshToken', typeof refreshToken === 'object' ? refreshToken.token : refreshToken);
 };
 
 export const getAccessToken = () => localStorage.getItem('accessToken');

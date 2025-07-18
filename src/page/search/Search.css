@@ -119,6 +119,49 @@
 .srch-asset-table tbody tr:hover,
 .search-asset-table tbody tr:hover { background: #f9fafb; }
 
+.detail-panel {
+  position: fixed;
+  right: 0;
+  top: 0;
+  width: 400px;
+  height: 100%;
+  background: #fff;
+  box-shadow: -2px 0 5px rgba(0,0,0,0.3);
+  padding: 20px;
+  overflow-y: auto;
+  z-index: 1000;
+}
+
+.detail-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.2); /* 약간 투명한 배경 */
+  display: flex;
+  justify-content: flex-end; /* 사이드패널 */
+  z-index: 9999;
+}
+
+.detail-panel {
+  width: 300px;
+  background: white;
+  height: 100%;
+  padding: 20px;
+  overflow-y: auto;
+  box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+}
+
+
+.detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.detail-body p {
+  margin: 8px 0;
+}
+
+
 /* =========================================
    5. 반응형
 =========================================*/

@@ -30,85 +30,43 @@ function Header({ toggleSidebar, isSidebarOpen }) {
   
     const connectSSE = async () => {
       const userId = user?.id;
-     // console.log(user);
-      if (!userId) {
-        console.warn('❗ userId가 없습니다. SSE 연결 중단');
-        return;
-      }
+      if (!userId) return;
   
-            /* 1️⃣ 토큰을 안전하게 얻어오기 ─ 예외가 나더라도 화면이 죽지 않도록     */
-            let rawToken;
-            try {
-              rawToken = await getValidAccessToken();      // ← 유효 accessToken or null
-            } catch (err) {
-              console.error('🔑 토큰 갱신 실패:', err);
-              return;                                      // → SSE 연결 시도 중단
-            }
-      
-            /* 2️⃣ 토큰이 없으면 그냥 종료 (로그아웃 상태)                              */
-            if (!rawToken) {
-              console.warn('❗ accessToken 없음 → SSE 연결 중단');
-              return;
-            }
-      
-     // console.log('🔐 rawToken:', rawToken);
-      
-      const encodedToken = encodeURIComponent(rawToken);
-      console.log('🔗 encodedToken:', encodedToken);
-      
-      const url = `${API_BASE_URL}/notifications/connect/${userId}?token=${encodedToken}`;
-      console.log('📡 SSE 연결 URL:', url);
-      sse = new EventSource(url);
-
-
-
-
-       sse.addEventListener('connect', (event) => {
-         console.log('📨 [message] 기본 이벤트 수신:', event.data);
-     });
+      try {
+        const rawToken = await getValidAccessToken();   // ✅ 이 부분
+        const encodedToken = encodeURIComponent(rawToken); // ✅ 이 부분
+        const url = `${API_BASE_URL}/notifications/connect/${userId}?token=${encodedToken}`;
   
-      sse.addEventListener('notification', (event) => {
-console.log('🔔[notification] 알림 수신', event.data);
-        const outer   = JSON.parse(event.data);             // {data:{…}} or {…}
-        const parsed  = outer.data ?? outer;                // 래퍼 제거
-
-        const text = parsed.content ?? parsed.message;
-        const type = parsed.type ?? classifyByContent(text); // ← 핵심
-
-        const formatted = {
-          id   : parsed.id ?? Date.now(),
-          text : text,
-          time : parsed.notifyTime,
-          read : false,
-          type
+        console.log("📡 SSE 연결 URL:", url);
+  
+        sse = new EventSource(url);
+  
+        sse.addEventListener('connect', (event) => {
+          console.log('📨 [connect] 연결됨:', event.data);
+        });
+  
+        sse.addEventListener('notification', (event) => {
+          // 알림 수신 처리
+        });
+  
+        sse.onerror = (err) => {
+          console.error("❌ SSE 오류:", err);
+          sse.close();
+          setTimeout(connectSSE, 10000); // 재연결
         };
-
-        if (type === 'RENT_RETURN') {
-          setSseRent (prev => [formatted, ...prev]);
-        } else {
-          setSseAudit(prev => [formatted, ...prev]);
-        }
-
-
-      });
   
-      sse.onerror = (err) => {
-        console.error('❌ SSE 오류:', err);
-        sse.close();
-        setTimeout(connectSSE, 10_000);
-      };
+      } catch (e) {
+        console.error("🔐 SSE 연결 중 토큰 문제:", e);
+      }
     };
   
-        // connectSSE();
-         if (user?.id) {
-             connectSSE();
-           }
-        fetchDbNotifications();          // 📥 과거 알림 이력 로드
+    if (user?.id) connectSSE();
   
     return () => {
       if (sse) sse.close();
     };
-  }, [user]); // user 변경될 때마다 재연결
+  }, [user]);
+  
 
     /* ──────────────────────────────────────
      과거 알림 GET /notifications
@@ -116,14 +74,14 @@ console.log('🔔[notification] 알림 수신', event.data);
   const fetchDbNotifications = async () => {
     try {
        const url = `${API_BASE_URL}/notifications`;
-       console.log("db 알림조회 url : " + url);
+      // console.log("db 알림조회 url : " + url);
        const res = await authFetchWithRefresh(url, {
         method: 'GET',
       });
-      console.log("🔗 알림 응답 res:", res); // ✅ 이 위치는 OK
+      //console.log("🔗 알림 응답 res:", res); // ✅ 이 위치는 OK
 
        const payload = await res.json();          
-       console.log("📦 받은 데이터:", payload);
+     //  console.log("📦 받은 데이터:", payload);
        
                  const mapped  = (payload.data?.list || []).map((n) => ({
                     id  : n.id,
@@ -153,42 +111,38 @@ console.log('🔔[notification] 알림 수신', event.data);
       };
 
 
-       const markAsRead = async (id) => {
-           let alreadyRead = false;
-        
-           // 프론트 기준 읽음 여부 확인
-           const all = [...sseRent, ...sseAudit, ...dbNoti];
-           const target = all.find(n => n.id === id);
-           if (target?.read) {
-             alreadyRead = true;
-           }
-        
-           // UI 상태 업데이트는 항상 수행
-           setSseRent (prev => prev.map(n => (n.id === id ? { ...n, read: true } : n)));
-           setSseAudit(prev => prev.map(n => (n.id === id ? { ...n, read: true } : n)));
-           setDbNoti  (prev => prev.map(n => (n.id === id ? { ...n, read: true } : n)));
-        
-           // 서버에는 아직 안 읽은 경우만 요청
-           if (!alreadyRead) {
-             try {
-               await authFetchWithRefresh(`${API_BASE_URL}/notifications/read/${id}`, {
-                 method: 'POST',
-               });
-             } catch (e) {
-               console.warn('❗ 읽음 처리 실패:', e);
-             }
-           }
-         };
+      const markAsRead = async (notificationId) => {
+          // ✅ 읽음 시 실시간 알림은 제거, DB 알림은 read 처리
+          setSseRent(prev => prev.filter(n => n.notificationId !== notificationId));
+          setSseAudit(prev => prev.filter(n => n.notificationId !== notificationId));
+          setDbNoti(prev => prev.map(n =>
+            (n.notificationId === notificationId || n.id === notificationId)
+              ? { ...n, read: true }
+              : n
+        ));
+      
+        // ✅ 서버 요청 시 id 그대로 사용
+          // ✅ DB에 읽음 처리 요청은 항상 시도
+          try {
+            await authFetchWithRefresh(`${API_BASE_URL}/notifications/read/${notificationId}`, {
+              method: 'POST',
+            });
+          } catch (e) {
+            console.warn('❗ 읽음 처리 실패:', e);
+          }
+      };
 
          const markAllAsRead = () => {
              setSseRent (prev => prev.map(n => ({ ...n, read: true })));
              setSseAudit(prev => prev.map(n => ({ ...n, read: true })));
            };
 
-  const deleteNotification = (id) => {
-       setSseRent (prev => prev.filter(n => n.id !== id));
-       setSseAudit(prev => prev.filter(n => n.id !== id));
-      };
+           const deleteNotification = (id) => {
+            setSseRent (prev => prev.filter(n => n.notificationId !== id));
+            setSseAudit(prev => prev.filter(n => n.notificationId !== id));
+            //setDbNoti(prev => prev.filter(n => n.id !== id)); // DB도 같이 삭제하고 싶으면 추가
+         };
+         
 
        const unreadCount =
          [...sseRent, ...sseAudit].filter(n => !n.read).length;
@@ -222,9 +176,9 @@ console.log('🔔[notification] 알림 수신', event.data);
            <Link to="/rent" className="header-alarm">
           <img src={rentImg} alt="렌트" className="header-icon" />
         </Link>    
-         {/* <Link to="/scan" className="header-alarm">
+         <Link to="/scan" className="header-alarm">
           <img src={ScanImg} alt="스캔" className="header-icon" />
-        </Link>  */}
+        </Link>  
 
  {/* 알림 아이콘 */}
 <div className="header-alarm" onClick={toggleAlarm} style={{ position: 'relative' }}>
@@ -242,15 +196,15 @@ console.log('🔔[notification] 알림 수신', event.data);
   //   onRead={markAsRead}
   //   onDelete={deleteNotification}
   // />
-    <NotificationDropdown
-    anchorRef={alarmRef}
-    onClose={() => setIsAlarmOpen(false)}
-     sseRentList={sseRent}            // ✅
-     sseAuditList={sseAudit}          // ✅
-    dbList={dbNoti}
-    onRead={markAsRead}
-    onDelete={deleteNotification}
-  />
+<NotificationDropdown
+  anchorRef={alarmRef}
+  onClose={() => setIsAlarmOpen(false)}
+  sseRentList={sseRent.filter(n => !n.read)}    // ❗ 읽지 않은 것만 전달
+  sseAuditList={sseAudit.filter(n => !n.read)}  // ❗ 읽지 않은 것만 전달
+  dbList={dbNoti.filter(n => !n.read)}          // ❗ 읽지 않은 것만 전달
+  onRead={markAsRead}
+  onDelete={deleteNotification}
+/>
   
 )}
 

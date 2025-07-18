@@ -114,7 +114,7 @@ if (current.password) changed.password = current.password;
                         username:     payload.username ?? userInfo.id,
                         company:      company,                 // 추가!
                         department:   department,              // 추가!
-                        affiliationId // 그대로 유지
+                        affiliationId: affiliationId
                       };
                       
                 
@@ -193,19 +193,22 @@ console.log('[토큰 재발급 응답]', refJson);
 
   <label>회사구분</label>
   <select value={company} onChange={handleCompanyChange}>
-    {companies.map(corp => (
-    <option key={corp.id} value={corp.name}>{corp.name}</option>
+  {companies.map(corp => (
+    <option key={corp.id} value={corp.name}>
+      {corp.name}
+    </option>
   ))}
-  </select>
+</select>
 
   <label>부서구분</label>
   <select value={department} onChange={e => setDepartment(e.target.value)}>
-    {departments.map(dept => (
+  {departments.map(dept => (
     <option key={dept.affiliationId} value={dept.department}>
       {dept.department}
     </option>
   ))}
-  </select>
+</select>
+
 
   <label>이름</label>
   <input

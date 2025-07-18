@@ -1,0 +1,223 @@
+.disposal-container {
+  max-width: 800px;    /* 기존 400px → 800px */
+    margin: auto;
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    font-family: sans-serif;
+  }
+  
+  .disposal-title {
+    text-align: center;
+  }
+  .row-success {
+    background-color: #d0f0c0 !important; /* 연한 초록 */
+  }
+  
+  .row-fail {
+    background-color: #ffd6d6 !important; /* 연한 빨강 */
+  }
+  .status-summary {
+    margin-top: 20px;
+    margin-bottom: 10px;
+    text-align: center;
+    font-size: 14px;
+
+   color: #000000;   /* 검은색 */
+  }
+
+.status-summary p {
+  margin: 4px 0;
+}
+
+/* 공통 버튼 */
+.disposal-btn {
+  padding: 12px 24px;
+  margin: 5px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+}
+.disposal-btn-reset {
+  background: #616161;   /* 진회색 */
+  color: #fff;
+  width: 48%;
+  margin-top: 20px;
+}
+
+/* 추가 버튼만 폭 줄이기 */
+.disposal-btn-add {
+  width: 80px;
+  padding: 8px 12px;   /* 추가 버튼 작게 */
+  background: #2196F3;
+  color: #fff;
+  white-space: nowrap;
+}
+
+/* 삭제 버튼만 더 작게 */
+.disposal-btn-delete {
+  width: 80px;
+  height: 40px;
+  padding: 6px 10px;   /* 삭제 버튼 더 작게 */
+  background: #f44336;
+  color: #fff;
+  white-space: nowrap;
+  font-size: 14px;
+}
+  
+  .disposal-btn-scan { background: #4CAF50; color: #fff; }
+  .disposal-btn-add { background: #2196F3; color: #fff; }
+  .disposal-btn-delete { background: #f44336; color: #fff; }
+  .disposal-btn-submit { background: #ff9800; color: #fff; width: 48%; margin-top: 20px; }
+  .disposal-btn-remove { background: #9E9E9E; color: #fff; width: 48%; margin-top: 20px; }
+  
+  .disposal-input {
+    padding: 10px;
+    width: 60%;           /* 기존 80% → 60%로 변경 */
+    margin-right: 5px;
+  }
+  
+  .disposal-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+  
+  .disposal-table th, .disposal-table td {
+    padding: 12px;
+    border-bottom: 1px solid #ccc;
+    text-align: center;
+    font-size: 15px;
+  }
+  
+  .disposal-button-group {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+  }
+  
+  .disposal-pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+    gap: 8px;
+    flex-wrap: nowrap;
+  }
+  
+  .disposal-page-btn {
+    width: 50px;
+    background: #ff9800;;        /* 노란색 계열 */
+    border: none;
+    padding: 6px 10px;  
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 14px;     
+    min-width: 30px;     
+    transition: background 0.2s;
+  }
+  .disposal-page-btn:hover:not(:disabled) {
+    background: #FFC107;        /* 진한 노랑 (hover 효과) */
+  }
+  
+  .disposal-page-btn.active {
+    background: #FFB300;        /* 현재 페이지는 더 진한 노랑 */
+    font-weight: bold;
+  }
+  
+  .disposal-page-btn:disabled {
+    background: #ccc;           /* 비활성 버튼은 회색 */
+    cursor: not-allowed;
+  }
+  
+  .disposal-page-btn.active {
+    font-weight: bold;
+    background: #bbb;
+  }
+
+   .disposal-input-row {
+       display: flex;
+       align-items: center;
+       justify-content: center;
+       gap: 10px;
+       margin-top: 15px;
+     }
+    
+     .disposal-qr-img {
+       width: 40px;
+       height: 40px;
+       cursor: pointer;
+     }
+  
+     .qr-reader {
+         width: 100%;
+         max-width: 300px;
+         margin: 20px auto;
+       }
+
+       /* 반응형 */
+@media (max-width: 768px) {
+
+  .disposal-btn-reset {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+  }
+  .disposal-container {
+    width: 95%;
+    padding: 10px;
+  }
+
+  .disposal-input-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .disposal-qr-img {
+    width: 60px;
+    height: 60px;
+    margin: auto;
+  }
+
+  .disposal-input {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+  }
+
+  .disposal-btn-add {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+  }
+
+  .disposal-btn-delete {
+    padding: 6px 10px;
+    font-size: 14px;
+  }
+
+  .disposal-pagination {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .disposal-page-btn {
+    padding: 5px 8px;
+    font-size: 13px;
+    min-width: 28px;
+  }
+
+  .disposal-button-group {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .disposal-btn-submit,
+  .disposal-btn-remove {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+  }
+}

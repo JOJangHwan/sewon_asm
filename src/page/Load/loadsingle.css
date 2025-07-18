@@ -57,6 +57,11 @@
   border: 1px solid #ccc;
   border-radius: 6px;
   transition: border-color 0.2s;
+
+   width: 100%;    /* ✅ 가로 사이즈 통일 */
+ box-sizing: border-box; /* ✅ padding 포함 너비 계산 */
+
+  
 }
 
 .form-row input:focus,

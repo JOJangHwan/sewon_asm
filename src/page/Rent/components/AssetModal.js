@@ -28,6 +28,23 @@ const [rentalCorporationId, setRentalCorporationId] = useState('');
 const [rentalAffiliationId, setRentalAffiliationId] = useState('');
 const [rentalLocationId, setRentalLocationId] = useState('');
 
+ const resetForm = () => {
+     setFormData({
+       assetId: '',
+       assetType: '',
+       itemName: '',
+       asset: '',
+       detailLocation: '',
+       registrar: '',
+       startDate: '',
+       endDate: '',
+     });
+   
+     setRentalCorporationId('');
+     setRentalAffiliationId('');
+     setRentalLocationId('');
+   };
+
   const [formData, setFormData] = useState({
     assetId: '', 
     assetType: '',
@@ -79,6 +96,12 @@ const [rentalLocationId, setRentalLocationId] = useState('');
     })();
   }, [isOpen]);
 
+   useEffect(() => {
+       if (!isOpen) {
+         resetForm();
+       }
+     }, [isOpen]);
+
   //console.log('[user context]', user);
 
   //console.log('[localStorage name]', localStorage.getItem('name'));
@@ -113,16 +136,15 @@ const rentalLocations = useMemo(() => {
 
   const handleAssetSelect = (asset) => {
     setFormData(prev => ({
-        assetId:         asset.id, 
-          assetType:        asset.parentCategory   ?? '',  // 대분류
-         itemName:         asset.childCategory    ?? '',  // 품목
-          asset:            asset.barcode          ?? '',  // 바코드
-          detailLocation:   asset.location         ?? '',  // 세부위치
-          registrar:        asset.registerName     ?? '',  // 등록자
-          startDate:       prev.startDate,        // ⭐ 이전값 유지
-          endDate:         prev.endDate,          // ⭐ 이전값 유지
-
-        }));
+       assetId: asset.assetId,
+       assetType: asset.assetType,         // 자산분류 (사이드패널에서 가져옴)
+       itemName: asset.itemName,           // 품목 (사이드패널에서 가져옴)
+       asset: asset.asset,                 // 바코드
+       detailLocation: asset.detailLocation, // division -> 세부위치
+       registrar: asset.registrar,
+       startDate: prev.startDate,
+       endDate: prev.endDate,
+      }));
     setIsSlideOpen(false);
   };
 
@@ -288,6 +310,11 @@ const rentalLocations = useMemo(() => {
 
           </>
         )}
+         <div className="row">
+   <button className="reset-btn" onClick={resetForm}>
+     초기화
+   </button>
+ </div>
 
         <button className="submit-btn" onClick={handleSubmit}>
           {mode === 'rent' ? '대여신청' : '반납처리'}

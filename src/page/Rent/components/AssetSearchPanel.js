@@ -143,8 +143,13 @@ export default function AssetSearchPanel({ isOpen, onClose, onSelect }) {
         `${API_BASE_URL}/assets/paged/rental/enabled?${params.toString()}`
       );
       const json = await res.json();
-      setAssets(json.code === 1 ? json.data.list : []);
+         // 🔍 여기에서 콘솔 출력
+         console.log("📥 대여 가능 자산 조회 API 응답 전체:", json);
+         console.log("📦 data:", json.data);
+      // setAssets(json.code === 1 ? json.data.list : []);
+      setAssets(json.code === 1 && Array.isArray(json.data) ? json.data : []);
     } catch (e) {
+      console.error("❌ 대여 자산 검색 실패:", e);
       setAssets([]);
     } finally {
       setLoading(false);
@@ -286,12 +291,12 @@ export default function AssetSearchPanel({ isOpen, onClose, onSelect }) {
     onKeyDown={e => e.key === "Enter" && handleSearch()}
   />
   */}
-  <button
-    onClick={handleSearch}
-    disabled={!locationId} // ← locationId 없으면 비활성
-  >
-    🔍
-  </button>
+<button
+  onClick={handleSearch}
+  disabled={!locationId || !parentId || !childId}  // 3개 모두 선택해야 활성화
+>
+  🔍
+</button>
 </div>
         
 
@@ -301,7 +306,6 @@ export default function AssetSearchPanel({ isOpen, onClose, onSelect }) {
             <tr>
               <th>번호</th>
               <th>바코드</th>
-              <th>세부위치</th>
               <th>자산상태</th>
               <th>등록자</th>
               <th>선택</th>
@@ -318,13 +322,20 @@ export default function AssetSearchPanel({ isOpen, onClose, onSelect }) {
                 <tr key={asset.id}>
                   <td>{idx + 1}</td>
                   <td>{asset.barcode}</td>
-                  <td>{asset.location}</td>
                   <td>{asset.status}</td>
                   <td>{asset.registerName}</td>
                   <td>
                     <button
                       className="asp-select-btn"
-                      onClick={() => onSelect(asset)}
+                      onClick={() => onSelect({
+                         assetId: asset.id,            // ✅ id 전달
+                         asset: asset.barcode,         // ✅ 바코드
+                         detailLocation: asset.division, // ✅ 세부위치에 division
+                         registrar: asset.registerName, // ✅ 등록자
+                         status: asset.status,          // ✅ 상태
+                         assetType: parentName,         // ✅ 자산분류 (사이드패널 선택값)
+                         itemName: childName            // ✅ 품목 (사이드패널 선택값)
+                        })}
                     >
                       선택
                     </button>

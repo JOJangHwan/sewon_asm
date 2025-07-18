@@ -16,6 +16,7 @@ const AuditLoad = () => {
 
   const [searchBarcode, setSearchBarcode] = useState('');
   const [items, setItems] = useState([]);
+  const [notFoundList, setNotFoundList] = useState([]); // ❗ NOT_FOUND 전용 상태
   const [scannerVisible, setScannerVisible] = useState(false);
   const [scannerInstance, setScannerInstance] = useState(null);
   const [selectedLocationId, setSelectedLocationId] = useState(''); // ✨ 항상 ''(초기값)
@@ -224,16 +225,12 @@ const AuditLoad = () => {
   
       const { matchItem = [], unmatchItem = [], disableItem = [] } = result.data || {};
       const barcodeStatusMap = {};
-
-            [...matchItem, ...unmatchItem].forEach(i => {
-                const assetLocation = i.assetLocation?.trim() || '';
-                const stockLocation = i.stockTakingLocation?.trim() || '';
-                const isMismatch = assetLocation !== stockLocation;
-                barcodeStatusMap[i.barcode] = {
-                  status: isMismatch ? 'MISMATCH' : 'MATCH',
-                  errorMessage: isMismatch ? '실사 위치가 자산 위치와 다릅니다.' : ''
-                };
-              });
+       [...matchItem, ...unmatchItem].forEach(i => {
+             barcodeStatusMap[i.barcode] = {
+               status: i.status, // 서버 status 그대로 사용
+               errorMessage: i.status === 'MISMATCH' ? '실사 위치가 자산 위치와 다릅니다.' : ''
+             };
+         });
       // DISABLE
       disableItem.forEach(i => {
         barcodeStatusMap[i.barcode] = {
@@ -241,27 +238,101 @@ const AuditLoad = () => {
           errorMessage: '이관처리를 해야됩니다.'
         };
       });
+
+      // ✅ 찾을 수 없는 바코드 처리
+const selectedBarcodes = selectedItems.map(item => item.barcode);
+const returnedBarcodes = [...matchItem, ...unmatchItem, ...disableItem].map(i => i.barcode);
+const notFoundBarcodes = selectedBarcodes.filter(b => !returnedBarcodes.includes(b));
   
       // 👇 상태에 맞게 비고/에러메시지 지정!
       if (result.code === 1) {
         const updates = items.map(item => {
           const mapped = barcodeStatusMap[item.barcode];
           if (mapped) {
+               // 상태별로 에러메시지 덮어쓰기 정책 분리
+   if (mapped.status === 'MISMATCH') {
+     return {
+       ...item,
+       status: 'MISMATCH',
+       errorMessage: '실사 위치가 자산 위치와 다릅니다.',
+     };
+   }
+   if (mapped.status === 'DISABLE') {
+     return {
+       ...item,
+       status: 'DISABLE',
+       errorMessage: '이관처리를 해야됩니다.',
+     };
+   }
+   // MATCH는 상태만 변경하고 비고는 유지 또는 초기화 가능
+   return {
+     ...item,
+     status: 'MATCH',
+     errorMessage: '', // 정상인 경우 비고를 비움
+   };
+          }
+          if (selectedBarcodes.includes(item.barcode)) {
+            // 검증 요청했지만 응답이 없는 바코드 → NOT_FOUND 처리
             return {
               ...item,
-              status: mapped.status,
-              errorMessage: mapped.errorMessage,
+              status: 'NOT_FOUND',
+              errorMessage: 'DB에서 바코드를 찾을 수 없습니다.',
             };
           }
-          // 검증에 포함되지 않은 항목은 기존값 유지
           return item;
         });
         setItems(updates);
         alert('✅ 검증이 완료되었습니다.');
       }
     } catch (err) {
+            // 🔍 서버 응답을 콘솔에 자세히 출력
+            if (err instanceof Response) {
+              const text = await err.text();
+              console.error('🚨 [서버 응답 text]', text);
+              try {
+                const json = JSON.parse(text);
+                console.log('🚨 [서버 응답 JSON]', json);
+                console.log('🚨 [서버 응답 message]', json.message);
+                console.log('🚨 [서버 응답 status]', json.status);
+                console.log('🚨 [서버 응답 path]', json.path);
+              } catch (e) {
+                console.log('🚨 [서버 응답이 JSON 아님]', text);
+              }
+      
+              if (text.includes('바코드로 자산을 찾을 수 없습니다')) {
+                const updates = items.map(item => {
+                  if (selectedItems.some(sel => sel.barcode === item.barcode)) {
+                    return {
+                      ...item,
+                      status: 'NOT_FOUND',
+                      errorMessage: '서버에 자산 정보가 없습니다.',
+                    };
+                  }
+                  return item;
+                });
+                setItems(updates);
+      
+                // 🔍 찾을 수 없는 목록만 콘솔 출력
+                const notFoundList = selectedItems
+                  .map(sel => sel.barcode)
+                  .filter(bc => !items.some(item => item.barcode === bc && item.status !== 'NOT_FOUND'));
+                console.log('❗ [NOT_FOUND 바코드 목록]', notFoundList);
+                return;
+              }
+            }
+
       alert('🚨 검증 중 오류가 발생했습니다.');
       console.error(err);
+
+      if (err instanceof Response) {
+        const text = await err.text();
+        console.error('🚨 서버 응답 본문:', text);
+      } else if (err.message) {
+        console.error('🚨 오류 메시지:', err.message);
+      } else {
+        console.error('🚨 알 수 없는 오류:', err);
+      }
+      
     }
   };
 
@@ -269,8 +340,14 @@ const AuditLoad = () => {
     if (!selectedLocationId) return; // 반드시 선택 필요
     const selectedItems = items.filter((item) => item.selected);
     const itemsToRegister = selectedItems.length === 0 ? items : selectedItems;
+      // ✅ 검증 안한 상태면 등록 막기
+  const hasUnverified = itemsToRegister.some(item => !item.status);
+  if (hasUnverified) {
+    alert('❗ 먼저 검증을 진행해주세요.');
+    return;
+  }
     if (selectedItems.length === 0) return alert('등록할 항목이 없습니다.');
-    if (selectedItems.some(item => item.status === 'DISABLE')) {
+    if (selectedItems.some(item => item.status === 'DISABLE' || item.status === 'NOT_FOUND')) {
       alert('등록이 불가능한 자산이 포함되어 있습니다. 비고란을 확인하세요.');
       return;
     }
@@ -374,13 +451,13 @@ const AuditLoad = () => {
       </div>
       <div className="barcode-row-split">
         <div className="barcode-left">
-          <img
+          {/* <img
             src={barcodeIcon}
             alt="바코드 스캔"
             className="barcode-icon"
             onClick={handleBarcodeClick}
             style={{ cursor: selectedLocationId ? 'pointer' : 'not-allowed', opacity: selectedLocationId ? 1 : 0.5 }}
-          />
+          /> */}
           <input
             type="text"
             placeholder="바코드 직접 입력 후 Enter"
@@ -425,22 +502,25 @@ const AuditLoad = () => {
           >
             검증하기
           </button>
-          <Tooltip message="실사는 세부위치 기준으로 시작일 포함 5일간만 등록 가능합니다.">
+          <Tooltip message="실사는 세부위치 기준으로 시작일 포함 2주간만 등록 가능합니다.">
           <button
-            className="register-btn"
-            onClick={handleRegister}
-            disabled={
-              !selectedLocationId ||
-              items.some(item => item.selected && item.status === 'DISABLE')
-            }
-            style={{
-              backgroundColor: !selectedLocationId ? '#ccc' : undefined,
-              color: !selectedLocationId ? '#666' : undefined,
-              cursor: !selectedLocationId ? 'not-allowed' : 'pointer'
-            }}
-          >
-            등록하기
-          </button>
+  className="register-btn"
+  onClick={handleRegister}
+  disabled={
+    !selectedLocationId ||
+    items.some(item => 
+      item.selected && 
+      (item.status === 'DISABLE' || item.status === 'NOT_FOUND')
+    )
+  }
+  style={{
+    backgroundColor: !selectedLocationId ? '#ccc' : undefined,
+    color: !selectedLocationId ? '#666' : undefined,
+    cursor: !selectedLocationId ? 'not-allowed' : 'pointer'
+  }}
+>
+  등록하기
+</button>
           </Tooltip>
         </div>
       </div>
@@ -478,6 +558,16 @@ const AuditLoad = () => {
         </tbody>
       </table>
       <div className="audit-card-list">
+      <div className="card-select-all">
+    <label>
+      <input 
+        type="checkbox" 
+        onChange={handleSelectAll} 
+        checked={items.every(it => it.selected) && items.length > 0} 
+      />
+      전체 선택
+    </label>
+  </div>
         {items.map((item, index) => (
           <div
             key={index}
@@ -494,15 +584,17 @@ const AuditLoad = () => {
             </div>
             {item.errorMessage && (
               <div className="card-remark">
-                {item.status === 'MATCH' && <span style={{ color: '#388e3c' }}>정상</span>}
-                {item.status === 'MISMATCH' && <span style={{ color: '#fbc02d' }}>위치불일치</span>}
-                {item.status === 'DISABLE' && <span style={{ color: '#e53935' }}>등록불가</span>}
+{item.status === 'MATCH' && <span style={{ color: '#388e3c' }}>정상</span>}
+{item.status === 'MISMATCH' && <span style={{ color: '#fbc02d' }}>위치불일치</span>}
+{item.status === 'DISABLE' && <span style={{ color: '#e53935' }}>등록불가</span>}
+{item.status === 'NOT_FOUND' && <span style={{ color: '#e53935' }}>바코드 없음</span>}
               </div>
             )}
           </div>
         ))}
       </div>
     </div>
+    
   );
 };
 

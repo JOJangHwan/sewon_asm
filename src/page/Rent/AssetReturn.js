@@ -15,7 +15,7 @@ export default function AssetReturnListPage() {
   // const affiliationId = localStorage.getItem('affiliationId');
   const { user } = useContext(UserContext);
   const affiliationId = user?.affiliationId;
-  const loginUser     = user?.name || '홍길동'; 
+  const loginUser     = user?.name; 
   const isMobile = useMediaQuery('(max-width: 768px)');
 
   const [checkedItems, setCheckedItems] = useState([]);
@@ -41,12 +41,12 @@ export default function AssetReturnListPage() {
   const handleRequestReturn = async () => {
     // checkedItems에서 id 추출
     const toRequest = checkedItems
-      .map((barcode) => {
-        const asset = assets.find((a) => a.barcode === barcode);
-        // "대여 중인 자산"만 (즉, borrower가 나인 것만)
-        return asset && asset.borrower === loginUser ? asset.id : null;
-      })
-      .filter(Boolean);
+    .map((barcode) => {
+      const asset = assets.find((a) => a.barcode === barcode);
+      // return asset && asset.borrower === loginUser ? asset.id : null;
+      return asset ? asset.id : null;
+    })
+    .filter(Boolean);
   
     if (toRequest.length === 0) {
       alert('반납 신청할 항목이 없습니다.');
@@ -226,7 +226,8 @@ const handleReject = async () => {
 
 
     // 3가지 상태로 필터링
-    const borrowedAssets    = assets.filter(a => a.borrower === loginUser);                          // 대여 중인 자산
+    // const borrowedAssets    = assets.filter(a => a.borrower === loginUser);                          // 대여 중인 자산
+    const borrowedAssets = assets.filter(a => a.borrower !== '신청중');
     const requestedReturns  = assets.filter(a => a.borrower === '신청중' && a.registrar !== loginUser); // 반납 신청한 자산
     // incomingRequests  = assets.filter(a => a.borrower === '신청중' && a.registrar === loginUser); // 반납 신청 내역
   
@@ -239,6 +240,7 @@ const handleReject = async () => {
             `${API_BASE_URL}/rental?affiliationId=${affiliationId}`,
             { method: 'GET' }
           );
+          console.log("[대여부분 대여중]"+res);
           const json = await res.json();
           if (json.code !== 1) return;
           console.log('[서버 응답 데이터]', json.data?.list);
@@ -389,11 +391,11 @@ const handleReject = async () => {
       data.map(item => (
         <tr key={item.id || item.barcode}>
           <td>
-            <input
-              type="checkbox"
-              checked={checkedItems.includes(item.barcode)}
-              onChange={() => handleCheck(item.barcode)}
-            />
+          <input
+  type="checkbox"
+  checked={checkedItems.includes(item.barcode)}
+  onChange={() => handleCheck(item.barcode)}
+/>
           </td>
           <td>{item.barcode}</td>
           <td>{item.company}</td>

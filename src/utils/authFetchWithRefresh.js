@@ -167,40 +167,50 @@ const isExpired = (token) => {
   }
 };
 
-/** 항상 유효한 accessToken 반환 (필요 시 refresh) */
 export const getValidAccessToken = async () => {
-  let access = getAccessToken();
-  // console.log('🔐 기존 accessToken:', access);
-  
-   // ⬇️ 유효하면 바로 리턴 + 로그
-   if (access && !isExpired(access)) {
-    // console.log('✅ accessToken 유효, 그대로 사용');
-     return access;
-   }
-  // ─ 만료 → refresh
-  const refresh = getRefreshToken();
- // console.log('🔄 accessToken 만료, refreshToken 사용 시도:', refresh);
-  const res = await fetch(`${API_BASE}/account/auth/token-refresh`, {
-    method: 'POST',
-    headers: {
-      'Authorization-a': access || '',
-      'Authorization-r': refresh || '',
-      'Content-Type': 'application/json',
-    },
-  });
-  const json = await res.json();
- // console.log('📦 token-refresh 응답:', json);
-  if (json.code === 1) {
-       //console.log('🔁 새 accessToken:', newAcc);
-   //console.log('🔁 새 refreshToken:', newRef);
-    const { accessToken: newAcc, refreshToken: newRef } = json.data;
-    saveTokens({ accessToken: newAcc, refreshToken: newRef });
-    return newAcc;
-  }
+  const token = getAccessToken();
+  if (token) return token; // SSE 연결에선 만료 상관없이 사용
 
-  // refresh 실패 → 로그아웃
-  console.warn('❌ 토큰 갱신 실패. 로그아웃 처리');
-  clearTokens();
-  window.location.href = '/';
-  throw new Error('토큰 갱신 실패');
+  throw new Error('accessToken 없음');
 };
+
+
+
+
+/** 항상 유효한 accessToken 반환 (필요 시 refresh) */
+// export const getValidAccessToken = async () => {
+//   let access = getAccessToken();
+//   // console.log('🔐 기존 accessToken:', access);
+  
+//    // ⬇️ 유효하면 바로 리턴 + 로그
+//    if (access && !isExpired(access)) {
+//     // console.log('✅ accessToken 유효, 그대로 사용');
+//      return access;
+//    }
+//   // ─ 만료 → refresh
+//   const refresh = getRefreshToken();
+//  // console.log('🔄 accessToken 만료, refreshToken 사용 시도:', refresh);
+//   const res = await fetch(`${API_BASE}/account/auth/token-refresh`, {
+//     method: 'POST',
+//     headers: {
+//       'Authorization-a': access || '',
+//       'Authorization-r': refresh || '',
+//       'Content-Type': 'application/json',
+//     },
+//   });
+//   const json = await res.json();
+//  // console.log('📦 token-refresh 응답:', json);
+//   if (json.code === 1) {
+//        //console.log('🔁 새 accessToken:', newAcc);
+//    //console.log('🔁 새 refreshToken:', newRef);
+//     const { accessToken: newAcc, refreshToken: newRef } = json.data;
+//     saveTokens({ accessToken: newAcc, refreshToken: newRef });
+//     return newAcc.token;
+//   }
+
+//   // refresh 실패 → 로그아웃
+//   console.warn('❌ 토큰 갱신 실패. 로그아웃 처리');
+//   clearTokens();
+//   window.location.href = '/';
+//   throw new Error('토큰 갱신 실패');
+// };

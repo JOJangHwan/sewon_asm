@@ -22,7 +22,8 @@ function Sidebar({ isSidebarOpen, toggleSidebar }) {
       icon: uploadImg,
       subMenus:[
         { path: '/load/single',label: '개별등록'},
-        { path: '/load/bulk', label: '일괄등록'}
+        { path: '/load/bulk', label: '일괄등록'},
+        { path: '/load/disposal', label: '폐기등록'}
       ]
     },
     { path: '/search', icon: searchImg, label: '조회' },

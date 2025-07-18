@@ -25,7 +25,7 @@ export default function Search() {
   const [endDate, setEndDate] = useState("");
   const [sortField, setSortField] = useState("");
   const [sortOrder, setSortOrder] = useState("asc");
-  const [viewCount, setViewCount] = useState(30);
+  const [viewCount, setViewCount] = useState(0);
   
     const [companyList, setCompanyList] = useState([]);
     const [companyIdMap, setCompanyIdMap] = useState({});  // ✅ ID 매핑용
@@ -38,7 +38,9 @@ export default function Search() {
     const headerCheckboxRef = useRef(); // ✅ ref 선언
 
     
-
+     const [selectedItem, setSelectedItem] = useState(null); // 🆕 선택된 항목 저장
+     const [isDetailOpen, setIsDetailOpen] = useState(false); // 🆕 상세 패널 열림 여부
+    
 
     const [corporationId, setCorporationId] = useState(null);
 const [affiliationId, setAffiliationId] = useState(null);
@@ -119,8 +121,19 @@ const handlePrint = () => {
       return;
     }
 
+      // ✅ 선택한 항목만 내려받기
+  const isSelectAll = selected.size === 0; // 체크 없으면 모두 내려받기
+  const exportTarget = isSelectAll
+    ? items
+    : items.filter(item => selected.has(item.barcode));
+
+    if (exportTarget.length === 0) {
+      alert("선택한 데이터가 없습니다.");
+      return;
+    }
+
     // 1) 시트에 넣을 JSON 데이터 작성
-    const exportData = items.map(item => ({
+    const exportData = exportTarget.map(item => ({
       바코드: item.barcode,
       회사: item.corporation,
       부서: item.department,
@@ -133,6 +146,11 @@ const handlePrint = () => {
       취득일자: item.acquisitionDate,
       취득가: item.acquisitionPrice,
       등록자: item.registerName,
+       등록일자: item.registrationDate,  // ✅ 등록일자 추가
+ CPU: ["노트북", "컴퓨터"].includes(item.childCategory) ? item.cpu : "",
+ GPU: ["노트북", "컴퓨터"].includes(item.childCategory) ? item.gpu : "",
+ RAM: ["노트북", "컴퓨터"].includes(item.childCategory) ? item.ram + " GB" : "",
+ 총저장장치: ["노트북", "컴퓨터"].includes(item.childCategory) ? item.storage + " GB" : "",
     }));
 
     // 2) 워크시트/워크북 생성
@@ -335,30 +353,32 @@ const handlePrint = () => {
   result = [resJson.data];
       } else {
         // ✅ ID가 전부 있어야 검색 가능
-        if (!corporationId || !affiliationId || !locationId) {
-          console.warn("❗ ID 누락 확인", {
-            company, department, location,
-            corporationId, affiliationId, locationId
-          });
-          alert("회사, 부서, 세부위치를 모두 선택해야 검색할 수 있습니다.");
-          return;
-        }
+        // if (!corporationId || !affiliationId || !locationId) {
+        //   console.warn("❗ ID 누락 확인", {
+        //     company, department, location,
+        //     corporationId, affiliationId, locationId
+        //   });
+        //   alert("회사, 부서, 세부위치를 모두 선택해야 검색할 수 있습니다.");
+        //   return;
+        // }
 
-        if (!locationId) {
-          console.warn("❗ 세부위치 ID 누락:", {
-            company, department, location, locationId
-          });
-          alert("세부위치를 선택해야 검색할 수 있습니다.");
-          return;
-        }
+        // if (!locationId) {
+        //   console.warn("❗ 세부위치 ID 누락:", {
+        //     company, department, location, locationId
+        //   });
+        //   alert("세부위치를 선택해야 검색할 수 있습니다.");
+        //   return;
+        // }
   
         // ✅ GET 방식 쿼리스트링 구성
         const queryParams = new URLSearchParams();
-        queryParams.append("locationId", locationId);
+        //queryParams.append("locationId", locationId);
 
 
-
+        if (corporationId) queryParams.append("corporationId", corporationId);
+        if (affiliationId) queryParams.append("affiliationId", affiliationId);
         if (location) queryParams.append("location", location);       // 세부위치 이름
+        if (locationId) queryParams.append("locationId", locationId);
         //if (assetCategory) queryParams.append("parentType", assetCategory); // 자산 대분류
         //if (itemName) queryParams.append("childType", itemName);      // 자산 중분류
         if (parentTypeId) queryParams.append("parentTypeId", parentTypeId);
@@ -366,13 +386,24 @@ const handlePrint = () => {
         if (startDate) queryParams.append("after", startDate);        // 시작일
         if (endDate) queryParams.append("before", endDate);           // 종료일
         if (sortField) queryParams.append("sortField", sortField);    // 정렬 필드
-        queryParams.append("size", viewCount || 30);                  // 페이지당 개수
+         if (viewCount > 0) { // 0보다 크면 무조건 size를 보냄
+             queryParams.append("size", viewCount);
+           }
+           // viewCount가 0이면 size를 보내지 않음            // 페이지당 개수
   
         // const url = `http://192.168.0.220:8888/assets/paged?${queryParams.toString()}`;
-        const url = `${API_BASE_URL}/assets/paged?${queryParams.toString()}`;
+       // const url = `${API_BASE_URL}/assets/paged?${queryParams.toString()}`;
+
+        const url = queryParams.toString()
+   ? `${API_BASE_URL}/assets/paged?${queryParams.toString()}`
+   : `${API_BASE_URL}/assets/paged`; // 조건 없을 때는 쿼리스트링 없이 요청
+
+
         console.log("최종 전송 URL:", url);   // << 이거 둘 다 추가!
         console.log("📤 최종 전송 URL:", url);
         console.log("📦 검색 조건 요약:", {
+          corporationId,
+          affiliationId,
           locationId,
           parentTypeId,
           childTypeId,
@@ -390,6 +421,8 @@ const handlePrint = () => {
 //console.log("✅ 응답 전체:", JSON.stringify(resData, null, 2));
 
 const data = resData.data?.list || [];
+
+console.log("✅ 서버에서 받은 자산 데이터:", data);
 
 
 
@@ -413,6 +446,12 @@ const data = resData.data?.list || [];
       alert("🚨 서버와의 연결에 실패했습니다. 담당자에게 문의하세요.");
     }
   };
+
+   const handleRowClick = (item) => {
+       setSelectedItem(item);
+       setIsDetailOpen(true);
+     }
+    
   
   
 
@@ -424,6 +463,7 @@ const data = resData.data?.list || [];
   };
 
   return (
+    
     <div className="search-container">
       <h1 className="search-title">자산 조회</h1>
 
@@ -557,20 +597,21 @@ const data = resData.data?.list || [];
               <th>바코드</th><th>회사</th><th>부서</th><th>위치</th>
               <th>자산분류</th><th>품목</th><th>상태</th>
               <th>제조사</th><th>모델</th><th>취득일자</th>
-              <th>취득가</th><th>등록자</th>
+              <th>취득가</th><th>등록자</th><th>등록일자</th>
             </tr>
           </thead>
           <tbody>
             {items.map((item) => (
-              <tr key={item.barcode}>
+             <tr key={item.barcode} onClick={() => handleRowClick(item)} style={{cursor:"pointer"}}>
                 {/* 🆕 개별 체크박스 */}
                 <td>
-                  <input
-                    type="checkbox"
-                    checked={selected.has(item.barcode)}
-                    onChange={() => toggleRow(item.barcode)}
-                  />
-                </td>
+                 <input
+   type="checkbox"
+   checked={selected.has(item.barcode)}
+   onClick={(e) => e.stopPropagation()}   // ✅ onClick에 stopPropagation
+   onChange={() => toggleRow(item.barcode)}
+ />
+</td>
                 <td>{item.barcode}</td>
                 <td>{item.corporation}</td>
                 <td>{item.department}</td>
@@ -583,12 +624,51 @@ const data = resData.data?.list || [];
                 <td>{item.acquisitionDate}</td>
                 <td>{Number(item.acquisitionPrice).toLocaleString()}</td>
                 <td>{item.registerName}</td>
+                <td>{item.registrationDate}</td>
               </tr>
             ))}
           </tbody>
           </table>
         </div>
       )}
+{isDetailOpen && selectedItem && (
+  <div className="detail-overlay" onClick={() => setIsDetailOpen(false)}>
+    <div
+      className="detail-panel"
+      onClick={e => e.stopPropagation()} // 내부 클릭 방지
+    >
+      <div className="detail-header">
+        <h3>자산 상세</h3>
+      </div>
+      <div className="detail-body">
+        <p style={{ color: '#000' }}><strong>바코드:</strong> {selectedItem.barcode}</p>
+        <p style={{ color: '#000' }} ><strong>회사:</strong> {selectedItem.corporation}</p>
+        <p style={{ color: '#000' }}><strong>부서:</strong> {selectedItem.department}</p>
+        <p style={{ color: '#000' }}><strong>위치:</strong> {selectedItem.location}</p>
+        <p style={{ color: '#000' }}><strong>자산분류:</strong> {selectedItem.parentCategory}</p>
+        <p style={{ color: '#000' }}><strong>품목:</strong> {selectedItem.childCategory}</p>
+        <p style={{ color: '#000' }}><strong>상태:</strong> {selectedItem.status}</p>
+        <p style={{ color: '#000' }}><strong>제조사:</strong> {selectedItem.manufacturer}</p>
+        <p style={{ color: '#000' }}><strong>모델:</strong> {selectedItem.model}</p>
+        <p style={{ color: '#000' }}><strong>취득일자:</strong> {selectedItem.acquisitionDate}</p>
+        <p style={{ color: '#000' }}><strong>취득가:</strong> {Number(selectedItem.acquisitionPrice).toLocaleString()}</p>
+        <p style={{ color: '#000' }}><strong>등록자:</strong> {selectedItem.registerName}</p>
+        <p style={{ color: '#000' }}><strong>등록일자:</strong> {selectedItem.registrationDate}</p>
+
+        {["노트북", "컴퓨터"].includes(selectedItem.childCategory) && (
+          <>
+            <p style={{ color: '#000' }}><strong>CPU:</strong> {selectedItem.cpu}</p>
+            <p style={{ color: '#000' }}><strong>그래픽카드:</strong> {selectedItem.gpu}</p>
+            <p style={{ color: '#000' }}><strong>RAM:</strong> {selectedItem.ram} GB</p>
+            <p style={{ color: '#000' }}><strong>총 저장장치:</strong> {selectedItem.storage} GB</p>
+          </>
+        )}
+      </div>
     </div>
-  );
+  </div>
+)}
+
+  </div>
+);
+
 }

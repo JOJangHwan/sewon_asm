@@ -367,151 +367,156 @@ const AssetRegister = () => {
     }
   };
 
+    
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = {};
-
+  
+    // ✅ 필수 항목 검사
+    const requiredFields = [
+      { key: 'company', label: '회사구분' },
+      { key: 'department', label: '부서구분' },
+      { key: 'location', label: '세부위치' },      // locationId ➔ location 으로
+      { key: 'acquisitionType', label: '취득구분' },
+      { key: 'assetCategory', label: '자산분류' }, // parentTypeId ➔ assetCategory
+      { key: 'item', label: '품목' },              // childTypeId ➔ item
+      { key: 'manufacturer', label: '제조사' },
+      { key: 'model', label: '모델' },
+      { key: 'acquisitionDate', label: '취득일자' },
+      { key: 'acquisitionCost', label: '취득가' }
+    ];
     
-  
-    // const required = [
-    //   'company', 'department', 'location', 'acquisitionType',
-    //   'assetCategory', 'item', 'manufacturer', 'model',
-    //   'acquisitionDate', 'acquisitionCost'
-    // ];
-     const required = [
-        'company', 'department', 'location', 'acquisitionType',
-         'parentTypeId', 'childTypeId',         // ⬅️ 이름 대신 ID 확인
-         'manufacturer', 'model',
-         'acquisitionDate', 'acquisitionCost'
-       ];
-  
-    if (!formData.locationId) {                     // ⭐ 추가
-        newErrors.location = '세부위치를 선택해주세요.';
+    requiredFields.forEach(field => {
+      if (!formData[field.key] || formData[field.key] === '') {
+        newErrors[field.key] = `${field.label}을(를) 입력해주세요.`;
       }
+    });
+    
+    
+  // 노트북/컴퓨터일 때 저장공간 체크
+  const isElectronic = ['노트북', '컴퓨터'].includes(formData.item);
+
+  if (isElectronic) {
+    const hasInput = formData.storageList.some(s => s.value.trim() !== '');
   
-    if (formData.item === '노트북' || formData.item === '컴퓨터') {
-      ['cpu', 'memory', 'gpu'].forEach((f) => {
-        if (!formData[f]) newErrors[f] = getErrorMsg(f);
-      });
-      if (!formData.totalStorage) {
-        newErrors.totalStorage = getErrorMsg('totalStorage');
+    if (hasInput) {
+      // 입력이 있을 때만 변환 여부 검사
+      const convertedTotal = formData.storageList.reduce(
+        (sum, s) => sum + convertToGB(s.value, s.unit),
+        0
+      ).toFixed(2);
+  
+      if (!formData.totalStorage || Number(convertedTotal) !== Number(formData.totalStorage)) {
+        newErrors.totalStorage = '총 저장공간을 변환 버튼으로 계산해주세요.';
       }
     }
+  }
   
-    if (Object.keys(newErrors).length) {
-      alert('빈칸을 모두 입력해주세요.');
+  
+  
+    
+    // 에러 있을 때 알림 한 번만
+    if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
+      alert('❗ 필수 항목을 모두 입력해주세요.');
       return;
     }
-    setErrors({});
   
-    //const appendSeconds = (dt) => (dt && dt.length === 16 ? dt + ':00' : dt);
-    const statusMap = { '사용': 0, '미사용': 1 };
-    const divisionMap = {
-      '구매자산': 0,
-      '이관자산': 1
-    };
-    
-  const formatted = {
-  ...formData,
-  division: divisionMap[formData.acquisitionType],
-   acquisitionDate: toDateTimeWithSeconds(formData.acquisitionDate),
-   rentalDate: toDateTimeWithSeconds(formData.rentalDate),
-  assetStatus: statusMap[formData.assetStatus],
-};
-
+    // ✅ 노트북/컴퓨터일 때만 총 저장공간 검사
+    // const isElectronic = ['노트북', '컴퓨터'].includes(formData.item);
+    // if (isElectronic) {
+    //   if (!formData.totalStorage) {
+    //     newErrors.totalStorage = '총 저장공간을 계산해주세요.';
+    //   }
+    // }
   
-    const isElectronic = ['노트북', '컴퓨터'].includes(formData.item);
-
-
-  const url = isElectronic
-  ? `${API_BASE}/assets/electronic`
-  : `${API_BASE}/assets`;
-
-
-  const dataToSend = isElectronic ? {
-    locationId:   Number(formData.locationId),   // ⭐ 세부위치 ID 전송
-     division: 0,
-    corporation: formData.company,
-     parentTypeId: Number(formData.parentTypeId),
-     childTypeId: Number(formData.childTypeId),
-    status: formData.assetStatus === '사용' ? 0 : 1,
-    manufacturer: formData.manufacturer,
-    model: formData.model,
-    acquisitionDate: toDateTimeWithSeconds(formData.acquisitionDate),
-    acquisitionPrice: Number(formData.acquisitionCost),
-    cpu: formData.cpu,
-    gpu: formData.gpu,
-    ram: Number(formData.memory),
-    storage: Number(formData.totalStorage),
-  } : {
-    locationId: Number(formData.locationId),
-    division: 0,
-
-        parentTypeId: Number(formData.parentTypeId),
-        childTypeId:  Number(formData.childTypeId),
-    status: formData.assetStatus === '사용' ? 0 : 1,
-    manufacturer: formData.manufacturer,
-    model: formData.model,
-    acquisitionDate: toDateTimeWithSeconds(formData.acquisitionDate),
-    acquisitionPrice: Number(formData.acquisitionCost),
-  };
-
-  console.log('[POST /asset] payload ▶', JSON.stringify(dataToSend, null, 2));  // parentType·childType 값이 숫자인지 꼭 확인
-   console.log('📦 parentTypeId to send:', formData.parentTypeId,
-                'typeof', typeof formData.parentTypeId);
-     console.log('📦 childTypeId  to send:', formData.childTypeId,
-                'typeof', typeof formData.childTypeId);
-  try {
-    const res = await authFetchWithRefresh(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(dataToSend),
-    });
-
-    const result = await res.json();
-
-    if (result.code === 1) {
-      const barcodeValue = result.data;
-      alert(`✅ 등록 완료! 바코드: ${barcodeValue}`);
-
-      const asset = {
-        barcode: barcodeValue,
-        company: formData.company,
-        department: formData.department,
-        location: formData.location,
-        acquisitionType: formData.acquisitionType,
-        assetCategory: formData.assetCategory,
-        itemName: formData.item,
-        assetStatus: formData.assetStatus,
-        manufacturer: formData.manufacturer,
-        model: formData.model,
-        acquisitionDate: toDateTimeWithSeconds(formData.acquisitionDate),
-        acquisitionPrice: Number(formData.acquisitionCost).toLocaleString(),
-      };
-
-      openLabelPrintWindow(asset);
-      window.location.reload();
-      
-       // ✅ 인쇄창 생성 및 React 라벨 출력
-
-       
-      
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      const firstErrorField = Object.keys(newErrors)[0];
+      const errorElement = document.querySelector(`[name="${firstErrorField}"]`);
+      if (errorElement) errorElement.focus();
   
-      //openLabelPrintWindow([asset]);
-
-      window.location.reload();
-    } else {
-      alert(`❌ 등록 실패: ${result.message || '서버 오류'}`);
+      alert(Object.values(newErrors).join('\n'));
+      return;
     }
-  } catch (err) {
-    alert('🚨 서버 연결 실패');
-    console.error(err);
-  }
-};
+  
+    // ✅ 서버 전송용 데이터 구성
+    const statusMap = { '사용': 0, '미사용': 1 };
+    const divisionMap = { '구매자산': 0, '이관자산': 1 };
+  
+    const url = isElectronic
+      ? `${API_BASE}/assets/electronic`
+      : `${API_BASE}/assets`;
+  
+    const dataToSend = isElectronic ? {
+      locationId: Number(formData.locationId),
+      division: divisionMap[formData.acquisitionType],
+      corporation: formData.company,
+      parentTypeId: Number(formData.parentTypeId),
+      childTypeId: Number(formData.childTypeId),
+      status: statusMap[formData.assetStatus],
+      manufacturer: formData.manufacturer,
+      model: formData.model,
+      acquisitionDate: toDateTimeWithSeconds(formData.acquisitionDate),
+      acquisitionPrice: Number(formData.acquisitionCost),
+      cpu: formData.cpu,
+      gpu: formData.gpu,
+      ram: Number(formData.memory),
+      storage: Number(formData.totalStorage),
+    } : {
+      locationId: Number(formData.locationId),
+      division: divisionMap[formData.acquisitionType],
+      parentTypeId: Number(formData.parentTypeId),
+      childTypeId: Number(formData.childTypeId),
+      status: statusMap[formData.assetStatus],
+      manufacturer: formData.manufacturer,
+      model: formData.model,
+      acquisitionDate: toDateTimeWithSeconds(formData.acquisitionDate),
+      acquisitionPrice: Number(formData.acquisitionCost),
+    };
+  
+    // ✅ 서버 요청
+    try {
+      const res = await authFetchWithRefresh(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dataToSend),
+      });
+  
+      const result = await res.json();
+  
+      if (result.code === 1) {
+        const barcodeValue = result.data;
+        alert(`✅ 등록 완료! 바코드: ${barcodeValue}`);
+  
+        const asset = {
+          barcode: barcodeValue,
+          company: formData.company,
+          department: formData.department,
+          location: formData.location,
+          acquisitionType: formData.acquisitionType,
+          assetCategory: formData.assetCategory,
+          itemName: formData.item,
+          assetStatus: formData.assetStatus,
+          manufacturer: formData.manufacturer,
+          model: formData.model,
+          acquisitionDate: toDateTimeWithSeconds(formData.acquisitionDate),
+          acquisitionPrice: Number(formData.acquisitionCost).toLocaleString(),
+        };
+  
+        openLabelPrintWindow(asset);
+        window.location.reload();
+      } else {
+        alert(`❌ 등록 실패: ${result.message || '서버 오류'}`);
+      }
+    } catch (err) {
+      console.error(err);
+      alert('❌ 등록 실패: 네트워크 또는 서버 오류');
+    }
+  };
+  
 
 
   
@@ -573,9 +578,8 @@ const AssetRegister = () => {
         </option>
       ))}
   </select>
-  {errors.location && (
-    <div style={{ color: 'red', fontSize: '12px' }}>{errors.location}</div>
-  )}
+  {errors.location && (<div style={{ color: 'red', fontSize: '12px' }}>{errors.location}</div>)}
+
 </div>
 
         {/* 취득구분 */}
@@ -614,9 +618,8 @@ const AssetRegister = () => {
    <option key={`${id}-${name}`} value={id}>{name}</option>
   ))}
 </select>
-  {errors.assetCategory && (
-    <div style={{ color: 'red', fontSize: '12px' }}>{errors.assetCategory}</div>
-  )}
+{errors.assetCategory && (<div style={{ color: 'red', fontSize: '12px' }}>{errors.assetCategory}</div>)}
+
 </div>
 
 {/* 품목 */}
@@ -648,9 +651,8 @@ const AssetRegister = () => {
     ))
   }
 </select>
-  {errors.item && (
-    <div style={{ color: 'red', fontSize: '12px' }}>{errors.item}</div>
-  )}
+{errors.item && (<div style={{ color: 'red', fontSize: '12px' }}>{errors.item}</div>)}
+
 </div>
         {/* 노트북/컴퓨터일 때 PC스펙 입력 */}
         {(formData.item === '노트북' || formData.item === '컴퓨터') && (
@@ -666,7 +668,7 @@ const AssetRegister = () => {
               {errors.memory && (<div style={{ color: 'red', fontSize: '12px' }}>{errors.memory}</div>)}
             </div>
             <div className="form-row">
-              <label>GPU</label>
+              <label>그래픽 카드</label>
               <input type="text" name="gpu" value={formData.gpu} onChange={handleChange} />
               {errors.gpu && (<div style={{ color: 'red', fontSize: '12px' }}>{errors.gpu}</div>)}
             </div>

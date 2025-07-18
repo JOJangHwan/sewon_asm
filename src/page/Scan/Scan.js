@@ -1,43 +1,60 @@
-// ✅ ScanPage.js
-import React, { useEffect, useRef } from 'react';
-import { Html5QrcodeScanner } from 'html5-qrcode';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { authFetchWithRefresh } from '../../utils/authFetchWithRefresh';
+import './Scan.css';
+
+const API_BASE_URL = window._env_?.REACT_APP_API_URL || 'http://localhost:8888';
 
 const ScanPage = () => {
   const navigate = useNavigate();
-  const scannerRef = useRef(null);
+  const [barcodeInput, setBarcodeInput] = useState('');
 
-  useEffect(() => {
-    if (!scannerRef.current) {
-      scannerRef.current = new Html5QrcodeScanner(
-        'reader',
-        { fps: 10, qrbox: { width: 250, height: 250 } },
-        false
-      );
-
-      scannerRef.current.render(onScanSuccess, onScanFailure);
+  const handleSearch = async () => {
+    if (!barcodeInput.trim()) {
+      alert('바코드를 입력해주세요.');
+      return;
     }
-  }, []);
 
-  const onScanSuccess = (decodedText) => {
     try {
-      const assetData = JSON.parse(decodedText);
-      scannerRef.current.clear().then(() => {
-        navigate('/asset', { state: assetData });
-      });
-    } catch (err) {
-      alert("QR 코드 형식이 잘못되었습니다.");
-    }
-  };
+      const url = `${API_BASE_URL}/assets/barcode?value=${encodeURIComponent(barcodeInput.trim())}`;
+      const res = await authFetchWithRefresh(url, { method: 'GET' });
+      const resJson = await res.json();
 
-  const onScanFailure = (error) => {
-    // 실패 무시 (계속 시도)
+      console.log('✅ 서버 응답 (resJson):', resJson);
+
+      if (resJson.code !== 1 || !resJson.data) {
+        alert('❌ 해당 바코드를 찾을 수 없습니다.');
+        return;
+      }
+
+      console.log('✅ 조회된 자산 데이터:', resJson.data);
+
+      // 단품 데이터 페이지로 이동
+      navigate('/asset', { state: resJson.data });
+
+    } catch (err) {
+      console.error('바코드 조회 오류:', err);
+      alert('🚨 서버와의 연결에 실패했습니다.');
+    }
   };
 
   return (
-    <div>
-      <h3>QR 코드 스캔</h3>
-      <div id="reader" style={{ width: '300px' }}></div>
+    <div className="scan-container">
+      <h3>바코드 조회</h3>
+      <input
+        type="text"
+        className="scan-input"
+        placeholder="바코드를 입력하세요"
+        value={barcodeInput}
+        onChange={(e) => setBarcodeInput(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') handleSearch();
+        }}
+      />
+      <button className="scan-button" onClick={handleSearch}>
+        조회하기
+      </button>
+      
     </div>
   );
 };

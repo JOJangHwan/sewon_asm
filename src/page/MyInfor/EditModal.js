@@ -6,6 +6,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { authFetchWithRefresh } from '../../utils/authFetchWithRefresh';
+import { v4 as uuidv4 } from 'uuid'; // 상단에 추가
 import './editModal.css';
 
 const API_BASE = window._env_?.REACT_APP_API_URL || 'http://localhost:8888';
@@ -52,7 +53,7 @@ const EditModal = ({ item, onSave, onClose }) => {
     assetStatus: item.assetStatus !== undefined && item.assetStatus !== null
       ? String(item.assetStatus)
       : '',
-      storageList : item.storageList || [{ value: '', unit: 'GB' }],   // ⬅️ 추가
+      storageList: item.storageList?.map(s => ({ ...s, id: uuidv4() })) || [{ id: uuidv4(), value: '', unit: 'GB' }],
       totalStorage: item.storage || item.totalStorage || '',
       cpu         : item.cpu   || '',
  memory      : item.ram   || item.memory || '',
@@ -68,10 +69,11 @@ const EditModal = ({ item, onSave, onClose }) => {
   const [parent, setParent] = useState(item.assetCategory);
   const [child,  setChild]  = useState(item.itemName);
 
-  const onStorageChange = (idx, field, val) => {
+  const onStorageChange = (id, field, val) => {
     setEdited(prev => {
-      const list = [...prev.storageList];
-      list[idx][field] = val;
+      const list = prev.storageList.map(s =>
+        s.id === id ? { ...s, [field]: val } : s
+      );
       return { ...prev, storageList: list };
     });
   };
@@ -319,8 +321,8 @@ const EditModal = ({ item, onSave, onClose }) => {
         <select value={parent} onChange={changeParent}>
           <option value="">선택</option>
           {parents.map(p => (
-            <option key={p.parentId} value={p.name}>{p.name}</option>
-          ))}
+  <option key={p.parentId} value={p.name}>{p.name}</option>
+))}
         </select>
 
         {/* 품목 */}
@@ -328,8 +330,8 @@ const EditModal = ({ item, onSave, onClose }) => {
         <select value={child} onChange={changeChild} disabled={!parent}>
           <option value="">선택</option>
           {children.map(c => (
-            <option key={c.childId} value={c.name}>{c.name}</option>
-          ))}
+  <option key={c.childId} value={c.name}>{c.name}</option>
+))}
         </select>
         {/* ── 노트북·컴퓨터일 때 PC 스펙 ───────────────────── */}
 {/* ── 노트북·컴퓨터일 때 PC 스펙 ───────────────────── */}
@@ -351,17 +353,17 @@ const EditModal = ({ item, onSave, onClose }) => {
 
      <label>데이터 변환기 (PC 저장공간)</label>
      {edited.storageList.map((s, idx) => (
-       <div key={`${idx}-${s.unit}-${s.value}`} className="conversion-group">
-         <input
-           type="text"
-           placeholder="용량"
-           value={s.value}
-           onChange={(e) => onStorageChange(idx, 'value', e.target.value)}
-         />
-         <select
-           value={s.unit}
-           onChange={(e) => onStorageChange(idx, 'unit', e.target.value)}
-         >
+      <div key={s.id} className="conversion-group">
+<input
+  type="text"
+  placeholder="용량"
+  value={s.value}
+  onChange={(e) => onStorageChange(s.id, 'value', e.target.value)}
+/>
+<select
+  value={s.unit}
+  onChange={(e) => onStorageChange(s.id, 'unit', e.target.value)}
+>
            <option value="GB">GB</option>
            <option value="TB">TB</option>
            <option value="MB">MB</option>
@@ -370,7 +372,7 @@ const EditModal = ({ item, onSave, onClose }) => {
            <button type="button" className="add-btn" onClick={() =>
              setEdited(prev => ({
                ...prev,
-               storageList: [...prev.storageList, { value: '', unit: 'GB' }],
+               storageList: [...prev.storageList, { id: uuidv4(), value: '', unit: 'GB' }],
              }))
            }>➕</button>
          )}

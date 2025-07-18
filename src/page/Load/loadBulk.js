@@ -281,6 +281,9 @@ const LoadBulk = () => {
             String(newRow[4] || '').trim(),
             String(newRow[5] || '').trim()
           ];
+           const validAcquisitionTypes = ['구매자산', '이관자산'];
+           const validStatusTypes = ['사용', '미사용'];
+
       
         if (!newRow[5]) rowError.push('품목 누락');
       
@@ -298,13 +301,32 @@ const LoadBulk = () => {
           rowError.push('품목 오류');
         }
       
-        if (!dateRegex.test(newRow[9]) || isNaN(Date.parse(newRow[9]))) {
-          rowError.push('날짜 형식 오류');
-        }
-      
-        if (!/^\d+$/.test(newRow[10])) {
-          rowError.push('취득가 숫자 아님');
-        }
+         // 취득구분 체크
+ if (!newRow[3] || String(newRow[3]).trim() === '') {
+   rowError.push('취득구분 누락');
+ } else if (!validAcquisitionTypes.includes(newRow[3])) {
+   rowError.push('취득구분은 "구매자산" 또는 "이관자산"만 입력');
+ }
+
+ // 자산상태 체크
+ if (!newRow[6] || String(newRow[6]).trim() === '') {
+   rowError.push('자산상태 누락');
+ } else if (!validStatusTypes.includes(newRow[6])) {
+   rowError.push('자산상태는 "사용" 또는 "미사용"만 입력');
+ }
+   // 1️⃣ 빈칸 먼저 체크
+if (!newRow[9] || String(newRow[9]).trim() === '') {
+  rowError.push('취득일자 누락');
+} else if (!dateRegex.test(newRow[9]) || isNaN(Date.parse(newRow[9]))) {
+  rowError.push('날짜 형식 오류');
+}
+
+if (!newRow[10] || String(newRow[10]).trim() === '') {
+  rowError.push('취득가 누락');
+} else if (!/^\d+$/.test(newRow[10])) {
+  rowError.push('취득가 숫자 아님');
+}
+
       
         // === 여기 추가! (노트북/컴퓨터일 때 CPU/메모리/그래픽카드 필수) ===
         if (['노트북', '컴퓨터'].includes(item)) {
@@ -627,7 +649,7 @@ const formatDataForJson = (data) => {
 
   const handleDownloadTemplate = () => {
     const exampleRow = [
-      '평택공장',        // 회사구분
+      '세원전자',        // 회사구분
       '전산운영',        // 부서구분
       '전산실',          // 세부위치
       '구매자산 또는 이관자산(2가지만 작성해야됨)',    // 취득구분
