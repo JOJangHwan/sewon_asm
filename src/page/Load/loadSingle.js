@@ -207,8 +207,8 @@ const AssetRegister = () => {
  const [childTypeIdMap,    setChildTypeIdMap]    = useState({});   // {부모이름: {자식이름: id}}
   const [locationIdMap, setLocationIdMap] = useState({});  
   useEffect(() => {
-      console.log('✅ parentTypeIdMap state 업데이트:', parentTypeIdMap);
-  console.log('✅ childTypeIdMap  state 업데이트:', childTypeIdMap);
+    //  console.log('✅ parentTypeIdMap state 업데이트:', parentTypeIdMap);
+//  console.log('✅ childTypeIdMap  state 업데이트:', childTypeIdMap);
     const fetchCorporation = async () => {
       try {
         // const res = await authFetchWithRefresh('http://192.168.0.220:8888/corporations');
@@ -220,9 +220,12 @@ const AssetRegister = () => {
            const names = [];           // 회사명 배열
            const locMap = {};          // ⭐ ID 매핑 {회사 > 부서 > {위치명: id}}
   
-          result.data.corporationList.forEach(corp => {
+           result.data.corporationList.forEach(corp => {
             const corpName = corp.name;
-            names.push(corpName); // 회사명 수집
+
+           if (!names.includes(corpName)) {
+             names.push(corpName); // 중복 제거
+           }
             nestedData[corpName] = {};
             locMap[corpName] = {};
             
@@ -253,12 +256,12 @@ const AssetRegister = () => {
                 const nestedAssetType = {};
                 const parentMap        = {};
                 const childMap         = {};
-                console.log('자산 분류 데이터:', nestedAssetType);
+              //  console.log('자산 분류 데이터:', nestedAssetType);
                    typeResult.data.parentList.forEach(parent => {
-                     console.log('🔍 서버에서 받은 parentList 원본:', typeResult.data.parentList);
- console.log('🗺️ parentMap 만들고 나서:', parentMap);
- console.log('🗺️ childMap 만들고 나서 :', childMap);
- console.log('🗺️ nestedAssetType       :', nestedAssetType);
+                   //  console.log('🔍 서버에서 받은 parentList 원본:', typeResult.data.parentList);
+ //console.log('🗺️ parentMap 만들고 나서:', parentMap);
+// console.log('🗺️ childMap 만들고 나서 :', childMap);
+// console.log('🗺️ nestedAssetType       :', nestedAssetType);
                        const parentName = parent.name;
                   
                        // id 가 없으면 건너뛴다 (중복 key 예방)
@@ -602,7 +605,7 @@ const AssetRegister = () => {
     const selectedId = e.target.value;
     const parsedId = Number(selectedId);
     const selectedName = Object.keys(parentTypeIdMap).find(name => parentTypeIdMap[name] == selectedId);
-    console.log('🔸 자산분류 선택 → id:', selectedId, 'name:', selectedName);
+   // console.log('🔸 자산분류 선택 → id:', selectedId, 'name:', selectedName);
     setFormData({
       ...formData,
      assetCategory: selectedName,
@@ -633,7 +636,7 @@ const AssetRegister = () => {
     const parsedId = Number(selectedId);
     const selectedName = Object.keys(childTypeIdMap[formData.assetCategory] || {})
       .find(name => childTypeIdMap[formData.assetCategory][name] == selectedId);
-      console.log('🔹 품목 선택 → id:', selectedId, 'name:', selectedName);
+   //   console.log('🔹 품목 선택 → id:', selectedId, 'name:', selectedName);
     setFormData({
       ...formData,
      item: selectedName,

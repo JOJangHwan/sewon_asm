@@ -200,7 +200,7 @@ const handlePrint = () => {
         const res = await authFetchWithRefresh(`${API_BASE_URL}/corporations`);
         const result = await res.json();
     
-        console.log("📦 corporations API 응답 전체 (JSON 형태):");//자산 찍는 부분분
+      //  console.log("📦 corporations API 응답 전체 (JSON 형태):");//자산 찍는 부분분
         //console.log(JSON.stringify(result, null, 2));
     
         if (result.code === 1 && result.data?.corporationList) {
@@ -255,7 +255,7 @@ const handlePrint = () => {
               if (typeResult.code === 1 && typeResult.data?.parentList) {
                 const nestedAssetType = {};
                 const typeIdMap = {};
-                console.log('자산 분류 데이터:', nestedAssetType);
+              //  console.log('자산 분류 데이터:', nestedAssetType);
                 typeResult.data.parentList.forEach(parent => {
                   const parentName = parent.name;
                   const parentId = parent.parentId;
@@ -399,20 +399,20 @@ const handlePrint = () => {
    : `${API_BASE_URL}/assets/paged`; // 조건 없을 때는 쿼리스트링 없이 요청
 
 
-        console.log("최종 전송 URL:", url);   // << 이거 둘 다 추가!
-        console.log("📤 최종 전송 URL:", url);
-        console.log("📦 검색 조건 요약:", {
-          corporationId,
-          affiliationId,
-          locationId,
-          parentTypeId,
-          childTypeId,
-          startDate,
-          endDate,
-          sortField,
-          sortOrder,
-          viewCount,
-        });
+     //   console.log("최종 전송 URL:", url);   // << 이거 둘 다 추가!
+     //   console.log("📤 최종 전송 URL:", url);
+    //    console.log("📦 검색 조건 요약:", {
+        //   corporationId,
+        //   affiliationId,
+        //   locationId,
+        //   parentTypeId,
+        //   childTypeId,
+        //   startDate,
+        //   endDate,
+        //   sortField,
+        //   sortOrder,
+        //   viewCount,
+        // });
   
         const res = await authFetchWithRefresh(url);
         const resData = await res.json();
@@ -422,7 +422,7 @@ const handlePrint = () => {
 
 const data = resData.data?.list || [];
 
-console.log("✅ 서버에서 받은 자산 데이터:", data);
+//console.log("✅ 서버에서 받은 자산 데이터:", data);
 
 
 
@@ -486,10 +486,10 @@ console.log("✅ 서버에서 받은 자산 데이터:", data);
   if (companyEntry) {
     const deptEntry = companyEntry.departments?.[selected];
     if (deptEntry) {
-      console.log("✅ 부서 ID 찾음:", deptEntry.id);
+     // console.log("✅ 부서 ID 찾음:", deptEntry.id);
       setAffiliationId(deptEntry.id);
     } else {
-      console.warn("❌ 부서 ID 찾을 수 없음");
+    //  console.warn("❌ 부서 ID 찾을 수 없음");
       setAffiliationId(null);
     }
   } else {
@@ -505,7 +505,7 @@ console.log("✅ 서버에서 받은 자산 데이터:", data);
   const selected = e.target.value;
   setLocation(selected);
   const locId = companyIdMap[company]?.departments?.[department]?.locations?.[selected];
-  console.log("세부위치 선택:", selected, "→ ID:", locId);
+ // console.log("세부위치 선택:", selected, "→ ID:", locId);
   setLocationId(locId || null);
 }}>
   <option value="">세부위치</option>

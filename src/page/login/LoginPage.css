@@ -1,16 +1,17 @@
 /* 전체 컨테이너 */
-.loginPage-container {
-  max-width: 400px;
-  width: 100%;
-  margin: 5% auto;
-  padding: 2rem 2rem 2.2rem;
-  text-align: center;
-  border: 2px solid #ccc;
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  background-color: #fff;
-  box-sizing: border-box;
-}
+ .loginPage-container {
+  width: min(92vw, 400px);     /* 화면에 맞게 유동 + 상한선 */
+  max-width: 100%;
+  margin: 24px auto;
+  padding: 1.75rem 1.25rem 1.9rem;
+   text-align: center;
+   border: 2px solid #ccc;
+   border-radius: 10px;
+   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+   background-color: #fff;
+   box-sizing: border-box;
+  overflow: hidden;            /* 내부 요소 넘침 방지 */
+ }
 
 .loginPage-form {
   width: 100%;
@@ -41,13 +42,15 @@
   to { transform: rotate(360deg); }
 }
 
-/* 로고 */
-.loginPage-logo {
+ /* 로고 */
+ .loginPage-logo {
   width: 100%;
   max-width: 320px;
+  max-height: 120px;           /* 너무 커지지 않게 */
+  object-fit: contain;         /* 비율 유지 */
   margin: 0 auto;
   display: block;
-}
+ }
 
 /* 타이틀 */
 .loginPage-title {
@@ -76,6 +79,7 @@
   border-radius: 5px;
   box-sizing: border-box;
   font-size: 1rem;
+  -webkit-text-size-adjust: 100%;  /* iOS 확대 방지 */
 }
 
 /* 아이디 저장 */
@@ -121,34 +125,40 @@
   background-color: #f1a500;
 }
 
-/* 반응형 (모바일/PDA) */
-@media screen and (max-width: 480px) {
-  .loginPage-container {
-    margin: 1rem;
-    padding: 1rem;
-    border: none;
+ /* 반응형 (모바일/PDA) */
+ @media screen and (max-width: 480px) {
+   .loginPage-container {
+    width: calc(100vw - 24px);   /* 좌우 안전 여백 포함 */
+    margin: 12px auto;
+    padding: 16px 14px;
+    border: 1px solid #eee;
     box-shadow: none;
-  }
+   }
 
   .loginPage-title {
-    font-size: 1.4rem;
+    font-size: 1.35rem;
   }
 
   .loginPage-desc {
-    font-size: 0.75rem;
+    font-size: 0.78rem;
   }
 
   .loginPage-input,
   .loginPage-loginButton,
   .loginPage-signupButton {
-    font-size: 0.95rem;
+ font-size: 1rem;  
     height: 44px;
+  }
+  
+  .loginPage-logo {
+    max-width: 260px;
+    max-height: 100px;
   }
 }
 
 /* 강제 스크롤 방지 */
 body {
-  min-width: 320px;
+  min-width: 0;      
   overflow-x: hidden;
 }
 

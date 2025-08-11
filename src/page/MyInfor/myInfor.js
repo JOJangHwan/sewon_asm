@@ -300,6 +300,7 @@ if (selectedLoc    && it.location     !== selectedLoc)    return false;
   // ── 전체/단일 선택
   const handleSelectAll = () => {
     const currentBarcodes = currentList.map(row => row.barcode);
+    
     const isAllSelected = currentBarcodes.every(bc => selectedBarcodes.has(bc));
   
     setSelectedBarcodes(prev => {
@@ -363,6 +364,7 @@ if (selectedLoc    && it.location     !== selectedLoc)    return false;
 
   const handleDelete = async () => {
     const ids = currentList
+    
       .filter(item => selectedBarcodes.has(item.barcode))
       .map(item => item.id)
       .filter(Boolean);
@@ -380,6 +382,8 @@ if (selectedLoc    && it.location     !== selectedLoc)    return false;
         body: JSON.stringify({ ids }),    // { ids: [1, 2, 3] }
       });
       const json = await res.json();
+    //  console.log('자산 검색 결과 데이터:', json); // ✅
+    // ... 이하 기존 코드 ...
       if (json.code === 1) {
         // 삭제 성공 시, 목록 갱신
         setItems(prev => prev.filter(item => !ids.includes(item.id)));
@@ -561,9 +565,10 @@ const toPrint = listToShow.filter(row => selectedBarcodes.has(row.barcode));
       try {
 
         const url = `${API_BASE_URL}/assets/paged?${params.toString()}`;
-        console.log("자산 받을때 url : "+url)
+       // console.log("자산 받을때 url : "+url)
         const res = await authFetchWithRefresh(url);
         const json = await res.json();
+          //console.log('자산 조회 응답 (전체):', json);
         if (json.code !== 1 || json.data.list.length === 0) {
          alert("조건에 맞는 자산이 없습니다.");
           setFilteredItems([]);
@@ -573,7 +578,7 @@ const toPrint = listToShow.filter(row => selectedBarcodes.has(row.barcode));
         // console.log("📦 자산 리스트:", json.data.list);
         // // data.list 안에 자산 배열이 들어옵니다
         // setFilteredItems(json.data.list);
-                console.log("📦 자산 리스트:", json.data.list);
+           //     console.log("📦 자산 리스트:", json.data.list);
 
         /*  (1) 백엔드 → 프런트 맵핑
            ──────────────────────────────
@@ -766,21 +771,55 @@ const toPrint = listToShow.filter(row => selectedBarcodes.has(row.barcode));
           }}
         />
       )}
-      {isModalOpen && editItem && (
-        <EditModal
-          item={editItem}
-          onSave={edited=>{
-                 const arr = [...items];
-                 const gi = arr.findIndex(i => i.barcode === edited.barcode);
-                 if (gi !== -1) arr[gi] = edited;
-            setItems(arr);
-            setIsModalOpen(false);
-            setSelectedBarcodes(new Set()); setSelectAll(false);
-           // alert('수정되었습니다.');
-          }}
-          onClose={()=>setIsModalOpen(false)}
-        />
-      )}
+{isModalOpen && editItem && (
+<EditModal
+  item={editItem}
+onSave={edited => {
+  // 공통: API/수정모달의 필드명 → 화면 row 필드로 변환
+  const mappedEdited = {
+    ...edited,
+    division:
+      edited.acquisitionType === '0' ? "구매자산"
+    : edited.acquisitionType === '1' ? "대여자산"
+    : (edited.division || ""),
+
+    status:
+      edited.assetStatus === '0' ? "사용"
+    : edited.assetStatus === '1' ? "미사용"
+    : (edited.status || ""),
+
+    parentCategory: edited.assetCategory || edited.parentCategory || "",
+    childCategory:  edited.itemName      || edited.childCategory  || "",
+
+    // 전자자산(노트북/컴퓨터)일 때만 spec 필드 갱신, 비전자자산은 기존값 유지
+    cpu:     edited.cpu     ?? edited.cpu,
+    gpu:     edited.gpu     ?? edited.gpu,
+    ram:     edited.memory  ?? edited.ram,
+    storage: edited.totalStorage ?? edited.storage,
+  };
+
+  setItems(prev =>
+    prev.map(i =>
+      i.barcode === edited.barcode ? { ...i, ...mappedEdited } : i
+    )
+  );
+  setFilteredItems(prev =>
+    prev.map(i =>
+      i.barcode === edited.barcode ? { ...i, ...mappedEdited } : i
+    )
+  );
+  setDetailItem(prev =>
+    prev && prev.barcode === edited.barcode ? { ...prev, ...mappedEdited } : prev
+  );
+  setIsModalOpen(false);
+  setSelectedBarcodes(new Set());
+  setSelectAll(false);
+  alert('자산 정보가 수정되었습니다.');
+}}
+
+  onClose={() => setIsModalOpen(false)}
+/>
+)}
     </div>
   );
 }
@@ -795,6 +834,7 @@ function DetailWrapper({ item, onClose }) {
 
 function FullPageDetail({ item, onClose }) {
   const isElectronic = item.parentCategory === "노트북" || item.parentCategory === "컴퓨터";
+  
   return (
     <div className="detail-fullpage">
       <button className="detail-back" onClick={onClose}>← 뒤로</button>

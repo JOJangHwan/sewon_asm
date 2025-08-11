@@ -144,8 +144,8 @@ export default function AssetSearchPanel({ isOpen, onClose, onSelect }) {
       );
       const json = await res.json();
          // 🔍 여기에서 콘솔 출력
-         console.log("📥 대여 가능 자산 조회 API 응답 전체:", json);
-         console.log("📦 data:", json.data);
+       //  console.log("📥 대여 가능 자산 조회 API 응답 전체:", json);
+       //  console.log("📦 data:", json.data);
       // setAssets(json.code === 1 ? json.data.list : []);
       setAssets(json.code === 1 && Array.isArray(json.data) ? json.data : []);
     } catch (e) {

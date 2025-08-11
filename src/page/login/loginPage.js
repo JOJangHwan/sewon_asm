@@ -68,8 +68,8 @@ useEffect(() => {
       const result = await res.json();
 
       if (result.code === 1) {
-        const { accessToken, refreshToken,name, id, username, department,corporation,affiliationId } = result.data;
-       // console.log("로그인할때 받는 정보"+result.data);
+        const { accessToken, refreshToken,name, id, username, department,corporation,affiliationId, role  } = result.data;
+        //console.log("✅ 로그인할때 받는 정보:", JSON.stringify(result.data, null, 2)); // 보기 좋게 들여쓰기
        //saveTokens({ accessToken, refreshToken });
        const userObj = {
         name,
@@ -78,6 +78,7 @@ useEffect(() => {
         department,
         company: corporation, // <- 회사명
         affiliationId,
+        role, // ✅ role 추가
       };
         // ✅ context와 localStorage에 user 저장
   setUser(userObj);

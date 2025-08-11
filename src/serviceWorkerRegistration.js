@@ -36,7 +36,7 @@ const isLocalhost = Boolean(
       .register(swUrl)
       .then((registration) => {
         if (registration.waiting) {
-          console.log('새 콘텐츠가 대기 중입니다.');
+       //   console.log('새 콘텐츠가 대기 중입니다.');
   
           if (config && config.onUpdate) {
             config.onUpdate(registration);
@@ -51,14 +51,14 @@ const isLocalhost = Boolean(
             if (installingWorker.state === 'installed') {
               if (navigator.serviceWorker.controller) {
                 // 새 콘텐츠가 준비됨
-                console.log('새 콘텐츠가 사용 가능합니다.');
+              //  console.log('새 콘텐츠가 사용 가능합니다.');
   
                 if (config && config.onUpdate) {
                   config.onUpdate(registration);
                 }
               } else {
                 // 캐시된 콘텐츠가 준비됨
-                console.log('콘텐츠가 캐시되었습니다.');
+          //      console.log('콘텐츠가 캐시되었습니다.');
   
                 if (config && config.onSuccess) {
                   config.onSuccess(registration);
@@ -93,7 +93,7 @@ const isLocalhost = Boolean(
         }
       })
       .catch(() => {
-        console.log('인터넷 연결 없음. 앱은 오프라인 모드로 작동 중.');
+     //   console.log('인터넷 연결 없음. 앱은 오프라인 모드로 작동 중.');
       });
   }
   

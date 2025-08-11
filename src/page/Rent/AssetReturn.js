@@ -240,10 +240,10 @@ const handleReject = async () => {
             `${API_BASE_URL}/rental?affiliationId=${affiliationId}`,
             { method: 'GET' }
           );
-          console.log("[대여부분 대여중]"+res);
+         // console.log("[대여부분 대여중]"+res);
           const json = await res.json();
           if (json.code !== 1) return;
-          console.log('[서버 응답 데이터]', json.data?.list);
+         // console.log('[서버 응답 데이터]', json.data?.list);
       
           // 1) 매핑
           const mapped = (json.data?.list || []).map(r => ({
@@ -290,7 +290,7 @@ const handleReject = async () => {
                { method: 'GET' }
              );
             const json = await res.json();
-            console.log('[반납 신청 내역 API 응답]', json);
+          //  console.log('[반납 신청 내역 API 응답]', json);
            if (json.code !== 1) return;
            const mapped = (json.data?.list || []).map(r => ({
             id:          r.id,

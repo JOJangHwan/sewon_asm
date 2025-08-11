@@ -3,25 +3,40 @@
    ============================================= */
 
 /* ---------- 공통 ---------- */
-.bulk-container {
+ .bulk-container {
   padding: 20px;
-  font-family: Arial, sans-serif;
-  background-color: #f9f9f9;
-}
+   font-family: Arial, sans-serif;
+   background-color: #f9f9f9;
+  max-width: 100%;
+  overflow-x: hidden;          /* + 가로 넘침 차단 */
+ }
 
 h2 {
   font-size: 22px;
   margin-bottom: 16px;
+}
+/* ✅ label 버튼 정렬 보정 */
+label.btn {
+  display: flex !important;          /* inline-flex 말고 flex로 라인박스 영향 제거 */
+  align-items: center !important;     /* 세로 가운데 */
+  justify-content: center !important; /* 가로 가운데 */
+  height: 36px !important;
+  line-height: 36px !important;       /* 대부분의 브라우저에서 더 안정적 */
+  padding: 0 12px !important;
+  box-sizing: border-box;
+  vertical-align: middle;             /* (보너스) 주변 정렬 안정화 */
+  margin: 0;                          /* 혹시 모를 기본 마진 제거 */
 }
 
 /* 버튼 공통 */
 .btn,
 label.btn {
   display: inline-flex;
-  justify-content: center;
-  align-items: center;
-  height: 36px;          /* 기존 44px → 36px */
-  padding: 0 12px;       /* 좌우 여백 축소 */
+  justify-content: center; /* 가로 가운데 */
+  align-items: center;     /* 세로 가운데 */
+  height: 36px;
+  padding: 0 12px;
+  line-height: 1;          /* 글자 높이 균일화 */    /* 좌우 여백 축소 */
   font-size: 14px;       /* 폰트 크기 축소 */
   font-weight: 700;
   border: none;
@@ -69,30 +84,66 @@ label.btn {
   cursor: not-allowed !important;
 }
 
-/* 파일명 입력창 */
-.file-name-input {
-  height: 36px;
-  flex: 0 0 240px;
-  padding: 0 10px;
-  font-size: 14px;
-  border: 1px solid #ccc;
+/* 파일명 입력창(데스크톱 기본) */
+.bulk-top-controls .file-name-input {
+   height: 36px !important;
+   line-height: 36px;
+   flex: 1 1 220px;
+   max-width: 100%;
+   padding: 0 10px;
+   font-size: 14px;
+   border: 1px solid #ccc;
+   border-radius: 6px;
+   box-sizing: border-box;
+   overflow: hidden;
+   text-overflow: ellipsis;
+   white-space: nowrap;
+  min-height: 36px !important;   /* 덮어쓰기 방지 */
+  max-height: 36px !important;   /* 덮어쓰기 방지 */
+  display: inline-block;         /* 혹시 block/textarea 스타일 방지 */
+  appearance: none;              /* 모바일 기본 스타일 제거 */
+}
+
+ /* ---------- 테이블 스크롤 래퍼 ---------- */
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;            /* + 가로 스크롤은 래퍼에만 발생 */
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid #e9e9e9;
   border-radius: 6px;
-  box-sizing: border-box;
+  background: #fff;
 }
 
 /* ---------- 상단 컨트롤 영역 ---------- */
+
 .bulk-top-controls {
   display: flex;
+  justify-content: space-between;   /* 좌/우 그룹 분리 */
   align-items: center;
-  gap: 20px;
-  flex-wrap: nowrap;
-  margin-bottom: 20px;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
 }
 
-/* 삭제 이후 버튼 우측 정렬 */
-.bulk-top-controls .btn.danger {
-  margin-left: auto;
+/* 왼쪽: 양식/파일명/업로드 */
+  .controls-left {
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+  }
+.controls-left .file-name-input {  /* 파일명은 유동 폭 */
+  flex: 1 1 260px;
 }
+
+/* 오른쪽: 삭제/등록/초기화 */
+.controls-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+.controls-right .btn { min-width: 110px; }
+
+
 
 /* ---------- 테이블 ---------- */
 .bulk-table {
@@ -100,13 +151,14 @@ label.btn {
   border-collapse: collapse;
   background: #fff;
 }
-.bulk-table th,
-.bulk-table td {
+ .bulk-table th,
+ .bulk-table td {
   border: 1px solid #ddd;
-  padding: 10px;
+  padding: 8px;                /* ± 살짝 줄임 */
   text-align: center;
-  font-size: 14px;
-}
+  font-size: 13px;
+  white-space: nowrap;         /* + 줄바꿈으로 높이 폭발 방지 */
+ }
 .bulk-table th {
   background: #eeeeee;
   font-weight: 700;
@@ -131,6 +183,7 @@ label.btn {
   display: flex;
   align-items: center;
   gap: 8px;
+   word-break: break-word;
 }
 .error-summary {
   background: #ffdddd;
@@ -147,24 +200,74 @@ label.btn {
 
 /* ---------- 모바일 전용 (<768px) ---------- */
 @media (max-width: 767px) {
-  .bulk-container {
-    padding: 16px;
+.bulk-top-controls .file-name-input {
+     height: 32px !important;
+     line-height: 32px;
+     font-size: 13px;
+    min-height: 32px !important;
+    max-height: 32px !important;
   }
 
   .bulk-top-controls {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
+    flex-direction: column !important;   /* ✅ 세로로 고정 */
+    align-items: stretch !important;
+    gap: 6px;                             /* ⬅ 기존 12px → 6px로 축소 */
+    width: 100%;
+    padding: 0 12px;                     /* 좌우 여백 */
+    box-sizing: border-box;
   }
+  .controls-left,
+  .controls-right {
+    width: 100%;
+  }
+  .controls-left {
+    display: grid !important;            /* ✅ 그리드로 강제 전환 */
+    grid-template-columns: 1fr !important;
+    gap: 6px;                             /* ⬅ 기존 10px → 6px로 축소 */
+    min-width: 0;
+    width: 100%;
+  }
+    /* ✅ 좌측 3개 요소 전부 전폭 */
+  .controls-left .btn,
+  .controls-left .file-name-input,
+  .controls-left label.btn {
+    width: 100% !important;
+    box-sizing: border-box;
+    min-width: 0;
+    display: block;                      /* label.btn 전폭 적용 보장 */
+  }
+  .controls-right {
+    display: grid !important;            /* ✅ 버튼 3개 세로 전폭 */
+    grid-template-columns: 1fr;
+    gap: 6px;                             /* ⬅ 기존 10px → 6px로 축소 */
+    width: 100%;
+    margin-top: 4px;                      /* ⬅ 기존 6px → 4px로 축소 */
+  }
+  .controls-right .btn,
+  .controls-left .btn,
+  .controls-left .file-name-input {
+    width: 100%;
+    min-width: 0;
+  }
+
 
   .btn,
   label.btn,
-  .file-name-input {
+  input.file-name-input {
     width: 100%;
+    min-width: 0; 
+  }
+  
+  /* 모바일에선 살짝 더 컴팩트 */
+  input.file-name-input {
+    height: 34px !important;
+    line-height: 34px;
+    font-size: 13px;
   }
 
   .btn {
     font-size: 14px;
+    line-height: 1;  
   }
 
   .file-name-input {
@@ -183,7 +286,7 @@ label.btn {
 
   .bulk-card {
     flex: 0 0 auto;
-    width: 260px;
+    width: 260px; 
     min-height: 320px;
     border: 1px solid #ccc;
     border-radius: 8px;
@@ -224,4 +327,18 @@ label.btn {
     font-size: 13px;
     margin-top: 6px;
   }
+
+  /* ---------- 슬림 태블릿 보정 (768~1024px) ---------- */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .bulk-top-controls {
+    gap: 10px;
+  }
+  .file-name-input {
+    flex: 1 1 260px;
+  }
+  .bulk-table th, .bulk-table td {
+    padding: 8px;
+    font-size: 13px;
+  }
+}
 }

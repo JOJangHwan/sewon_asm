@@ -36,6 +36,29 @@
   animation: spin 1s linear infinite;
 }
 
+/* ===== 날짜 구간 입력 ===== */
+.audit-date-range {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap; /* 모바일 대응 */
+}
+
+.audit-date-label {
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.audit-date-separator {
+  margin: 0 4px;
+}
+
+/* 날짜 input은 살짝 넓게 */
+.audit-search-simple[type="date"] {
+  width: 160px;
+  min-width: 120px;
+}
+
 @keyframes spin {
   to {
     transform: rotate(360deg);

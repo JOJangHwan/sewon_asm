@@ -43,21 +43,21 @@ export default function BasicDataPage() {
       } else if (level === 'loc') {
         const affiliationId = ids.affiliationId || affId[corp]?.[parentLabel];
         const locationId = ids.locationId;
-        console.log('[세부위치 수정]', {
-          affiliationId,
-          locationId,
-          corp,
-          parentLabel,
-          label,
-          endpoint: `${API_BASE}/locations/${affiliationId}/${locationId}?location=${encodeURIComponent(trimmed)}`
-        });
+       // console.log('[세부위치 수정]', {
+        //   affiliationId,
+        //   locationId,
+        //   corp,
+        //   parentLabel,
+        //   label,
+        //   endpoint: `${API_BASE}/locations/${affiliationId}/${locationId}?location=${encodeURIComponent(trimmed)}`
+        // });
         if (!affiliationId || !locationId) {
           console.warn('[실패] affiliationId, locationId 확인:', { affiliationId, locationId, ids });
           return alert('부서 ID 또는 세부위치 ID를 찾지 못했습니다.');
         }
         endpoint = `${API_BASE}/locations/${affiliationId}/${locationId}?location=${encodeURIComponent(trimmed)}`;
         payload = null;
-        console.log('[세부위치 수정 요청]', 'PUT', endpoint);
+       // console.log('[세부위치 수정 요청]', 'PUT', endpoint);
       } else if (level === 'cat') {
         // 자산분류
         const id = assetIdMap[label];
@@ -74,7 +74,7 @@ export default function BasicDataPage() {
         // 품목
         // item의 id는 itemIdMap[parentLabel][label]
         const id = itemIdMap[parentLabel.trim()]?.[label.trim()];
-        console.log('[품목 수정]', { cat, item, id, itemIdMap, rawParentLabel: parentLabel, rawLabel: label });
+       // console.log('[품목 수정]', { cat, item, id, itemIdMap, rawParentLabel: parentLabel, rawLabel: label });
         if (!id) {
           alert(`품목ID를 찾지 못했습니다: [${parentLabel}][${label}]`);
           return;
@@ -87,12 +87,12 @@ export default function BasicDataPage() {
       }
       
   // 요청 보내기 전에 로그 남기기
-  console.log('[수정 요청]', {
-    endpoint,
-    payload,
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' }
-  });
+  // console.log('[수정 요청]', {
+  //   endpoint,
+  //   payload,
+  //   method: 'PUT',
+  //   headers: { 'Content-Type': 'application/json' }
+  // });
   try {
     const res = await authFetchWithRefresh(endpoint, {
       method: 'PUT',
@@ -100,7 +100,7 @@ export default function BasicDataPage() {
       body: payload ? JSON.stringify(payload) : undefined,
     });
     const j = await res.json();
-    console.log('수정 응답', j);
+   // console.log('수정 응답', j);
     //alert(j.message || "처리 결과 없음");
     if (j.code === 1) {
       alert("변경이 완료되었습니다.");
@@ -212,7 +212,7 @@ export default function BasicDataPage() {
         /* 2) 자산 분류/품목 */
         const r2 = await authFetchWithRefresh(`${API_BASE}/asset-types/hierarchy`);
         const j2 = await r2.json();
-        console.log('[응답 전체] (asset-types/hierarchy)', j2);
+       // console.log('[응답 전체] (asset-types/hierarchy)', j2);
         if (j2.code === 1 && Array.isArray(j2.data?.parentList)) {
           const aName = {}, aId = {}, iId = {};
           j2.data.parentList.forEach(p => {
@@ -223,7 +223,7 @@ export default function BasicDataPage() {
             (p.childList || []).forEach(c => {
               aName[categoryName].push(c.name.trim());
               // 실제 PK 필드명 확인!
-              console.log('[childList 항목]', c);
+             // console.log('[childList 항목]', c);
               // iId[categoryName][c.name.trim()] = c.itemId ?? c.assetTypeId ?? c.id;
               iId[categoryName][c.name.trim()] = c.childId;
             });
@@ -376,18 +376,18 @@ const onAddAsset = async () => {
   try {
     // 3) 자산분류가 없으면 → 자산분류 먼저 등록
     if (!catExists) {
-      console.log('[POST /asset-types] (parent) payload →', { name: catName, nationType: 'kr' });
-           console.log('[자산분류 등록 요청]', {
-               url: `${API_BASE}/asset-types`,
-               payload: { name: catName, nationType: 'kr' }
-             });
+    //  console.log('[POST /asset-types] (parent) payload →', { name: catName, nationType: 'kr' });
+          //  console.log('[자산분류 등록 요청]', {
+          //      url: `${API_BASE}/asset-types`,
+          //      payload: { name: catName, nationType: 'kr' }
+          //    });
       const resParent = await authFetchWithRefresh(`${API_BASE}/asset-types`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: catName, nationType: 'kr' }),
       });
       const jParent = await resParent.json();
-      console.log('[응답 JSON] (parent)', jParent);
+      //console.log('[응답 JSON] (parent)', jParent);
       if (jParent.code !== 1) throw new Error(jParent.message || '자산분류 등록 실패');
       parentId = jParent.data?.assetTypeId;
       setAssetMap(prev => ({ ...prev, [catName]: [] }));
@@ -401,23 +401,23 @@ const onAddAsset = async () => {
       const jH = await resH.json();
       const list = jH.data?.parentList || [];
       const found = list.find(p => p.name === catName);
-      console.log('[카테고리 검색결과]', found);
+     // console.log('[카테고리 검색결과]', found);
       parentId = found?.parentId; // <-- 여기!
       setAssetIdMap(prev => ({ ...prev, [catName]: parentId }));
       if (!parentId) throw new Error('parentId 찾기 실패');
     }
-       console.log('[품목 등록 요청]', {
-         url: `${API_BASE}/asset-types`,
-           payload: { parentId, name: itemName, nationType: 'kr' }
-         });
-    console.log('[POST /asset-types] (child) payload →', { parentId, name: itemName, nationType: 'kr' });
+     //  console.log('[품목 등록 요청]', {
+        //  url: `${API_BASE}/asset-types`,
+        //    payload: { parentId, name: itemName, nationType: 'kr' }
+        //  });
+   // console.log('[POST /asset-types] (child) payload →', { parentId, name: itemName, nationType: 'kr' });
     const resChild = await authFetchWithRefresh(`${API_BASE}/asset-types`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ parentId, name: itemName, nationType: 'kr' }),
     });
     const jChild = await resChild.json();
-    console.log('[응답 JSON] (child)', jChild);
+   // console.log('[응답 JSON] (child)', jChild);
     if (jChild.code !== 1) throw new Error(jChild.message || '품목 등록 실패');
 
     setAssetMap(prev => ({

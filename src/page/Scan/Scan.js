@@ -20,14 +20,14 @@ const ScanPage = () => {
       const res = await authFetchWithRefresh(url, { method: 'GET' });
       const resJson = await res.json();
 
-      console.log('✅ 서버 응답 (resJson):', resJson);
+     // console.log('✅ 서버 응답 (resJson):', resJson);
 
       if (resJson.code !== 1 || !resJson.data) {
         alert('❌ 해당 바코드를 찾을 수 없습니다.');
         return;
       }
 
-      console.log('✅ 조회된 자산 데이터:', resJson.data);
+    //  console.log('✅ 조회된 자산 데이터:', resJson.data);
 
       // 단품 데이터 페이지로 이동
       navigate('/asset', { state: resJson.data });

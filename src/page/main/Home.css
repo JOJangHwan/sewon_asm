@@ -271,6 +271,49 @@
   text-align: center;
 }
 
+/* ===========================
+   실사 완료율 도넛 차트 전용 스타일
+   =========================== */
+.home-content .chart-card.audit-gauge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative; /* 중앙 텍스트 위치 조정 */
+}
+
+/* 도넛 차트 wrapper */
+.home-content .chart-card.audit-gauge .gauge-wrapper {
+  position: relative;
+  width: 100%;
+  height: 240px; /* ResponsiveContainer 높이와 동일 */
+}
+
+/* 도넛 중앙 퍼센트 값 */
+.home-content .chart-card.audit-gauge .gauge-center-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-weight: bold;
+  font-size: 1.8rem; /* 기존보다 크게 */
+  color: #333;
+  white-space: nowrap; /* 줄바꿈 방지 */
+}
+
+/* 제목 여백 조정 */
+.home-content .chart-card.audit-gauge .chart-title {
+  margin-bottom: 12px;
+}
+
+/* 모바일 대응 */
+@media screen and (max-width: 768px) {
+  .home-content .chart-card.audit-gauge .gauge-center-text {
+    font-size: 1.4rem; /* 모바일에서는 조금 줄임 */
+  }
+}
+
+
 /* 화면이 좁아질 때: 차트 하나씩 세로로 쌓기 */
 @media screen and (max-width: 900px) {
   .home-content .charts-container {
@@ -302,4 +345,34 @@
       flex: 1 1 100%;
     }
   }
+
+  /* ===== 모바일(≤480px) 전용 오버플로우/레이아웃 보정 ===== */
+@media screen and (max-width: 480px) {
+  .home-content {
+    padding: 12px;          /* 여백 축소 */
+    overflow-x: hidden;     /* 가로 넘침 차단(모바일 한정) */
+  }
+
+  .home-content .charts-container {
+    gap: 12px;              /* 카드 간격 축소 */
+    overflow: hidden;       /* 내부 넘침 방지 */
+  }
+
+  .home-content .chart-card {
+    flex: 1 1 100%;         /* 한 줄에 하나씩 */
+    min-width: 0;           /* flex 최소폭 제거로 넘침 방지 */
+    max-width: 100%;        /* 부모 초과 금지 */
+    overflow: hidden;       /* 내부 SVG/캔버스 튀는 것 숨김 */
+  }
+
+  .home-content .chart-card.audit-gauge .gauge-wrapper {
+    height: 200px;          /* 모바일에서 조금 낮춤(선택) */
+    overflow: hidden;       /* SVG 미세 넘침 차단 */
+  }
+
+  .home-content .chart-card.audit-gauge .gauge-center-text {
+    font-size: 1.3rem;      /* 모바일 가독/줄바꿈 방지 */
+  }
+}
+
   

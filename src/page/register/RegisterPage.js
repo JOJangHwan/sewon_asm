@@ -153,7 +153,7 @@ const SuccessModal = ({ text, onClose }) => (
 
 
     // JSON 데이터 콘솔 출력
-    console.log("Sending data:", JSON.stringify(userData));  // JSON 데이터 확인용
+    //console.log("Sending data:", JSON.stringify(userData));  // JSON 데이터 확인용
 
     try {
       // const response = await fetch('http://192.168.0.220:8888/account/register', {
@@ -210,7 +210,7 @@ const SuccessModal = ({ text, onClose }) => (
         if (result.code === 1 && result.data?.corporationList) {
           const newMap = {};
           result.data.corporationList.forEach((corp) => {
-            console.log("법인이름 확인:", corp.name); // ✅ 확인
+            //console.log("법인이름 확인:", corp.name); // ✅ 확인
             newMap[corp.corporationId] = {
               name: corp.name,
               departments: corp.affiliationList.map((aff) => ({

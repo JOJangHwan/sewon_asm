@@ -32,6 +32,7 @@ const acquisitionTypeOptions = [
   ];
 
 const EditModal = ({ item, onSave, onClose }) => {
+  // console.log('[EditModal 진입] item:', item);
   /* ────────────────────────────────────
      드롭다운 옵션(state)
   ‑────────────────────────────────────*/
@@ -237,11 +238,11 @@ const EditModal = ({ item, onSave, onClose }) => {
           payload.ram = Number(edited.memory || 0);
           payload.storage = Number(edited.totalStorage || 0);
         }
-      console.log('🔍 parentTypeId:', parentTypeId, 'childTypeId:', childTypeId);
-      console.log('🔼 수정 요청 payload:', {
-        // barcode,
-        ...payload,
-      });
+    //  console.log('🔍 parentTypeId:', parentTypeId, 'childTypeId:', childTypeId);
+     //console.log('🔼 수정 요청 payload:', {
+    //     barcode,
+    //    ...payload,
+    //  });
       try {
             const endpoint = isElectronic
               ? `${API_BASE}/assets/electronic?barcode=${encodeURIComponent(barcode)}`
@@ -255,6 +256,7 @@ const EditModal = ({ item, onSave, onClose }) => {
         const json = await res.json();
         if (json.code === 1) {
           alert('✅ 자산 정보가 수정되었습니다.');
+         // console.log('[EditModal] onSave 호출:', edited);
           onSave(edited); // 부모에게 전달
         } else {
           alert(`❌ 수정 실패: ${json.message || '알 수 없는 오류'}`);

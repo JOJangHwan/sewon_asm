@@ -1,14 +1,14 @@
 {
-  "short_name": "SewonPWA",
+  "short_name": "자산관리 시스템",
   "name": "세원전자 자산관리 시스템",
   "icons": [
     {
-      "src": "logo192.png",
+      "src": "sewonLogo-192X192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "logo512.png",
+      "src": "sewonLogo-512x512.png",
       "sizes": "512x512",
       "type": "image/png"
     }

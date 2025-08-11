@@ -24,25 +24,40 @@ function Header({ toggleSidebar, isSidebarOpen }) {
   const [dbNoti, setDbNoti] = useState([]);  //DB
 
   const alarmRef = useRef(null);
+  const lastEventIdRef = useRef(null); // 🔧 마지막 이벤트 ID 저장
 
-  useEffect(() => {
-    let sse;
+  // useEffect(() => {
+  //   let sse;
   
-    const connectSSE = async () => {
-      const userId = user?.id;
-      if (!userId) return;
+  //   const connectSSE = async () => {
+  //     const userId = user?.id;
+  //     if (!userId) return;
+ const sseRef = useRef(null);
+ const reconnectAttempts = useRef(0);
+
+ useEffect(() => {
+   const connectSSE = async () => {
+       if (sseRef.current) {
+           sseRef.current.close();
+         }
+      
+         try {
+           const rawToken = await getValidAccessToken();   
+           const encodedToken = encodeURIComponent(rawToken);
+           const userId = user?.id;  // 🔧 추가!
+           if (!userId) return;      // 🔧 안전 체크
+      
+           const url = `${API_BASE_URL}/notifications/connect/${userId}?token=${encodedToken}`;
   
-      try {
-        const rawToken = await getValidAccessToken();   // ✅ 이 부분
-        const encodedToken = encodeURIComponent(rawToken); // ✅ 이 부분
-        const url = `${API_BASE_URL}/notifications/connect/${userId}?token=${encodedToken}`;
+        //console.log("📡 SSE 연결 URL:", url);
   
-        console.log("📡 SSE 연결 URL:", url);
-  
-        sse = new EventSource(url);
+        // sse = new EventSource(url);
+        const sse = new EventSource(url);
+        sseRef.current = sse;
   
         sse.addEventListener('connect', (event) => {
-          console.log('📨 [connect] 연결됨:', event.data);
+         // console.log('📨 [connect] 연결됨:', event.data);
+          reconnectAttempts.current = 0; // 성공하면 재시도 카운트 초기화
         });
   
         sse.addEventListener('notification', (event) => {
@@ -51,19 +66,28 @@ function Header({ toggleSidebar, isSidebarOpen }) {
   
         sse.onerror = (err) => {
           console.error("❌ SSE 오류:", err);
-          sse.close();
-          setTimeout(connectSSE, 10000); // 재연결
+          // sse.close();
+          // setTimeout(connectSSE, 10000); // 재연결
+         sse.close();
+         sseRef.current = null;
+
+         reconnectAttempts.current += 1;
+         const delay = Math.min(30000, 5000 * reconnectAttempts.current); // 점진적 지연
+        // console.log(`🔄 ${reconnectAttempts.current}번째 재연결 시도 (${delay / 1000}s 후)`);
+         setTimeout(connectSSE, delay);
         };
   
       } catch (e) {
         console.error("🔐 SSE 연결 중 토큰 문제:", e);
+        setTimeout(connectSSE, 5000);
       }
     };
   
     if (user?.id) connectSSE();
   
     return () => {
-      if (sse) sse.close();
+      // if (sse) sse.close();
+      if (sseRef.current) sseRef.current.close();
     };
   }, [user]);
   

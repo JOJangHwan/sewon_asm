@@ -23,6 +23,8 @@ const AuditLoad = () => {
   const [selectedLocationName, setSelectedLocationName] = useState('');
   const [locationOptions, setLocationOptions] = useState([]);
   const scannerRef = useRef(null);
+  const barcodeInputRef = useRef(null);// 바코드 포커싱
+
 
   const department = user?.department || localStorage.getItem('department') || '';
   const company    = user?.company    || localStorage.getItem('corporation') || '';
@@ -129,6 +131,12 @@ const AuditLoad = () => {
     );
   }, [selectedLocationId, locationOptions]);
 
+  useEffect(() => {
+    if (selectedLocationId && barcodeInputRef.current) {
+      barcodeInputRef.current.focus();
+    }
+  }, [selectedLocationId]);
+
   const handleBarcodeClick = () => {
     if (!selectedLocationId) {
       alert('먼저 세부위치를 선택해주세요.');
@@ -206,7 +214,7 @@ const AuditLoad = () => {
       realLocationId: Number(selectedLocationId),
     };
   
-    console.log('[검증] 요청 payload:', payload);
+   // console.log('[검증] 요청 payload:', payload);
   
     try {
       const response = await authFetchWithRefresh(`${API_BASE}/stock-takings/verify`, {
@@ -217,11 +225,11 @@ const AuditLoad = () => {
   
       // 응답 raw text 콘솔
       const rawText = await response.clone().text();
-      console.log('[검증] 응답(raw text):', rawText);
+     // console.log('[검증] 응답(raw text):', rawText);
   
       // JSON 파싱
       const result = await response.json();
-      console.log('[검증] 응답(JSON):', result);
+   //   console.log('[검증] 응답(JSON):', result);
   
       const { matchItem = [], unmatchItem = [], disableItem = [] } = result.data || {};
       const barcodeStatusMap = {};
@@ -291,12 +299,12 @@ const notFoundBarcodes = selectedBarcodes.filter(b => !returnedBarcodes.includes
               console.error('🚨 [서버 응답 text]', text);
               try {
                 const json = JSON.parse(text);
-                console.log('🚨 [서버 응답 JSON]', json);
-                console.log('🚨 [서버 응답 message]', json.message);
-                console.log('🚨 [서버 응답 status]', json.status);
-                console.log('🚨 [서버 응답 path]', json.path);
+               // console.log('🚨 [서버 응답 JSON]', json);
+               // console.log('🚨 [서버 응답 message]', json.message);
+               // console.log('🚨 [서버 응답 status]', json.status);
+               // console.log('🚨 [서버 응답 path]', json.path);
               } catch (e) {
-                console.log('🚨 [서버 응답이 JSON 아님]', text);
+              //  console.log('🚨 [서버 응답이 JSON 아님]', text);
               }
       
               if (text.includes('바코드로 자산을 찾을 수 없습니다')) {
@@ -316,7 +324,7 @@ const notFoundBarcodes = selectedBarcodes.filter(b => !returnedBarcodes.includes
                 const notFoundList = selectedItems
                   .map(sel => sel.barcode)
                   .filter(bc => !items.some(item => item.barcode === bc && item.status !== 'NOT_FOUND'));
-                console.log('❗ [NOT_FOUND 바코드 목록]', notFoundList);
+               // console.log('❗ [NOT_FOUND 바코드 목록]', notFoundList);
                 return;
               }
             }
@@ -393,7 +401,7 @@ const notFoundBarcodes = selectedBarcodes.filter(b => !returnedBarcodes.includes
       auditingDate: new Date().toISOString().split('T')[0],
       realLocationId: Number(effectiveLocationId),
     };
-    console.log('[검증] 요청 payload:', payload);
+   // console.log('[검증] 요청 payload:', payload);
 
     try {
       const response = await authFetchWithRefresh(`${API_BASE}/stock-takings`, {
@@ -459,6 +467,7 @@ const notFoundBarcodes = selectedBarcodes.filter(b => !returnedBarcodes.includes
             style={{ cursor: selectedLocationId ? 'pointer' : 'not-allowed', opacity: selectedLocationId ? 1 : 0.5 }}
           /> */}
           <input
+           ref={barcodeInputRef} 
             type="text"
             placeholder="바코드 직접 입력 후 Enter"
             value={searchBarcode}

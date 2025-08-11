@@ -140,7 +140,10 @@ export default function StockTakingSearch() {
         const names    = [];
   
         (json.data?.corporationList||[]).forEach(corp=>{
-          names.push(corp.name);
+          //names.push(corp.name);
+            if (!names.includes(corp.name)) {
+                names.push(corp.name);
+              }
           nested[corp.name] = {};
           idMapper[corp.name] = { id: corp.corporationId, departments:{} };
   
@@ -192,11 +195,14 @@ export default function StockTakingSearch() {
       if (loading) return;         // 중복 클릭 방지
       setLoading(true);            // ⏳ 로딩 시작
         // ── [NEW] 필수값 알림 ───────────────────────
-  if (!locationId || !startDate || !endDate) {
+  // if (!locationId || !startDate || !endDate) {
+    if (!locationId || !startDate) {
     setLoading(false);
-    return alert("❌ 세부위치와 시작/종료 날짜를 모두 선택해야 조회할 수 있습니다.");
+    // return alert("❌ 세부위치와 시작/종료 날짜를 모두 선택해야 조회할 수 있습니다.");
+    return alert("❌ 세부위치와 실사 시작일은 필수입니다.");
   }
-        if (startDate > endDate) {
+        // if (startDate > endDate) {
+          if (startDate && endDate && startDate > endDate) {
           setLoading(false);
           return alert("시작일이 종료일보다 늦을 수 없습니다.");
         }
@@ -206,7 +212,10 @@ export default function StockTakingSearch() {
           const params = new URLSearchParams();
           params.append("locationId",  locationId);  // 필수
           params.append("after",  startDate);        // 필수
-          params.append("before", endDate);          // 필수
+          // params.append("before", endDate);          // 필수
+           if (endDate) {
+               params.append("before", endDate);      // 선택 (있을 때만)
+             }
           if (viewCount > 0)   params.append("size", viewCount);   // 필수(size)
           if (parentTypeId)    params.append("parentTypeId", parentTypeId); // 선택
           if (childTypeId)     params.append("childTypeId",  childTypeId);  // 선택
@@ -215,11 +224,11 @@ export default function StockTakingSearch() {
     
           /* ── 2. API 호출 ─────────────────────────────── */
           const url = `${API_BASE_URL}/stock-takings?${params.toString()}`;
-          console.log("📤 호출 URL:", url);
+         // console.log("📤 호출 URL:", url);
     
           const res  = await authFetchWithRefresh(url);
           const json = await res.json();
-          console.log(JSON.stringify(json, null, 2));
+         // console.log(JSON.stringify(json, null, 2));
  
           if (
             json.code !== 1 ||
@@ -380,9 +389,22 @@ value={company} onChange={e=>{
         <div className="audit-search-row">
           {/* <input type="text" className="audit-search-simple" placeholder="바코드 검색" value={barcodeKeyword} onChange={e => setBarcodeKeyword(e.target.value)} /> */}
           <input type="number" className="audit-search-simple" placeholder="출력개수" value={viewCount} onChange={e => setViewCount(+e.target.value)} />
-          <input type="date" className="audit-search-simple" value={startDate} onChange={e => setStartDate(e.target.value)} />
-          <span>~</span>
-          <input type="date" className="audit-search-simple" value={endDate} onChange={e => setEndDate(e.target.value)} />
+          <div className="audit-date-range">
+  <label className="audit-date-label">실사일 :</label>
+  <input
+    type="date"
+    className="audit-search-simple"
+    value={startDate}
+    onChange={e => setStartDate(e.target.value)}
+  />
+  <span className="audit-date-separator">~</span>
+  <input
+    type="date"
+    className="audit-search-simple"
+    value={endDate}
+    onChange={e => setEndDate(e.target.value)}
+  />
+</div>
           <button className="audit-search-btn" onClick={handleSearch}>
   🔍 조회
 </button>

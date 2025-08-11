@@ -40,10 +40,10 @@ export function UserProvider({ children }) {
        }
 
     const initUser = async () => {
-      console.log('🟡 initUser 호출됨');
+     // console.log('🟡 initUser 호출됨');
       try {
         const token = await getValidAccessToken(); // 자동으로 refresh까지 처리됨
-        console.log('✅ 토큰:', token);
+     //   console.log('✅ 토큰:', token);
         if (!token) throw new Error('토큰 없음');
 
         // const res = await fetch(
@@ -80,8 +80,8 @@ export function UserProvider({ children }) {
         setIsLoading(false); // 이게 반드시 호출돼야 함!!
       }
     };
-    console.log('✅ isLoading:', isLoading);
-    console.log('✅ user:', user);
+   // console.log('✅ isLoading:', isLoading);
+   // console.log('✅ user:', user);
     initUser();
   }, []);
 

@@ -174,7 +174,7 @@ const LoadBulk = () => {
             map[c.name] = {};
             c.affiliationList?.forEach(a => {
               a.locations.forEach(l => {
-                console.log('[디버그] location 원본:', l);
+             //   console.log('[디버그] location 원본:', l);
               });
               map[c.name][a.department] = a.locations.map(l => ({
                 name: l.location,
@@ -182,14 +182,14 @@ const LoadBulk = () => {
               }));
             });
           });
-          console.log('🗺️ [CORP] final map:', map);
+         // console.log('🗺️ [CORP] final map:', map);
           setCompanyMap(map);
         }
   
         // ② 자산분류 - 품목 계층
         const assetRes = await authFetchWithRefresh(`${API_BASE}/asset-types/hierarchy`);
         const assetJson = await assetRes.json();
-        console.log("방금"+JSON.stringify(assetJson, null, 2));
+     //  console.log("방금"+JSON.stringify(assetJson, null, 2));
         if (assetJson.code === 1) {
           const map    = {};   // 화면(이름)용
           const pIdMap = {};   // 분류 id
@@ -215,11 +215,11 @@ const LoadBulk = () => {
                 
                                 cIdMap[p.name][c.name] = Number(childIdRaw);
               });
-            console.log([p.name])
+           // console.log([p.name])
           });
-          console.log("✅ parentList 예시:", assetJson.data?.parentList);
-          console.log('🗺️ [ASSET] final map:', map);
-          console.log("map"+map)
+        //  console.log("✅ parentList 예시:", assetJson.data?.parentList);
+        //  console.log('🗺️ [ASSET] final map:', map);
+         // console.log("map"+map)
           setAssetCategoryMap(map);   // 이름 목록 (UI)
           setParentTypeIdMap(pIdMap); // 🔑 분류 → id
           setChildTypeIdMap(cIdMap);  // 🔑 (분류, 품목) → id
@@ -415,8 +415,8 @@ if (!newRow[11] || String(newRow[11]).trim() === '') {
     }
   
     // 분기: 전자/일반
-    const electronicRows = validRows.filter(row => ['노트북', '데스크탑'].includes(row[5]));
-    const generalRows    = validRows.filter(row => !['노트북', '데스크탑'].includes(row[5]));
+    const electronicRows = validRows.filter(row => ['노트북', '컴퓨터'].includes(row[5]));
+    const generalRows    = validRows.filter(row => !['노트북', '컴퓨터'].includes(row[5]));
   
     const assetListFromRow = (row) => ({
       company: row[0],
@@ -453,17 +453,17 @@ if (!newRow[11] || String(newRow[11]).trim() === '') {
         //   headers: { 'Content-Type': 'application/json' },
         //   body: JSON.stringify({ list: generalRows.map(mapRowToBackend) }),
         // });
-         console.log('📦 [POST /assets/bulk] payload:', JSON.stringify(payload, null, 2));
+       //  console.log('📦 [POST /assets/bulk] payload:', JSON.stringify(payload, null, 2));
  const res = await authFetchWithRefresh(`${API_BASE}/assets/bulk`, {
    method: 'POST',
    headers: { 'Content-Type': 'application/json' },
    body: JSON.stringify({ list: payload }),
  });
- console.log('📡 [POST /assets/bulk] fetch 응답:', res);
+ //console.log('📡 [POST /assets/bulk] fetch 응답:', res);
  const result = await res.json();
- console.log('📦 [POST /assets/bulk] 응답 JSON:', result);
+ //console.log('📦 [POST /assets/bulk] 응답 JSON:', result);
 
-        console.log('📦 응답 본문:', result);
+      //  console.log('📦 응답 본문:', result);
         if (!res.ok) {
           console.error('❌ 응답 실패:', result);
           throw new Error(result.message || '서버 응답 실패');
@@ -482,7 +482,7 @@ if (!newRow[11] || String(newRow[11]).trim() === '') {
           list: electronicRows.map(mapRowToBackend),
         };
           // 🔍 전송 데이터 로그 출력
-  console.log('🚀 전자자산 전송 리스트:', JSON.stringify(payload, null, 2));
+ // console.log('🚀 전자자산 전송 리스트:', JSON.stringify(payload, null, 2));
         // const res = await authFetchWithRefresh('http://192.168.0.220:8888/assets/electronic/bulk', {
           const res = await authFetchWithRefresh(`${API_BASE}/assets/electronic/bulk`, {
           method: 'POST',
@@ -491,9 +491,9 @@ if (!newRow[11] || String(newRow[11]).trim() === '') {
           //body: JSON.stringify({ list: electronicRows.map(mapRowToBackend) }),
         });
         
-      console.log('📡 [POST /assets/electronic/bulk] fetch 응답:', res);
+     // console.log('📡 [POST /assets/electronic/bulk] fetch 응답:', res);
       const result = await res.json();
-      console.log('📦 [POST /assets/electronic/bulk] 응답 JSON:', result);
+     // console.log('📦 [POST /assets/electronic/bulk] 응답 JSON:', result);
  
         lastResponseMessage = result.message || '';
         if (result.code === 1) {
@@ -525,10 +525,10 @@ if (!newRow[11] || String(newRow[11]).trim() === '') {
       }
 
       // ✅ 콘솔 출력 (디버깅용)
-      console.groupCollapsed('[❌ 등록 실패] 서버 응답');
-      console.log('📦 전체 응답:', err?.response || err);
-      console.log('📡 상태 코드:', err?.response?.status);
-      console.log('📝 에러 메시지:', msg);
+      //console.groupCollapsed('[❌ 등록 실패] 서버 응답');
+     // console.log('📦 전체 응답:', err?.response || err);
+    //  console.log('📡 상태 코드:', err?.response?.status);
+    //  console.log('📝 에러 메시지:', msg);
       console.groupEnd();
 
       // 사용자 알림
@@ -550,25 +550,25 @@ const categoryName  = String(row[4] || '').trim();
 const itemName      = String(row[5] || '').trim();
 
   // 🔍 콘솔 로그 추가
-  console.log('🔍 자산분류 이름:', categoryName);
-  console.log('🔍 품목 이름:', itemName);
-  console.log('📦 parentTypeIdMap:', parentTypeIdMap);
-  console.log('📦 childTypeIdMap:', childTypeIdMap);
+ // console.log('🔍 자산분류 이름:', categoryName);
+ // console.log('🔍 품목 이름:', itemName);
+ // console.log('📦 parentTypeIdMap:', parentTypeIdMap);
+//  console.log('📦 childTypeIdMap:', childTypeIdMap);
 
   
   const parentTypeId = parentTypeIdMap[categoryName] ?? null;
   const childTypeId  = childTypeIdMap[categoryName]?.[itemName] ?? null;
 
-  console.log('✅ 추출된 parentTypeId:', parentTypeId);
-  console.log('✅ 추출된 childTypeId:', childTypeId);
+//  console.log('✅ 추출된 parentTypeId:', parentTypeId);
+ // console.log('✅ 추출된 childTypeId:', childTypeId);
   
     // 2. 이 위치에 콘솔 찍으세요!
-    console.log('입력값:', inputCompany, inputDept, inputLocation);
-    console.log('companyMap:', companyMap);
+  //  console.log('입력값:', inputCompany, inputDept, inputLocation);
+  //  console.log('companyMap:', companyMap);
     if (companyMap[inputCompany]) {
-      console.log('부서 리스트:', Object.keys(companyMap[inputCompany]));
+   //   console.log('부서 리스트:', Object.keys(companyMap[inputCompany]));
       if (companyMap[inputCompany][inputDept]) {
-        console.log('세부위치 리스트:', companyMap[inputCompany][inputDept].map(l => l.name));
+    //    console.log('세부위치 리스트:', companyMap[inputCompany][inputDept].map(l => l.name));
       }
     }
   
@@ -586,7 +586,7 @@ const itemName      = String(row[5] || '').trim();
         map: companyMap[inputCompany]?.[inputDept]
       });
     }
-    console.log('row[6](자산상태):', row[6], '=> status:', statusMap[row[6]]);
+   // console.log('row[6](자산상태):', row[6], '=> status:', statusMap[row[6]]);
     return {
         locationId,                                           // 위치 ID
         division: acquisitionTypeMap[String(row[3] || '').trim()] ?? 0,
@@ -702,42 +702,35 @@ const getFixedRow = (row) => {
 )}
 
 
-      <div className="bulk-top-controls">
-        <button className="btn primary" onClick={handleDownloadTemplate}>양식 내려받기</button>
-        <input type="text" placeholder="파일명" value={fileName} readOnly className="file-name-input" />
-        <label htmlFor="file-upload" className="btn upload">양식 업로드</label>
-        <input id="file-upload" type="file" hidden onChange={handleFileChange} />
-        <button className="btn danger" onClick={handleDelete}>삭제하기</button>
-        
-        {/* // 등록버튼 활성/비활성 조건 */}
-<button
-  className={
-    `btn success` +
-    (
-      selectedRows.length > 0 &&
-      selectedRows.every(idx => !!rowErrors[idx])
-        ? ' btn-error-disabled' : ''
-    )
-  }
-  onClick={handleRegister}
-  disabled={
-    selectedRows.length > 0
-      ? selectedRows.every(idx => !!rowErrors[idx])
-      : !isValid
-  }
->
-  등록하기
-</button>
+  <div className="bulk-top-controls">
+    <div className="controls-left">
+      <button className="btn primary" onClick={handleDownloadTemplate}>양식 내려받기</button>
+      <input type="text" placeholder="파일명" value={fileName} readOnly className="file-name-input" />
+      <label htmlFor="file-upload" className="btn upload">양식 업로드</label>
+      <input id="file-upload" type="file" hidden onChange={handleFileChange} />
+    </div>
 
-<button className="btn" onClick={handleReset}>초기화</button>
-        {/* 등록 버튼 위나 아래 아무 곳에! */}
-{selectedRows.length > 0 && selectedRows.some(idx => !!rowErrors[idx]) && (
-  <div className="register-error-alert">
-    ⚠️ 에러가 있는 행은 등록할 수 없습니다. 에러가 없는 행만 선택해주세요.
-  </div>
-)}
+    <div className="controls-right">
+      <button className="btn danger" onClick={handleDelete}>삭제하기</button>
+      <button
+        className={
+          `btn success` +
+          (selectedRows.length > 0 && selectedRows.every(idx => !!rowErrors[idx]) ? ' btn-error-disabled' : '')
+        }
+        onClick={handleRegister}
+        disabled={selectedRows.length > 0 ? selectedRows.every(idx => !!rowErrors[idx]) : !isValid}
+      >
+        등록하기
+      </button>
+      <button className="btn gray" onClick={handleReset}>초기화</button>
+    </div>
 
+    {selectedRows.length > 0 && selectedRows.some(idx => !!rowErrors[idx]) && (
+      <div className="register-error-alert">
+        ⚠️ 에러가 있는 행은 등록할 수 없습니다. 에러가 없는 행만 선택해주세요.
       </div>
+    )}
+  </div>
 
       {/* <table className="bulk-table">
         <thead>
@@ -775,8 +768,9 @@ const getFixedRow = (row) => {
         </tbody>
       </table> */}
       {/* === 📋 테이블 (PC 전용) === */}
-      {!isMobile && (
-  <table className="bulk-table">
+ {!isMobile && (
+  <div className="table-wrapper">
+    <table className="bulk-table">
 
          <thead>
    <tr>
@@ -825,7 +819,8 @@ const getFixedRow = (row) => {
         ))
       )}
     </tbody>
-  </table>
+    </table>
+  </div>
 )}
 
 

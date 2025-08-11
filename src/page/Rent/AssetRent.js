@@ -158,7 +158,7 @@ const fetchDeptRentals = async () => {
       const affiliationId = user?.affiliationId;
       if (!affiliationId) return;
       const url = `${API_BASE}/rental?affiliationId=${affiliationId}`;
-      console.log('🔵 [반납부분 대여중] 요청 URL:', url);
+     // console.log('🔵 [반납부분 대여중] 요청 URL:', url);
     
       try {
         const res = await authFetchWithRefresh(url, { method: 'GET' });

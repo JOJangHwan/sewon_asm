@@ -49,11 +49,13 @@ export default function AssetTransferWithFilter() {
       if (result.code === 1 && result.data?.corporationList) {
         const nestedData = {};
         const idMap = {};
-        const names = [];
+        //const names = [];
+        const namesSet = new Set();
         result.data.corporationList.forEach(corp => {
           const corpName = corp.name;
           const corpId = corp.corporationId;
-          names.push(corpName);
+          //names.push(corpName);
+          namesSet.add(corpName);
           nestedData[corpName] = {};
           idMap[corpName] = { id: corpId, departments: {} };
           corp.affiliationList.forEach(aff => {
@@ -72,15 +74,16 @@ export default function AssetTransferWithFilter() {
           });
         });
 
-        console.log("======== [companyData] (회사→부서→위치) ========");
-        console.log(nestedData);
-        console.log("======== [companyIdMap] (회사별 ID/부서ID/위치ID) ========");
-        console.log(idMap);
-        console.log("======== [companyList] (회사명 배열) ========");
-        console.log(names);
+        // console.log("======== [companyData] (회사→부서→위치) ========");
+        // console.log(nestedData);
+        // console.log("======== [companyIdMap] (회사별 ID/부서ID/위치ID) ========");
+        // console.log(idMap);
+        // console.log("======== [companyList] (회사명 배열) ========");
+        // console.log(names);
 
         setCompanyData(nestedData);
-        setCompanyList(names);
+       // setCompanyList(names);
+        setCompanyList([...namesSet]);
         setCompanyIdMap(idMap);
       }
 
@@ -183,7 +186,7 @@ const handleSearch = async () => {
     queryParams.append("size", viewCount); // ← 여기가 추가됨!
 
     const url = `${API_BASE_URL}/assets/paged?${queryParams.toString()}`;
-    console.log("최종 전송 URL:", url);
+   // console.log("최종 전송 URL:", url);
 
     const res = await authFetchWithRefresh(url, { method: 'GET' });
     if (!res.ok) {
@@ -227,23 +230,23 @@ const handleSearch = async () => {
       const moving = fromItems.filter(item => selectedFrom.includes(item.barcode));
       for (const asset of moving) {
       // 품목 전체 정보 콘솔 출력
-      console.log('------ [FROM 품목 전체 정보] ------');
-      console.log(asset);
+     // console.log('------ [FROM 품목 전체 정보] ------');
+     // console.log(asset);
 
       // 품목에 들어있는 법인/부서/위치 정보
-      console.log('FROM 법인:', asset.corporation);
-      console.log('FROM 부서:', asset.department);
-      console.log('FROM 세부위치:', asset.location);
+     // console.log('FROM 법인:', asset.corporation);
+     // console.log('FROM 부서:', asset.department);
+     // console.log('FROM 세부위치:', asset.location);
 
       // TO(이동 후) 회사/부서/위치 정보
-      console.log('------ [TO(이동 후) 정보] ------');
-      console.log('회사:', destCorp, '부서:', destDept, '세부위치:', destLoc);
+      //console.log('------ [TO(이동 후) 정보] ------');
+     // console.log('회사:', destCorp, '부서:', destDept, '세부위치:', destLoc);
 
       // locationId 매핑 확인(실제 PK)
       const fromLocationId =
         companyIdMap[asset.corporation]?.departments?.[asset.department]?.locations?.[asset.location];
-      console.log('FROM locationId:', fromLocationId);
-      console.log('TO locationId:', toLocationId);
+    //  console.log('FROM locationId:', fromLocationId);
+    //  console.log('TO locationId:', toLocationId);
         
       const payload = {
         assetId: Number(asset.id),            // 반드시 숫자
@@ -251,12 +254,12 @@ const handleSearch = async () => {
         toLocationId: Number(toLocationId),     // 반드시 숫자
         //authUser: authUser                     // 이건 String/Number 등 서버에 맞게
       };
-        console.log("[이관 전송 payload]", payload);
+      //  console.log("[이관 전송 payload]", payload);
         
 
-        console.log(typeof payload.assetId);         // number
-        console.log(typeof payload.fromLocationId);  // number
-        console.log(typeof payload.toLocationId);    // number
+       // console.log(typeof payload.assetId);         // number
+       // console.log(typeof payload.fromLocationId);  // number
+       // console.log(typeof payload.toLocationId);    // number
   
 
   
@@ -269,7 +272,7 @@ const handleSearch = async () => {
           }
         );
         const resJson = await res.json();
-        console.log("[이관 응답]", resJson);
+      //  console.log("[이관 응답]", resJson);
   
         if (!res.ok || resJson.code !== 1) {
           throw new Error(resJson.message || '이관 실패');

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useContext,useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 import homeImg from '../../assets/img/home.png';
@@ -9,12 +9,18 @@ import reportImg from '../../assets/img/report.png';
 import myInforImg from '../../assets/img/myInfor.png';
 import RegisterCorpAndItemImg from '../../assets/img/b.png';
 import AssetTransImg from '../../assets/img/a.png';
+import AdminIconImg from '../../assets/img/adminIcon.jpg';
+import { UserContext } from '../../utils/UserContext';
+
 
 function Sidebar({ isSidebarOpen, toggleSidebar }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [hoveredMenu, setHoveredMenu] = useState(null);
 
+  const { user } = useContext(UserContext);
+  if (!user) return null;
+  //console.log(user)
   const menuItems = [
     { path: '/main', icon: homeImg, label: '홈' },
     {
@@ -39,6 +45,15 @@ function Sidebar({ isSidebarOpen, toggleSidebar }) {
     { path: '/RegisterCorpAndItem', icon: RegisterCorpAndItemImg, label: '법인 및 품목등록' },
     { path: '/DualTransferSimple', icon: AssetTransImg, label: '이관 등록' },
     { path: '/profile', icon: myInforImg, label: '내정보' },
+      ...(user.username === 'admin'
+       ? [{
+         label: '관리자',
+             icon: AdminIconImg,
+               subMenus:[
+                 { path: '/UserManage',label: '사용자관리'},
+               ]
+             }]
+           : [])
   ];
 
   const isMobile = window.innerWidth <= 768; // 모바일인지 체크

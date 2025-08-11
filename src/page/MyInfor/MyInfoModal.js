@@ -95,13 +95,14 @@ if (current.password) changed.password = current.password;
       ...changed,
     };
   
-    console.log('📤 서버로 전송할 수정 항목:', payload);
+   // console.log('📤 서버로 전송할 수정 항목:', payload);
   
         try {
             const res = await authFetchWithRefresh(`${API_BASE}/account`, {
               method : 'PUT',
               body   : JSON.stringify(payload),  // Content-Type 은 훅에서 자동 세팅
        });
+    //   console.log("전송주소 : "+res)
       
             const json = await res.json();
             if (json.code === 1) {
@@ -131,18 +132,18 @@ if (current.password) changed.password = current.password;
                                                 })
                                               });
                                               // +++ 추가! 보내는 토큰 콘솔 출력
-console.log('[보내는 토큰]', {
-  'Authorization-a': localStorage.getItem('accessToken'),
-  'Authorization-r': localStorage.getItem('refreshToken'),
-});
+//console.log('[보내는 토큰]', {
+//   'Authorization-a': localStorage.getItem('accessToken'),
+//   'Authorization-r': localStorage.getItem('refreshToken'),
+// });
 const refJson = await refRes.json();
-console.log('[토큰 재발급 응답]', refJson);
+//console.log('[토큰 재발급 응답]', refJson);
                       // 여기! 헤더에서 토큰 꺼내기
                       const newAccessToken  = refJson?.data?.accessToken?.token;
                       const newRefreshToken = refJson?.data?.refreshToken?.token;
 
                       //const refJson = await refRes.json();
-                      console.log('[토큰 재발급 응답]', refJson, newAccessToken, newRefreshToken);
+                      //console.log('[토큰 재발급 응답]', refJson, newAccessToken, newRefreshToken);
                        // 토큰이 둘 다 있으면 무조건 성공!
                        if (newAccessToken && newRefreshToken) {
                         localStorage.setItem('accessToken',  newAccessToken);

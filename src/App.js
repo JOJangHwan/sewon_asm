@@ -15,6 +15,7 @@ import AuditListpage from './page/Audit/auditList';
 import ReportPage from './page/Report/report';
 import MyInforPage from './page/MyInfor/myInfor';
 import AssetRentPage from './page/Rent/components/CommonPage';
+import AdminUserPage from './page/admin/adminUserManage';
 import ScanPage from './page/Scan/Scan';
 import AssetDetailPage from './page/Scan/AssetDetailPage';
 import RegisterCorpAndItem from './page/admin/RegisterCorpAndItem';
@@ -76,6 +77,7 @@ const AppRoutes = () => (
       <Route path="/rent"               element={<PrivateRoute element={<AssetRentPage />} />} />
       <Route path="/RegisterCorpAndItem" element={<PrivateRoute element={<RegisterCorpAndItem />} />} />
       <Route path="/DualTransferSimple"  element={<PrivateRoute element={<DualTransferSimple />} />} />
+      <Route path="/UserManage"  element={<PrivateRoute element={<AdminUserPage />} />} />
     </Route>
   </Routes>
 );

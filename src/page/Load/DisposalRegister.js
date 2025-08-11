@@ -76,7 +76,7 @@ const failCount = barcodeList.filter(item => item.status === 'FAIL').length;
       barcodes: selected.map(item => item.barcode),
     };
   
-    console.log('📤 [전송 데이터]', `${API_BASE}/assets/dispose`, payload);
+   // console.log('📤 [전송 데이터]', `${API_BASE}/assets/dispose`, payload);
   
     try {
       const response = await authFetchWithRefresh(`${API_BASE}/assets/dispose`, {
@@ -88,10 +88,10 @@ const failCount = barcodeList.filter(item => item.status === 'FAIL').length;
       });
   
       const rawText = await response.clone().text();
-      console.log('📥 [응답 RAW TEXT]', rawText);
+     // console.log('📥 [응답 RAW TEXT]', rawText);
   
       const result = await response.json();
-      console.log('📥 [응답 JSON]', result);
+     // console.log('📥 [응답 JSON]', result);
   
       if (!response.ok) {
         const serverMessage = result.message || '알 수 없는 오류';
@@ -146,7 +146,7 @@ const failCount = barcodeList.filter(item => item.status === 'FAIL').length;
         if (scannerInstance) {
            scannerInstance.clear()
              .then(() => {
-               console.log('✅ 스캐너 종료됨');
+              // console.log('✅ 스캐너 종료됨');
                setScannerInstance(null);
                setScannerVisible(false);
                scannerRef.current = null;

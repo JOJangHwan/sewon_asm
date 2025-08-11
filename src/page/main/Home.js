@@ -235,32 +235,31 @@ const AuditGauge = ({ completionRate }) => {
   const COLORS = ['#FFB300', '#e0e0e0'];
 
   return (
-    <div className="chart-card">
+    <div className="chart-card audit-gauge">
       <h4 className="chart-title">실사 완료율</h4>
-      <ResponsiveContainer width="100%" height={240}>
-        <PieChart>
-          <Pie
-            data={data}
-            dataKey="value"
-            startAngle={90}
-            endAngle={-270}
-            innerRadius={60}
-            outerRadius={80}
-            paddingAngle={2}
-            stroke="none"
-            label={({ percent, name }) =>
-              name === '완료' ? `${(percent * 100).toFixed(1)}%` : ''
-            }
-            labelLine={false}
-          >
-            {data.map((_, idx) => (
-              <Cell key={`cell-${idx}`} fill={COLORS[idx % COLORS.length]} />
-            ))}
-          </Pie>
-        </PieChart>
-      </ResponsiveContainer>
-      <div style={{ textAlign: 'center', marginTop: '-30px', fontWeight: 'bold', fontSize: 22 }}>
-        {(gaugeRate * 100).toFixed(1)}%
+<div className="gauge-wrapper" style={{ width: '100%', maxWidth: '100%' }}>
+        <ResponsiveContainer width="100%" height={240}>
+          <PieChart>
+            <Pie
+              data={data}
+              dataKey="value"
+              startAngle={90}
+              endAngle={-270}
+              innerRadius={60}
+              outerRadius={80}
+              paddingAngle={2}
+              stroke="none"
+              labelLine={false}
+            >
+              {data.map((_, idx) => (
+                <Cell key={`cell-${idx}`} fill={COLORS[idx % COLORS.length]} />
+              ))}
+            </Pie>
+          </PieChart>
+        </ResponsiveContainer>
+        <div className="gauge-center-text">
+          {(gaugeRate * 100).toFixed(1)}%
+        </div>
       </div>
     </div>
   );
