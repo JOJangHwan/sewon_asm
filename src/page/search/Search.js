@@ -1,6 +1,17 @@
+<<<<<<< HEAD
 // import { useState, useEffect } from "react";
 // import { filterItems } from "./searchUtils";
 // import "./Search.css";
+=======
+import React, { useState, useEffect, useRef, useMemo } from "react";
+import "./Search.css";
+import { authFetchWithRefresh } from "../../utils/authFetchWithRefresh";  // 인증 포함 fetch 함수 사용
+import { createRoot } from "react-dom/client";
+import LabelPrint from "../MyInfor/LabelPrint";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
+const API_BASE_URL = window._env_?.REACT_APP_API_URL || "http://localhost:8888";
+>>>>>>> a48c2f1 (반응형 웹 수정)
 
 // const companyData = {
 //   "평택 공장": {
@@ -339,11 +350,32 @@ function useMediaQuery(query) {
 }
 
 export default function Search() {
+<<<<<<< HEAD
   // 원본 + 필터 상태
   const [originalItems] = useState(generateDummyItems());
   const [company, setCompany]             = useState("");
   const [department, setDepartment]       = useState("");
   const [location, setLocation]           = useState("");
+=======
+    // ── 모드(web/pda) 결정: ?mode=web|pda 가 있으면 우선, 없으면 화면폭/UA로 추정
+  const queryMode = new URLSearchParams(window.location.search).get("mode");
+  const mode = useMemo(() => {
+    if (queryMode === "web" || queryMode === "pda") return queryMode;
+    const narrow = window.innerWidth <= 768;
+    const ua = navigator.userAgent.toLowerCase();
+    const isMobileUA = /android|iphone|ipad|ipod/.test(ua);
+    return (narrow || isMobileUA) ? "pda" : "web";
+  }, [queryMode]);
+  const [companyData, setCompanyData] = useState({});
+  const [assetCategoryData, setAssetCategoryData] = useState({});
+  const [items, setItems] = useState([]);
+  const [selected, setSelected] = useState(new Set());
+  const [searched, setSearched] = useState(false);
+
+  const [company, setCompany] = useState("");
+  const [department, setDepartment] = useState("");
+  const [location, setLocation] = useState("");
+>>>>>>> a48c2f1 (반응형 웹 수정)
   const [assetCategory, setAssetCategory] = useState("");
   const [item, setItem]                   = useState("");
   const [barcodeKeyword, setBarcodeKeyword] = useState("");
@@ -427,8 +459,22 @@ export default function Search() {
     return pages;
   };
 
+    // [+] ESC 키로 상세패널 닫기
+  useEffect(() => {
+    if (!isDetailOpen) return;
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') setIsDetailOpen(false);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isDetailOpen]);
+
   return (
+<<<<<<< HEAD
     <div className="search-container">
+=======
+    <div className={`search-container search-${mode}`}>
+>>>>>>> a48c2f1 (반응형 웹 수정)
       <h1 className="search-title">자산 조회</h1>
 
       {/* ── 필터 UI ──────────────────────────────────────── */}
@@ -462,6 +508,7 @@ export default function Search() {
             onChange={e => setViewCount(Number(e.target.value))}
           />
         </div>
+<<<<<<< HEAD
         <div className="search-bar bottom-bar">
           <input
             type="text"
@@ -476,6 +523,13 @@ export default function Search() {
             value={startDate}
             onChange={e => setStartDate(e.target.value)}
           />
+=======
+
+        <div className="srch-bar bottom-bar">
+          <input type="text" className="search-input barcode-search" placeholder="바코드 검색"
+                 value={barcode} onChange={e => setBarcode(e.target.value)} />
+          <input type="date" className="search-input date" value={startDate} onChange={e => setStartDate(e.target.value)} />
+>>>>>>> a48c2f1 (반응형 웹 수정)
           <span>~</span>
           <input
             type="date"
@@ -530,6 +584,43 @@ export default function Search() {
           </div>
         </>
       )}
+<<<<<<< HEAD
+=======
+{isDetailOpen && selectedItem && (
+  <div className="detail-overlay" onClick={() => setIsDetailOpen(false)}>
+    <div
+      className="detail-panel"
+      onClick={e => e.stopPropagation()} // 내부 클릭 방지
+    >
+      <div className="detail-header">
+        <h3>자산 상세</h3>
+        {/* [+] 닫기(X) 버튼 */}
+ {mode === "pda" && (
+   <button
+     className="detail-close"
+     type="button"
+     aria-label="닫기"
+     onClick={() => setIsDetailOpen(false)}
+   >
+     ×
+   </button>
+ )}
+      </div>
+      <div className="detail-body">
+        <p style={{ color: '#000' }}><strong>바코드:</strong> {selectedItem.barcode}</p>
+        <p style={{ color: '#000' }} ><strong>회사:</strong> {selectedItem.corporation}</p>
+        <p style={{ color: '#000' }}><strong>부서:</strong> {selectedItem.department}</p>
+        <p style={{ color: '#000' }}><strong>위치:</strong> {selectedItem.location}</p>
+        <p style={{ color: '#000' }}><strong>자산분류:</strong> {selectedItem.parentCategory}</p>
+        <p style={{ color: '#000' }}><strong>품목:</strong> {selectedItem.childCategory}</p>
+        <p style={{ color: '#000' }}><strong>상태:</strong> {selectedItem.status}</p>
+        <p style={{ color: '#000' }}><strong>제조사:</strong> {selectedItem.manufacturer}</p>
+        <p style={{ color: '#000' }}><strong>모델:</strong> {selectedItem.model}</p>
+        <p style={{ color: '#000' }}><strong>취득일자:</strong> {selectedItem.acquisitionDate}</p>
+        <p style={{ color: '#000' }}><strong>취득가:</strong> {Number(selectedItem.acquisitionPrice).toLocaleString()}</p>
+        <p style={{ color: '#000' }}><strong>등록자:</strong> {selectedItem.registerName}</p>
+        <p style={{ color: '#000' }}><strong>등록일자:</strong> {selectedItem.registrationDate}</p>
+>>>>>>> a48c2f1 (반응형 웹 수정)
 
       {/* ── 하이브리드 상세 보기 ─────────────────────────── */}
       {detailItem && (

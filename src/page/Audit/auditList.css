@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /* 전체 컨테이너 */
 .audit-search-container {
   padding: 20px;
@@ -104,8 +105,52 @@
 
 /* 페이징 버튼 영역 */
 .audit-pagination {
+=======
+/* ───────────────────────────────
+   auditList.css (충돌 방지: .auditlist 스코프 고정)
+   ─────────────────────────────── */
+
+/* ===== 공통 ===== */
+.auditlist .audit-search-container { padding: 20px; }
+.auditlist .audit-title { font-size: 24px; font-weight: 700; margin-bottom: 20px; }
+
+.auditlist .audit-search-filter { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+.auditlist .audit-search-row { display: flex; gap: 8px; align-items: center; justify-content: center; flex-wrap: wrap; }
+
+.auditlist .audit-search-simple {
+  border: 1px solid #ccc; padding: 0 10px; height: 36px; font-size: 14px;
+  border-radius: 4px; width: 140px; box-sizing: border-box;
+}
+.auditlist .audit-search-simple[type="date"] { width: 160px; min-width: 120px; }
+
+.auditlist .audit-date-range { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.auditlist .audit-date-label { font-weight: 500; white-space: nowrap; }
+.auditlist .audit-date-separator { margin: 0 4px; }
+
+.auditlist .audit-search-btn {
+  background: #FFC107; color: #fff; font-weight: 700; padding: 0 18px; height: 36px;
+  font-size: 14px; border: none; border-radius: 4px; cursor: pointer; transition: background-color .2s; white-space: nowrap;
+}
+.auditlist .audit-search-btn:hover { background: #ffb300; }
+.auditlist .audit-search-btn.reset { background: #9e9e9e; }
+.auditlist .audit-search-btn.reset:hover { background: #7e7e7e; }
+.auditlist .audit-search-btn.download { background:#4caf50; color:#fff; }
+
+/* 테이블 */
+.auditlist .audit-table-wrapper { position: relative; width: 100%; overflow-x: auto; min-height: 300px; }
+.auditlist .audit-table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 1000px; }
+.auditlist .audit-table th, 
+.auditlist .audit-table td { border: 1px solid #ccc; padding: 10px; text-align: center; }
+.auditlist .audit-table thead { background: #f3f4f6; border-bottom: 2px solid #999; }
+.auditlist .audit-table tbody tr:hover { background: #f9fafb; transition: background-color .2s; }
+
+/* 페이지네이션 */
+.auditlist .audit-pagination {
+>>>>>>> a48c2f1 (반응형 웹 수정)
   display: flex;
+  flex-direction: row; /* 가로 배치 강제 */
   justify-content: center;
+<<<<<<< HEAD
   gap: 4px;
   margin-top: 24px;
   flex-wrap: wrap;
@@ -199,4 +244,94 @@
   .drawer {
     width: 100vw;
   }
+=======
+  align-items: center;
+  gap: 10px;
+  margin: 32px 0 0;
+  flex-wrap: nowrap; /* 줄바꿈 방지 */
+}
+.auditlist .audit-pagination button {
+  flex: 0 0 auto;       /* 자동 늘어남 방지 */
+  width: 60px;          /* 가로 길이 고정 (원하는 값으로 조절) */
+  height: 32px;         /* 높이 고정 */
+  padding: 0;           /* 안쪽 여백 제거 */
+  text-align: center;   /* 텍스트 가운데 정렬 */
+}
+
+.auditlist .audit-pagination button {
+  cursor: pointer; display: inline-flex; justify-content: center; align-items: center;
+  min-width: 40px; height: 25px; padding: 0 12px; font-size: 13px; line-height: 1;
+  border: 1px solid #d1d5db; border-radius: 6px; background: #ffffff; color: #000000;
+  transition: background-color .25s, color .25s, border-color .25s;
+}
+.auditlist .audit-pagination button:hover:not(:disabled):not(.active) { background: #f3f4f6; }
+.auditlist .audit-pagination button.active { background: #FFC107; border-color: #FFC107; }
+.auditlist .audit-pagination button:disabled { background: #ffffff; color: #9ca3af; cursor: not-allowed; }
+@media (max-width: 480px) { 
+  .auditlist .audit-pagination { gap: 8px; } 
+  .auditlist .audit-pagination button { flex: 0 0 auto; } 
+}
+
+/* 로딩 오버레이 */
+.auditlist .table-loading-overlay {
+  position: absolute; inset: 0; background-color: rgba(255, 255, 255, 0.6);
+  display: flex; justify-content: center; align-items: center; z-index: 10;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.auditlist .loading-spinner {
+  width: 48px; height: 48px; border: 5px solid #f3f3f3; border-top: 5px solid #3498db;
+  border-radius: 50%; animation: spin .8s linear infinite;
+}
+
+/* 상세 뷰 */
+.auditlist .detail-fullpage { padding: 20px; background: #fff; }
+.auditlist .detail-back { background: none; border: none; font-size: 18px; cursor: pointer; margin-bottom: 10px; }
+.auditlist .drawer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 999; }
+.auditlist .drawer {
+  position: fixed; top: 0; right: 0; width: 400px; height: 100vh;
+  background: #fff; padding: 20px; overflow-y: auto; z-index: 1000; box-shadow: -2px 0 5px rgba(0,0,0,.3);
+}
+.auditlist .drawer-close { background: none; border: none; font-size: 24px; float: right; cursor: pointer; }
+
+/* 모드별 (루트에 .auditlist-web / .auditlist-pda 이미 붙음) */
+.auditlist.auditlist-web .audit-search-filter .audit-search-row:nth-of-type(2) { flex-wrap: nowrap; gap: 10px; }
+.auditlist.auditlist-web .audit-search-btn { width: auto; flex: 0 0 auto; }
+.auditlist.auditlist-web .drawer { width: 400px; }
+
+.auditlist.auditlist-pda .audit-search-row { flex-direction: column; align-items: stretch; }
+.auditlist.auditlist-pda .audit-search-simple,
+.auditlist.auditlist-pda .audit-search-btn { width: 100%; }
+
+/* 날짜/버튼 줄은 PDA에서 세로 */
+.auditlist.auditlist-pda .audit-search-filter .audit-search-row:nth-of-type(2) {
+  flex-direction: column; align-items: stretch; gap: 8px;
+}
+
+/* 테이블 너비 완화(PDA) */
+.auditlist.auditlist-pda .audit-table { min-width: 800px; }
+.auditlist.auditlist-pda .drawer { width: 100vw; }
+
+/* PDA 전용 바코드 영역 + 버튼 */
+.auditlist .pda-barcode-section { display: flex; flex-direction: column; gap: 10px; margin-bottom: 8px; }
+.auditlist .pda-barcode-input {
+  border: 1px solid #ccc; border-radius: 6px; padding: 0 12px; height: 40px; font-size: 14px;
+}
+.auditlist .button-row-inline { display: flex; gap: 10px; justify-content: flex-start; }
+.auditlist .button-row-inline button {
+  flex: 1; min-width: 80px; height: 40px; font-size: 14px; white-space: nowrap; border: none; border-radius: 6px; color: #fff; cursor: pointer;
+}
+.auditlist .delete-btn   { background: #9e9e9e; }
+.auditlist .verify-btn   { background: #1976d2; }
+.auditlist .register-btn { background: #2e7d32; }
+
+/* X 버튼 */
+.auditlist .detail-close {
+  position: absolute; top: 10px; right: 10px; width: 40px; height: 40px; border: 0; border-radius: 8px;
+  background: transparent; color: #333; font-size: 26px; line-height: 1; cursor: pointer;
+}
+.auditlist .detail-close:hover   { background: #f3f4f6; }
+.auditlist .detail-close:active  { background: #e5e7eb; }
+@media (max-width: 768px) {
+  .auditlist .detail-close { width: 44px; height: 44px; font-size: 28px; }
+>>>>>>> a48c2f1 (반응형 웹 수정)
 }

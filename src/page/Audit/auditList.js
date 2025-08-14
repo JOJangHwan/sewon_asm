@@ -292,9 +292,40 @@
 
 
 
-import React, { useState, useEffect } from "react";
+import React, { useMemo ,useState, useEffect } from "react";
 import { FaSearch } from "react-icons/fa";
 import "./auditList.css";
+<<<<<<< HEAD
+=======
+import { authFetchWithRefresh } from "../../utils/authFetchWithRefresh";  // 인증 포함 fetch 함수 사용
+// 📦 [추가] 엑셀 내보내기용 라이브러리
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
+
+const API_BASE_URL = window._env_?.REACT_APP_API_URL || "http://localhost:8888";
+
+// ✅ 환경변수에서 API URL 사용 추가
+//const API_BASE = window._env_?.REACT_APP_API_URL|| 'http://localhost:8080';
+
+
+
+const COLUMN_LABELS = [
+  { key: "barcode", label: "바코드" },
+  { key: "corporation",  label: "회사" },
+  { key: "department", label: "부서" },
+  { key: "location", label: "위치" },
+  { key: "division", label: "취득구분" }, 
+  { key: "parentCategory",  label: "자산분류" },
+  { key: "childCategory",   label: "품목" },
+  { key: "status",          label: "상태" },
+  { key: "manufacturer", label: "제조사" },
+  { key: "model", label: "모델" },
+  { key: "acquisitionDate", label: "취득일자" },
+  { key: "acquisitionPrice", label: "취득가" },
+  { key: "registerName", label: "등록자" },
+  { key: "isStockTaking", label: "실사상태" },
+];
+>>>>>>> a48c2f1 (반응형 웹 수정)
 
 const companyData = {
   "평택 공장": {
@@ -326,7 +357,7 @@ function useMediaQuery(query) {
 function FullPageDetail({ item, onClose }) {
   return (
     <div className="detail-fullpage">
-      <button className="detail-back" onClick={onClose}>← 뒤로</button>
+      <button className="detail-close" aria-label="닫기" onClick={onClose}>×</button>
       <h2>자산 상세</h2>
       <ul>
         {Object.entries(item).map(([key, value]) => (
@@ -361,6 +392,7 @@ function DetailWrapper({ item, onClose }) {
     : <SideDrawerDetail item={item} onClose={onClose} />;
 }
 
+<<<<<<< HEAD
 export default function AuditSearch() {
   const items = Array.from({ length: 130 }, (_, i) => ({
     barcode: `200RSFFL${i + 1}`,
@@ -378,6 +410,19 @@ export default function AuditSearch() {
     registrant: "홍길동",
     inspectionStatus: i % 2 === 0 ? "완료" : "미완료"
   }));
+=======
+export default function StockTakingSearch() {
+  const isPDA = useMediaQuery("(max-width: 768px)"); // 화면 폭 기준 PDA 여부 감지
+  const [companyData, setCompanyData] = useState({});
+  const [assetCategoryData, setAssetCategoryData] = useState({});
+  const [items, setItems] = useState([]);
+  const [filteredItems, setFilteredItems] = useState([]);
+  const [loading, setLoading] = useState(false);  // ✅ 로딩 상태 추가
+  const [searched, setSearched] = useState(false);
+  const [selectedItems, setSelectedItems] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [detailItem, setDetailItem] = useState(null);
+>>>>>>> a48c2f1 (반응형 웹 수정)
 
   const [company, setCompany] = useState("");
   const [department, setDepartment] = useState("");
@@ -453,10 +498,28 @@ export default function AuditSearch() {
         : [...prev, barcode]
     );
   };
+    // PDA 전용 바코드 입력 + 버튼 묶음 UI
+   const renderPDABarcodeSection = () => (
+     <div className="pda-barcode-section">
+       <input
+         type="text"
+         placeholder="바코드 직접 입력"
+         className="pda-barcode-input"
+       />
+<div class="button-row-inline">
+  <button class="delete-btn">삭제하기</button>
+  <button class="verify-btn">검증하기</button>
+  <button class="register-btn">등록하기</button>
+</div>
+     </div>
+   );
 
   return (
+    
+  <div className={`auditlist ${isPDA ? 'auditlist-pda' : 'auditlist-web'}`}>
     <div className="audit-search-container">
       <h2 className="audit-title">실사 조회</h2>
+       {isPDA && renderPDABarcodeSection()} {/* PDA 모드일 때만 렌더 */}
       <div className="audit-search-filter">
         <div className="audit-search-row">
           <select className="audit-search-simple" value={company} onChange={e => setCompany(e.target.value)}>
@@ -532,5 +595,6 @@ export default function AuditSearch() {
       </div>
       {detailItem && <DetailWrapper item={detailItem} onClose={() => setDetailItem(null)} />}
     </div>
+  </div>
   );
 }

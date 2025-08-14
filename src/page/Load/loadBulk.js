@@ -41,11 +41,107 @@ const ASSET_CATEGORY_MAP = {
 };
 
 const LoadBulk = () => {
+<<<<<<< HEAD
+=======
+  //db에서 가져오는 정보들을 맵핑하기 위한 정보
+  const [companyMap,        setCompanyMap]        = useState(DUMMY_COMPANY_MAP);
+   const [assetCategoryMap,  setAssetCategoryMap]  = useState(DUMMY_ASSET_MAP);
+
+ // ⬇️ 이름→ID 변환에 쓰일 새 맵
+ const [parentTypeIdMap, setParentTypeIdMap] = useState({});
+ const [childTypeIdMap,  setChildTypeIdMap]  = useState({});
+
+  useEffect(() => {
+    (async () => {
+      try {
+        // ① 회사-부서-세부위치 계층
+        const corpRes = await authFetchWithRefresh(`${API_BASE}/corporations`);
+        const corpJson = await corpRes.json();
+        if (corpJson.code === 1) {
+          const map = {};
+          corpJson.data?.corporationList?.forEach(c => {
+            map[c.name] = {};
+            c.affiliationList?.forEach(a => {
+              a.locations.forEach(l => {
+             //   console.log('[디버그] location 원본:', l);
+              });
+              map[c.name][a.department] = a.locations.map(l => ({
+                name: l.location,
+                id: l.locationId || l.id || l.code  // 실제 있는 키로!
+              }));
+            });
+          });
+         // console.log('🗺️ [CORP] final map:', map);
+          setCompanyMap(map);
+        }
+  
+        // ② 자산분류 - 품목 계층
+        const assetRes = await authFetchWithRefresh(`${API_BASE}/asset-types/hierarchy`);
+        const assetJson = await assetRes.json();
+     //  console.log("방금"+JSON.stringify(assetJson, null, 2));
+        if (assetJson.code === 1) {
+          const map    = {};   // 화면(이름)용
+          const pIdMap = {};   // 분류 id
+          const cIdMap = {};   //  └─ 품목 id
+          assetJson.data?.parentList?.forEach(p => {
+            // map[p.name] = p.childList.map(c => c.name);
+              map[p.name]         = (p.childList || []).map(c => c.name);
+                            // 📌 서버마다 id 필드 명이 조금씩 달라질 수 있으니, 후보를 모두 검사
+                          const parentIdRaw =
+                              p.parentTypeId ??      // ① 우리 앱이 원래 기대했던 이름
+                              p.parentId      ??      // ② 다른 팀에서 쓰는 이름
+                              p.typeId        ??      // ③ 혹시 이런 이름?
+                              p.id;                   // ④ 마지막 fallback
+              
+                            pIdMap[p.name] = Number(parentIdRaw); 
+              cIdMap[p.name]      = {};
+              (p.childList || []).forEach(c => {
+                                const childIdRaw =
+                                  c.childTypeId ??      // ①
+                                  c.childId      ??      // ②
+                                  c.typeId       ??      // ③
+                                  c.id;                 // ④
+                
+                                cIdMap[p.name][c.name] = Number(childIdRaw);
+              });
+           // console.log([p.name])
+          });
+        //  console.log("✅ parentList 예시:", assetJson.data?.parentList);
+        //  console.log('🗺️ [ASSET] final map:', map);
+         // console.log("map"+map)
+          setAssetCategoryMap(map);   // 이름 목록 (UI)
+          setParentTypeIdMap(pIdMap); // 🔑 분류 → id
+          setChildTypeIdMap(cIdMap);  // 🔑 (분류, 품목) → id
+        }
+      } catch (e) {
+        console.error('데이터 불러오기 실패:', e);
+      }
+    })();
+  }, []);
+  
+>>>>>>> a48c2f1 (반응형 웹 수정)
   const [fileName, setFileName] = useState('');
   const [tableData, setTableData] = useState([]);
   const [selectedRows, setSelectedRows] = useState([]);
   const [rowErrors, setRowErrors] = useState([]);
   const [isValid, setIsValid] = useState(true);
+<<<<<<< HEAD
+=======
+    // ✅ 전체 선택 여부
+  const isAllSelected = tableData.length > 0 && selectedRows.length === tableData.length;
+
+  // ✅ 전체 선택 토글
+  const handleSelectAll = () => {
+    if (isAllSelected) {
+      setSelectedRows([]);
+    } else {
+      // 오류 행도 포함해서 “보이는 행 전부” 선택
+      setSelectedRows(tableData.map((_, idx) => idx));
+    }
+  };
+  const isMobile = useMediaQuery('(max-width: 768px)');
+  const modeClass = isMobile ? 'pda-mode' : 'web-mode';
+>>>>>>> a48c2f1 (반응형 웹 수정)
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -155,7 +251,7 @@ const LoadBulk = () => {
   const isRowSelected = (index) => selectedRows.includes(index);
 
   return (
-    <div className="bulk-container">
+    <div className={`bulk-container ${modeClass}`}>
       <h2>자산 일괄 등록</h2>
 
       {rowErrors.length > 0 && (
@@ -164,6 +260,7 @@ const LoadBulk = () => {
         </div>
       )}
 
+<<<<<<< HEAD
       <div className="bulk-top-controls">
         <button className="btn primary" onClick={handleDownloadTemplate}>양식 내려받기</button>
         <input type="text" placeholder="파일명" value={fileName} readOnly className="file-name-input" />
@@ -171,6 +268,49 @@ const LoadBulk = () => {
         <input id="file-upload" type="file" hidden onChange={handleFileChange} />
         <button className="btn danger" onClick={handleDelete}>삭제하기</button>
         <button className="btn success" onClick={handleRegister} disabled={!isValid}>등록하기</button>
+=======
+
+  <div className="bulk-top-controls">
+    <div className="controls-left">
+      <button className="btn primary" onClick={handleDownloadTemplate}>양식 내려받기</button>
+      <input type="text" placeholder="파일명" value={fileName} readOnly className="file-name-input" />
+      <label htmlFor="file-upload" className="btn upload">양식 업로드</label>
+      <input id="file-upload" type="file" hidden onChange={handleFileChange} />
+    </div>
+
+    <div className="controls-right">
+      <button className="btn danger" onClick={handleDelete}>삭제하기</button>
+      <button
+        className={
+          `btn success` +
+          (selectedRows.length > 0 && selectedRows.every(idx => !!rowErrors[idx]) ? ' btn-error-disabled' : '')
+        }
+        onClick={handleRegister}
+        disabled={selectedRows.length > 0 ? selectedRows.every(idx => !!rowErrors[idx]) : !isValid}
+      >
+        등록하기
+      </button>
+      <button className="btn gray" onClick={handleReset}>초기화</button>
+         {/* ✅ PDA에서만: 초기화 버튼 바로 아래에 전체 선택 */}
+    {isMobile && (
+      <div className="select-all-container">
+        <label>
+          <input
+            type="checkbox"
+            onChange={handleSelectAll}
+            checked={isAllSelected}
+          />
+          전체 선택
+        </label>
+      </div>
+    )}
+    </div>
+    
+
+    {selectedRows.length > 0 && selectedRows.some(idx => !!rowErrors[idx]) && (
+      <div className="register-error-alert">
+        ⚠️ 에러가 있는 행은 등록할 수 없습니다. 에러가 없는 행만 선택해주세요.
+>>>>>>> a48c2f1 (반응형 웹 수정)
       </div>
 
       <table className="bulk-table">
@@ -207,7 +347,101 @@ const LoadBulk = () => {
             ))
           )}
         </tbody>
+<<<<<<< HEAD
       </table>
+=======
+      </table> */}
+      {/* === 📋 테이블 (PC 전용) === */}
+ {!isMobile && (
+  <div className="table-wrapper">
+    <table className="bulk-table">
+
+         <thead>
+   <tr>
+     <th>
+       <input
+         type="checkbox"
+         onChange={handleSelectAll}
+         checked={isAllSelected}
+       />
+     </th>
+        {TABLE_HEADERS.map((header, idx) => <th key={idx}>{header}</th>)}
+        <th>에러 원인</th>
+      </tr>
+    </thead>
+    <tbody>
+      {/* 실제 데이터만 출력 */}
+      {tableData.length === 0 ? (
+        <tr>
+          <td colSpan={TABLE_HEADERS.length + 2}>업로드된 데이터가 없습니다.</td>
+        </tr>
+      ) : (
+        tableData.map((row, idx) => (
+          <tr
+            key={idx}
+            className={`${isRowSelected(idx) ? 'selected' : ''} ${rowErrors[idx] ? 'row-error' : ''}`}
+          >
+            <td>
+              <input
+                type="checkbox"
+                checked={isRowSelected(idx)}
+                onChange={() => handleSelectRow(idx)}
+              />
+            </td>
+            {getFixedRow(row).map((cell, i) => (
+              <td key={i}>{cell}</td>
+            ))}
+            <td
+  className="error-text"
+  title={rowErrors[idx] || ''}
+>
+  {(rowErrors[idx] && rowErrors[idx].length > 25)
+    ? rowErrors[idx].slice(0, 25) + '...'
+    : (rowErrors[idx] || '')}
+</td>
+          </tr>
+        ))
+      )}
+    </tbody>
+    </table>
+  </div>
+)}
+
+
+{/* === 📱 카드형 목록 (모바일 전용) === */}
+{isMobile && (
+    <div className="bulk-card-list">
+    {tableData.length === 0 ? (
+      <p>업로드된 데이터가 없습니다.</p>
+    ) : (
+      tableData.map((row, idx) => (
+        <div key={idx} className={`bulk-card ${rowErrors[idx] ? 'row-error' : ''}`}>
+          <div className="card-header">
+            <input
+              type="checkbox"
+              checked={isRowSelected(idx)}
+              onChange={() => handleSelectRow(idx)}
+            />
+          </div>
+ {TABLE_HEADERS.slice(0, 12).map((header, i) => (
+   <div key={i} className="card-row">
+     <strong>{header}:</strong>
+     <span className="value">{row[i]}</span>
+   </div>
+ ))}
+          {rowErrors[idx] && (
+            <div className="error-text">⚠️ {rowErrors[idx]}</div>
+          )}
+        </div>
+      ))
+    )}
+  </div>
+)}
+
+
+
+
+>>>>>>> a48c2f1 (반응형 웹 수정)
     </div>
   );
 };

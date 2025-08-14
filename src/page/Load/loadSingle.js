@@ -93,8 +93,20 @@ const AssetRegister = () => {
         return;
       }
     }
+<<<<<<< HEAD
     if ((formData.item === '노트북' || formData.item === '컴퓨터') && !formData.totalStorage) {
       alert('총 저장공간을 계산해주세요.');
+=======
+  }
+  
+  
+  
+    
+    // 에러 있을 때 알림 한 번만
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      alert('❗필수 항목을 모두 입력해주세요.');
+>>>>>>> a48c2f1 (반응형 웹 수정)
       return;
     }
     if (formData.assetStatus === '대여' && (!formData.renter || !formData.rentalDate)) {

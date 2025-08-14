@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // import React, { useState, useRef, useEffect } from 'react';
 // import { Html5QrcodeScanner } from 'html5-qrcode';
 // import './auditLoad.css';
@@ -162,6 +163,9 @@
 // export default AuditLoad;
 
 import React, { useState, useRef, useEffect } from 'react';
+=======
+import React, { useMemo,useState, useRef, useEffect } from 'react';
+>>>>>>> a48c2f1 (반응형 웹 수정)
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import { getAsset, saveItem, deleteItem, initDB } from '../../utils/db';
 import axios from 'axios';
@@ -169,11 +173,104 @@ import './auditLoad.css';
 import barcodeIcon from '../../assets/img/scan.png';
 
 const AuditLoad = () => {
+<<<<<<< HEAD
+=======
+
+    const search = new URLSearchParams(window.location.search);
+  const queryMode = search.get('mode'); // 'web' | 'pda' | null
+
+  const mode = useMemo(() => {
+    if (queryMode === 'web' || queryMode === 'pda') return queryMode;
+    // 자동감지: 화면 폭이나 UA로 PDA 추정
+    const narrow = window.innerWidth <= 768;
+    const ua = navigator.userAgent.toLowerCase();
+    const isMobileUA = /android|iphone|ipad|ipod/i.test(ua);
+    return (narrow || isMobileUA) ? 'pda' : 'web';
+  }, [queryMode]);
+  
+  const { user } = useContext(UserContext);
+  const currentUserId   = user?.username || localStorage.getItem('username') || 'NO_ID';
+  const currentUserName = user?.name     || localStorage.getItem('name')     || '실사 등록자 없음';
+
+>>>>>>> a48c2f1 (반응형 웹 수정)
   const [searchBarcode, setSearchBarcode] = useState('');
   const [items, setItems] = useState([]);
   const [scannerVisible, setScannerVisible] = useState(false);
   const [registeredItems, setRegisteredItems] = useState([]);
   const scannerRef = useRef(null);
+<<<<<<< HEAD
+=======
+  const barcodeInputRef = useRef(null);// 바코드 포커싱
+
+
+  const department = user?.department || localStorage.getItem('department') || '';
+  const company    = user?.company    || localStorage.getItem('corporation') || '';
+
+  const errorMessages = {
+    ASSET_STOCK_TAKING_01: '해당일에 이미 진행한 실사 위치입니다.',
+    ASSET_STOCK_TAKING_02: '이미 실사 등록된 바코드가 포함되어 있습니다.',
+  };
+
+  const API_BASE = window._env_?.REACT_APP_API_URL || 'http://localhost:8888';
+
+  useEffect(() => {
+    const loadSavedItems = async () => {
+      try {
+        const db = await initDB();
+        const all = await db.getAll('inspection');
+        const filtered = all.filter(item =>
+          item.registrantId === currentUserId && item.registrantName === currentUserName
+        );
+        const formatted = filtered.map(it => ({
+          ...it,
+          selected: false,
+          new: false,
+        }));
+        setItems(formatted);
+      } catch (err) {
+        //console.error('IndexedDB 로드 오류:', err);
+      }
+    };
+    loadSavedItems();
+  }, [currentUserId, currentUserName]);
+
+  // 세부위치 동기화
+  useEffect(() => {
+    if (!selectedLocationId || locationOptions.length === 0) {
+      setSelectedLocationName('');
+      return;
+    }
+    const loc =
+      locationOptions.find((l) => String(l.locationId) === String(selectedLocationId)) || {};
+    setSelectedLocationName(loc.location || '');
+  }, [selectedLocationId, locationOptions]);
+
+  useEffect(() => {
+    const fetchLocations = async () => {
+      try {
+        const response = await authFetchWithRefresh(`${API_BASE}/corporations`);
+        const result = await response.json();
+        const corporationList = result?.data?.corporationList;
+        if (!Array.isArray(corporationList)) throw new Error('corporationList가 배열이 아님');
+        let matchedLocations = [];
+        corporationList.forEach((corp) => {
+          if (corp.name === company) {
+            corp.affiliationList?.forEach((aff) => {
+              if (aff.department === department) {
+                matchedLocations = matchedLocations.concat(aff.locations || []);
+              }
+            });
+          }
+        });
+        setLocationOptions(matchedLocations);
+      } catch (err) {
+      //  console.error('법인 목록 불러오기 실패:', err);
+        alert('법인 데이터를 불러오는 데 실패했습니다.');
+      }
+    };
+    fetchLocations();
+  }, [department, company]);
+>>>>>>> a48c2f1 (반응형 웹 수정)
 
   useEffect(() => {
     if (scannerVisible && !scannerRef.current) {
@@ -230,7 +327,28 @@ const AuditLoad = () => {
   const [currentLocation, setCurrentLocation] = useState('전산실'); // 또는 로그인 시 저장된 위치 불러오기
 
   const onScanSuccess = async (decodedText) => {
+<<<<<<< HEAD
     let parsedData;
+=======
+    let parsedData = null;
+    try { parsedData = JSON.parse(decodedText); } catch { parsedData = null; }
+    const barcode = parsedData?.barcode || decodedText.trim();
+    const registrantId = currentUserId;
+    const registrantName = currentUserName;
+    const location = selectedLocationName;
+    if (!selectedLocationId) {
+      alert('세부위치를 먼저 선택하세요');
+      return;
+    }
+    const existsInState = items.some(
+      (it) => it.barcode === barcode && it.registrantId === registrantId
+    );
+    if (existsInState) {
+      alert(`📛 이미 등록된 바코드입니다: ${barcode}`);
+      return;
+    }
+    let existsInDB = false;
+>>>>>>> a48c2f1 (반응형 웹 수정)
     try {
       parsedData = JSON.parse(decodedText); // ✅ QR이 JSON 형태면 전체 정보
     } catch {
@@ -395,7 +513,7 @@ const AuditLoad = () => {
   };
 
   return (
-    <div className="audit-container">
+    <div className={`audit-container ${mode === 'pda' ? 'audit-pda' : 'audit-web'}`}>
       <h2>실사 등록</h2>
 
       <div className="top-section">

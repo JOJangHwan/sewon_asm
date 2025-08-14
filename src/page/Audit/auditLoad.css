@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 .audit-container {
     padding: 20px;
     font-family: Arial, sans-serif;
@@ -97,3 +98,304 @@
     margin: 20px auto;
   }
   
+=======
+/* ───────────────────────────────
+   auditLoad.css (모드 분리 완성본)
+   ─────────────────────────────── */
+
+/* ===== 공통(두 모드 공용) ===== */
+.audit-container {
+  font-family: Arial, sans-serif;
+  width: 100%;
+  max-width: 100vw;
+  box-sizing: border-box;
+}
+
+.top-section { margin-bottom: 20px; }
+
+/* 공통: 바코드/버튼 레이아웃 뼈대 */
+.barcode-row-split {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.barcode-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.barcode-icon { width: 32px; height: 32px; cursor: pointer; }
+.barcode-icon:hover { transform: scale(1.1); }
+.button-row-inline {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* 공통: 버튼 스타일 */
+.delete-btn   { background: #f44336; color: #fff; border: 0; cursor: pointer; }
+.register-btn { background: #4caf50; color: #fff; border: 0; cursor: pointer; }
+.verify-btn   { background: #2196f3; color: #fff; border: 0; cursor: pointer; transition: background .2s; }
+.verify-btn:hover { background: #1769aa; }
+
+/* 공통: 비활성화 버튼 */
+.verify-btn:disabled,
+.register-btn:disabled {
+  background: #bdbdbd !important;
+  color: #fff !important;
+  cursor: not-allowed !important;
+  opacity: 0.7;
+  box-shadow: none;
+  border: none;
+  filter: grayscale(20%);
+}
+
+/* 공통: 에러/비고 */
+.audit-table td.error-message {
+  color: #e53935;
+  font-weight: 500;
+  font-size: 15px;
+  word-break: break-all;
+  background: #fff8f8;
+}
+.card-remark,
+.audit-card .card-remark {
+  color: #e53935;
+  font-size: 13px;
+  font-weight: 500;
+  background: #fff8f8;
+  border-radius: 4px;
+  word-break: break-all;
+  padding: 6px 8px;
+  margin-top: 6px;
+}
+
+/* 공통: 위치 선택 섹션 */
+.location-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.location-wrapper label { white-space: nowrap; font-size: 15px; }
+
+/* 공통: QR 리더 */
+.qr-reader {
+  width: 100%;
+  max-width: 500px;
+  min-width: 200px;
+  margin: 24px auto;
+  box-sizing: border-box;
+}
+
+/* 공통: 상단 사용자 영역 */
+.header-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  overflow-x: auto;
+  padding: 0 4px;
+  box-sizing: border-box;
+}
+.header-user-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  min-width: 0;
+  max-width: 100%;
+}
+.header-user-info * { font-size: 13px; white-space: nowrap; }
+
+/* 공통: 전체선택 체크박스 라인 */
+.card-select-all {
+  width: 100%;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 8px 0 4px 4px;
+  font-size: 14px;
+}
+.card-select-all input { margin-right: 6px; }
+
+/* ===== 웹 모드 ===== */
+.audit-container.audit-web {
+  padding: 32px 16px;
+  margin: 0 auto;
+  background: none;
+  box-shadow: none;
+  border-radius: 0;
+}
+.audit-container.audit-web .barcode-left input {
+  width: 320px;
+  max-width: 100%;
+  font-size: 14px;
+  height: 36px;
+}
+.audit-container.audit-web .button-row-inline {
+  flex-direction: row;
+  flex-wrap: nowrap;
+}
+.audit-container.audit-web .delete-btn,
+.audit-container.audit-web .register-btn,
+.audit-container.audit-web .verify-btn {
+  min-width: 80px;
+  font-size: 14px;
+  padding: 8px 16px;
+  white-space: nowrap;
+}
+
+/* 웹: 테이블 보이기 */
+.audit-container.audit-web .audit-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 800px;
+}
+.audit-container.audit-web .audit-table th,
+.audit-container.audit-web .audit-table td {
+  border: 1px solid #ccc;
+  padding: 14px 10px;
+  text-align: center;
+  font-size: 16px;
+}
+.audit-container.audit-web .audit-table thead { background: #f5f5f5; }
+.audit-container.audit-web .audit-table .selected-row { background: #c8e6c9; }
+.audit-container.audit-web .no-data {
+  text-align: center; padding: 20px; font-size: 14px; color: #888;
+}
+
+/* 웹: 카드 숨김 */
+.audit-container.audit-web .audit-card-list { display: none; }
+
+/* 웹: 위치 셀렉트 폭 */
+.audit-container.audit-web .location-wrapper select {
+  width: 260px;
+  max-width: 100%;
+  height: 36px;
+}
+
+/* ===== PDA 모드 ===== */
+.audit-container.audit-pda {
+  padding: 10px 6px;
+  max-width: 100vw;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  border-radius: 12px;
+}
+
+/* PDA: 입력/버튼 */
+.audit-container.audit-pda .barcode-left input {
+  width: 100%;
+  max-width: 100%;
+  font-size: 14px;
+  height: 36px;
+}
+.audit-container.audit-pda .button-row-inline {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+.audit-container.audit-pda .delete-btn,
+.audit-container.audit-pda .register-btn,
+.audit-container.audit-pda .verify-btn {
+  width: 100%;
+  font-size: 13px;
+  padding: 10px 12px;
+}
+
+/* PDA: 위치 셀렉트 꽉 채우기 */
+.audit-container.audit-pda .location-wrapper select {
+  width: 100%;
+  height: 36px;
+}
+
+/* PDA: 테이블 숨기고 카드 사용 */
+.audit-container.audit-pda .audit-table { display: none; }
+.audit-container.audit-pda .audit-card-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 10px 0;
+  justify-content: center;
+  width: 100%;
+}
+.audit-container.audit-pda .audit-card {
+  width: 95vw;
+  max-width: 340px;
+  min-width: 200px;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 12px;
+  background: #fff;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.04);
+}
+.audit-container.audit-pda .audit-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+.audit-container.audit-pda .audit-card-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  padding: 6px 0;
+  border-bottom: 1px solid #eee;
+}
+.audit-container.audit-pda .audit-card-row:last-child { border-bottom: none; }
+.audit-container.audit-pda .header-user-info * { font-size: 12px; }
+
+/* ===== 보조 반응형(각 모드 내부에서만 미세 조정) ===== */
+@media (max-width: 480px) {
+  .audit-container.audit-pda .audit-card { width: 98vw; max-width: 260px; }
+  .audit-container.audit-pda .header-user-info * { font-size: 12px; }
+}
+
+/* ===== PDA 모드: 입력 밑에 버튼 일렬 ===== */
+.audit-container.audit-pda .barcode-row-split {
+  flex-direction: column;      /* 입력 → 버튼 순서로 수직 쌓기 */
+  align-items: stretch;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.audit-container.audit-pda .barcode-left {
+  width: 100%;
+}
+
+.audit-container.audit-pda .barcode-left input {
+  width: 100%;
+  max-width: 100%;
+  height: 40px;
+  font-size: 15px;
+}
+
+/* 버튼 묶음을 한 줄로, 동일 폭 */
+.audit-container.audit-pda .button-row-inline {
+  width: 100%;
+  display: flex;
+  flex-direction: row;          /* ← 한 줄 */
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.audit-container.audit-pda .button-row-inline .delete-btn,
+.audit-container.audit-pda .button-row-inline .verify-btn,
+.audit-container.audit-pda .button-row-inline .register-btn {
+  flex: 1 1 0;                  /* 동일 폭 */
+  min-width: 0;
+  padding: 10px 12px;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+/* 필요하면 아이콘/텍스트 간격 보정 */
+.audit-container.audit-pda .button-row-inline button { border-radius: 8px; }
+>>>>>>> a48c2f1 (반응형 웹 수정)
