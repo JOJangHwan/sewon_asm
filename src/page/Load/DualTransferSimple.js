@@ -1,4 +1,4 @@
-import React, { useState, useEffect,useContext } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import AssetListPanel from './AssetListPanel';
 import './DualTransferSimple.css';
 import { authFetchWithRefresh } from "../../utils/authFetchWithRefresh";
@@ -7,6 +7,8 @@ import { UserContext } from "../../utils/UserContext"; // 실제 경로 맞게!
 const API_BASE_URL = window._env_?.REACT_APP_API_URL || "http://localhost:8888";
 
 export default function AssetTransferWithFilter() {
+
+  const mode = useResponsiveMode();
   const { user } = useContext(UserContext); // 유저정보 구조 확인!
   // ---- 상태 변수 ----
   const [companyData, setCompanyData] = useState({});
@@ -298,11 +300,12 @@ const handleSearch = async () => {
 
   // ---- UI ----
   return (
-    <div className="transfer-sketch-wrap">
-      {/* ── 검색 영역 ───────────────────────── */}
-      <div className="transfer-search-section">
-        {/* 1행 : 필터 */}
-        <div className="transfer-filter-row">
+    <div className={`transfer-sketch-wrap ${mode}-mode`}>
+      {/* ── 검색 영역 (웹/피디에이 분기) ── */}
+      {mode === 'web' ? (
+        <div className="transfer-search-section web-search">
+          {/* 1행 : 필터 */}
+          <div className="transfer-filter-row">
           <select value={company} onChange={e => {
             const v = e.target.value;
             setCompany(v);
@@ -359,23 +362,96 @@ const handleSearch = async () => {
           />
 
           <button onClick={handleSearch} className="transfer-search-btn">검색</button>
+                </div>
+          {/* 2행 : 바코드 */}
+          <div className="transfer-barcode-row">
+            <input
+              className="transfer-barcode-input"
+              placeholder="바코드 입력"
+              value={barcode}
+             onChange={e => setBarcode(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleBarcodeSearch()}
+            />
+            <button onClick={handleBarcodeSearch} className="transfer-barcode-btn">바코드조회</button>
+          </div>
         </div>
+      ) : (
+        <div className="transfer-search-section pda-search">
+          <div className="stack">
+            {/* 1열: 회사 - 부서 */}
+            <div className="row grid-2">
+              <select value={company} onChange={e => {
+                const v = e.target.value; setCompany(v); setCorporationId(companyIdMap[v]?.id || null);
+              }}>
+                <option value="">회사</option>
+                {companyList.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+              <select value={department} onChange={e => {
+                const v = e.target.value; setDepartment(v);
+                setAffiliationId(companyIdMap[company]?.departments?.[v]?.id || null);
+              }} disabled={!company}>
+                <option value="">부서</option>
+                {Object.keys(companyData[company] || {}).map(d => <option key={d} value={d}>{d}</option>)}
+              </select>
+            </div>
 
-        {/* 2행 : 바코드 */}
-        <div className="transfer-barcode-row">
-          <input
-            className="transfer-barcode-input"
-            placeholder="바코드 입력"
-            value={barcode}
-            onChange={e => setBarcode(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleBarcodeSearch()}
-          />
-          <button onClick={handleBarcodeSearch} className="transfer-barcode-btn">바코드조회</button>
+            {/* 2열: 세부위치(풀폭) */}
+            <div className="row">
+              <select className="span-2" value={location} onChange={e => {
+                const v = e.target.value; setLocation(v);
+                setLocationId(companyIdMap[company]?.departments?.[department]?.locations?.[v] || null);
+              }} disabled={!department}>
+                <option value="">세부위치</option>
+                {(companyData[company]?.[department] || []).map(l => <option key={l} value={l}>{l}</option>)}
+              </select>
+            </div>
+
+            {/* 3열: 자산분류 - 품명 */}
+            <div className="row grid-2">
+              <select value={assetCategory} onChange={e => {
+                const v = e.target.value; setAssetCategory(v);
+                setParentTypeId(assetCategoryMap[v]?.id || null); setItemName(''); setChildTypeId(null);
+              }}>
+                <option value="">자산분류</option>
+                {Object.keys(assetCategoryData).map(a => <option key={a} value={a}>{a}</option>)}
+              </select>
+              <select value={itemName} onChange={e => {
+                const v = e.target.value; setItemName(v);
+                setChildTypeId(assetCategoryMap[assetCategory]?.children?.[v] || null);
+              }} disabled={!assetCategory}>
+                <option value="">품명</option>
+                {(assetCategoryData[assetCategory] || []).map(i => <option key={i} value={i}>{i}</option>)}
+              </select>
+            </div>
+
+            {/* 4열: 개수 + 검색 (같은 줄) */}
+            <div className="row grid-2 count-search">
+              <input
+                className="transfer-count-input"
+                min={1}
+                value={viewCount}
+                onChange={e => setViewCount(Number(e.target.value))}
+              />
+              <button onClick={handleSearch} className="transfer-search-btn">검색</button>
+            </div>
+
+             {/* (옵션) 바코드 입력/버튼 - 세로 배치 */}
+            <div className="row">
+              <input
+                className="transfer-barcode-input"
+                placeholder="바코드 입력"
+                value={barcode}
+                onChange={e => setBarcode(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleBarcodeSearch()}
+              />
+              <button onClick={handleBarcodeSearch} className="transfer-barcode-btn">바코드조회</button>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* ── 메인 영역 (좌/우 패널) ─────────────── */}
-      <div className="transfer-main-row">
+<div className="transfer-main-row">
         {/* FROM */}
         <div className="transfer-col">
           <div className="col-title">이동할 품목 <span className="from-label">from</span></div>
@@ -412,7 +488,7 @@ const handleSearch = async () => {
         <div className="transfer-col">
           <div className="col-title">이동한 품목 <span className="to-label">to</span></div>
           {/* ▼▼▼  TO 위치 선택 Select 세트  ▼▼▼ */}
-<div className="transfer-to-select-row" style={{ marginBottom: 12, display: 'flex', gap: 6 }}>
+<div className="transfer-to-select-row">
   {/* ── 회사 ── */}
   <select
     value={destCorp}
@@ -463,4 +539,25 @@ const handleSearch = async () => {
       </div>
     </div>
   );
+}
+
+
+/* ── 모드 판별 훅 (파일 하단에 추가) ───────────────── */
+function useResponsiveMode() {
+  const [mode, setMode] = React.useState('web');
+  React.useEffect(() => {
+    const compute = () => {
+      const w = window.innerWidth;
+      const coarse = window.matchMedia?.('(pointer: coarse)').matches ?? false;
+      setMode((w <= 920 || (coarse && w <= 1200)) ? 'pda' : 'web');
+    };
+    compute();
+    window.addEventListener('resize', compute);
+    window.addEventListener('orientationchange', compute);
+    return () => {
+      window.removeEventListener('resize', compute);
+      window.removeEventListener('orientationchange', compute);
+    };
+  }, []);
+  return mode;
 }

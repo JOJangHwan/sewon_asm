@@ -9,6 +9,8 @@ import barcodeIcon from '../../assets/img/scan.png';
 import Tooltip from '../../utils/Tooltip'; 
 
 const AuditLoad = () => {
+
+   const effectiveMode = useResponsiveMode();
   
   const { user } = useContext(UserContext);
   const currentUserId   = user?.username || localStorage.getItem('username') || 'NO_ID';
@@ -434,47 +436,145 @@ const notFoundBarcodes = selectedBarcodes.filter(b => !returnedBarcodes.includes
   };
 
   return (
-    <div className="audit-container">
-      <h2>실사 등록</h2>
-      <div className="location-wrapper">
-        <label>📍 세부위치:</label>
-        <select
-          value={selectedLocationId}
-          onChange={(e) => {
-            const id = e.target.value;
-            setSelectedLocationId(id);
-            const locObj = locationOptions.find(
-              (l) => String(l.locationId) === id
-            ) || {};
-            setSelectedLocationName(locObj.location || '');
-          }}
-        >
-          <option value="">-- 세부위치 선택 --</option>
-          {locationOptions.map((loc) => (
-            <option key={loc.locationId} value={loc.locationId}>
-              {loc.location}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div className="barcode-row-split">
-        <div className="barcode-left">
-          {/* <img
-            src={barcodeIcon}
-            alt="바코드 스캔"
-            className="barcode-icon"
-            onClick={handleBarcodeClick}
-            style={{ cursor: selectedLocationId ? 'pointer' : 'not-allowed', opacity: selectedLocationId ? 1 : 0.5 }}
-          /> */}
+    <div className={`audit-container ${effectiveMode}-mode`}>
+           <h2>실사 등록</h2>
+
+      {/* -------- Web 레이아웃 -------- */}
+      {effectiveMode === 'web' && (
+        <>
+          <div className="location-wrapper">
+            <label>📍 세부위치:</label>
+            <select
+              value={selectedLocationId}
+              onChange={(e) => {
+                const id = e.target.value;
+                setSelectedLocationId(id);
+                const locObj =
+                  locationOptions.find((l) => String(l.locationId) === id) || {};
+                setSelectedLocationName(locObj.location || '');
+              }}
+            >
+              <option value="">-- 세부위치 선택 --</option>
+              {locationOptions.map((loc) => (
+               <option key={loc.locationId} value={loc.locationId}>
+                 {loc.location}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="barcode-row-split">
+            <div className="barcode-left">
+              <input
+                ref={barcodeInputRef}
+                type="text"
+                placeholder="바코드 직접 입력 후 Enter"
+                value={searchBarcode}
+                onChange={(e) => setSearchBarcode(e.target.value)}
+                onKeyDown={async (e) => {
+                  if (e.key === 'Enter' && searchBarcode.trim()) {
+                    if (!selectedLocationId)
+                      return alert('먼저 세부위치를 선택해주세요.');
+                    const barcode = searchBarcode.trim();
+                    const registrantId = currentUserId;
+                    const registrantName = currentUserName;
+                    if (!items.some((it) => it.barcode === barcode)) {
+                      const newItem = {
+                        barcode,
+                        locationId: selectedLocationId,
+                        location: selectedLocationName,
+                        registrantId,
+                        registrantName,
+                        selected: false,
+                        new: true,
+                        errorMessage: '',
+                      };
+                      setItems((prev) => [...prev, newItem]);
+                      await saveItem(newItem);
+                    }
+                    setSearchBarcode('');
+                  }
+                }}
+              />
+            </div>
+
+            <div className="button-row-inline">
+              <button className="delete-btn" onClick={handleDelete}>삭제하기</button>
+
+              <button
+                className="verify-btn"
+                onClick={handleVerify}
+                disabled={!selectedLocationId}
+                style={{
+                  backgroundColor: !selectedLocationId ? '#ccc' : undefined,
+                  color: !selectedLocationId ? '#666' : undefined,
+                  cursor: !selectedLocationId ? 'not-allowed' : 'pointer'
+                }}
+              >
+                검증하기
+              </button>
+
+              <Tooltip message="실사는 세부위치 기준으로 시작일 포함 2주간만 등록 가능합니다.">
+                <button
+                  className="register-btn"
+                  onClick={handleRegister}
+                  disabled={
+                    !selectedLocationId ||
+                    items.some(item =>
+                      item.selected &&
+                      (item.status === 'DISABLE' || item.status === 'NOT_FOUND')
+                    )
+                  }
+                  style={{
+                    backgroundColor: !selectedLocationId ? '#ccc' : undefined,
+                    color: !selectedLocationId ? '#666' : undefined,
+                    cursor: !selectedLocationId ? 'not-allowed' : 'pointer'
+                  }}
+                >
+                  등록하기
+                </button>
+              </Tooltip>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* -------- PDA 레이아웃 (3줄) -------- */}
+      {effectiveMode === 'pda' && (
+        <div className="pda-form">
+          {/* 1열: 세부위치 */}
+          <div className="pda-field">
+            <span className="pda-label">📍 세부위치</span>
+            <select
+              value={selectedLocationId}
+              onChange={(e) => {
+                const id = e.target.value;
+                setSelectedLocationId(id);
+                const locObj =
+                  locationOptions.find((l) => String(l.locationId) === id) || {};
+                setSelectedLocationName(locObj.location || '');
+              }}
+            >
+              <option value="">-- 세부위치 선택 --</option>
+              {locationOptions.map((loc) => (
+                <option key={loc.locationId} value={loc.locationId}>
+                  {loc.location}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* 2열: 바코드 입력 */}
           <input
-           ref={barcodeInputRef} 
+            className="pda-input barcode"
+            ref={barcodeInputRef}
             type="text"
             placeholder="바코드 직접 입력 후 Enter"
             value={searchBarcode}
             onChange={(e) => setSearchBarcode(e.target.value)}
             onKeyDown={async (e) => {
               if (e.key === 'Enter' && searchBarcode.trim()) {
-                if (!selectedLocationId) return alert('먼저 세부위치를 선택해주세요.');
+                if (!selectedLocationId) return alert('먼저 세부위를 선택해주세요.');
                 const barcode = searchBarcode.trim();
                 const registrantId = currentUserId;
                 const registrantName = currentUserName;
@@ -496,43 +596,37 @@ const notFoundBarcodes = selectedBarcodes.filter(b => !returnedBarcodes.includes
               }
             }}
           />
+
+          {/* 3열: 버튼 3개 */}
+          <div className="pda-actions-3">
+            <button className="delete-btn" onClick={handleDelete}>삭제하기</button>
+
+            <button
+              className="verify-btn"
+              onClick={handleVerify}
+              disabled={!selectedLocationId}
+            >
+              검증하기
+            </button>
+
+            <Tooltip message="실사는 세부위치 기준으로 시작일 포함 2주간만 등록 가능합니다.">
+              <button
+                className="register-btn"
+                onClick={handleRegister}
+                disabled={
+                  !selectedLocationId ||
+                  items.some(item =>
+                    item.selected &&
+                    (item.status === 'DISABLE' || item.status === 'NOT_FOUND')
+                  )
+                }
+              >
+                등록하기
+              </button>
+            </Tooltip>
+          </div>
         </div>
-        <div className="button-row-inline">
-          <button className="delete-btn" onClick={handleDelete}>삭제하기</button>
-          <button
-            className="verify-btn"
-            onClick={handleVerify}
-            disabled={!selectedLocationId}
-            style={{
-              backgroundColor: !selectedLocationId ? '#ccc' : undefined,
-              color: !selectedLocationId ? '#666' : undefined,
-              cursor: !selectedLocationId ? 'not-allowed' : 'pointer'
-            }}
-          >
-            검증하기
-          </button>
-          <Tooltip message="실사는 세부위치 기준으로 시작일 포함 2주간만 등록 가능합니다.">
-          <button
-  className="register-btn"
-  onClick={handleRegister}
-  disabled={
-    !selectedLocationId ||
-    items.some(item => 
-      item.selected && 
-      (item.status === 'DISABLE' || item.status === 'NOT_FOUND')
-    )
-  }
-  style={{
-    backgroundColor: !selectedLocationId ? '#ccc' : undefined,
-    color: !selectedLocationId ? '#666' : undefined,
-    cursor: !selectedLocationId ? 'not-allowed' : 'pointer'
-  }}
->
-  등록하기
-</button>
-          </Tooltip>
-        </div>
-      </div>
+      )}
       <div id="reader" className="qr-reader" style={{ display: scannerVisible ? 'block' : 'none' }}></div>
       <table className="audit-table">
         <thead>
@@ -608,3 +702,25 @@ const notFoundBarcodes = selectedBarcodes.filter(b => !returnedBarcodes.includes
 };
 
 export default AuditLoad;
+
+// -------------------------------
+// Web/PDA 자동 판별 훅
+function useResponsiveMode() {
+  const [mode, setMode] = React.useState('web');
+  React.useEffect(() => {
+    const compute = () => {
+      const w = window.innerWidth;
+      const coarse = window.matchMedia?.('(pointer: coarse)').matches ?? false;
+      const isPDA = w <= 920 || (coarse && w <= 1200);
+      setMode(isPDA ? 'pda' : 'web');
+    };
+    compute();
+    window.addEventListener('resize', compute);
+    window.addEventListener('orientationchange', compute);
+    return () => {
+      window.removeEventListener('resize', compute);
+      window.removeEventListener('orientationchange', compute);
+    };
+  }, []);
+  return mode;
+}

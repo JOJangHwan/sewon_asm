@@ -1,184 +1,227 @@
 /* =========================================
-   1. 레이아웃
+   0) 공통 베이스
 =========================================*/
-/* 전체 래퍼 */
-.srch-bar-wrapper {
-  display: flex;
-  flex-direction: column;      /* 위/아래 두 줄 */
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  max-width: 1300px;
-  margin: 0 auto;
-  padding: 12px;
-}
+.search-container { padding: 16px; }
+.search-title { font-size: 24px; font-weight: 700; margin-bottom: 16px; }
 
-/* 상단(필터) */
-.srch-bar.top-bar {
-  display: flex;
-  flex-wrap: nowrap;
-  gap: 8px;
-  justify-content: center;
-}
+/* 모드 스위처 */
+.mode-switcher { display:flex; gap:8px; align-items:center; margin-bottom:12px; }
+.mode-label { font-size: 12px; color: #6b7280; }
+.mode-btn { border:1px solid #e5e7eb; background:#fff; padding:6px 10px; border-radius:8px; cursor:pointer; font-size:12px; }
+.mode-btn.active { background:#111827; color:#fff; border-color:#111827; }
 
-/* 하단(바코드 + 버튼) */
-.srch-bar.bottom-bar {
-  display: flex;
-  flex-wrap: nowrap;
-  gap: 8px;
-  justify-content: center;
-  align-items: center;
-}
-
-/* =========================================
-   2. 공통 인풋
-=========================================*/
-.srch-input,
-.search-input {                /* JSX에서 두 이름이 혼용됨 */
-  border: 1px solid #d1d5db;
-  border-radius: 4px;
-  width: 140px;
-  height: 36px;
-  padding: 0 12px;
-  font-size: 14px;
-  transition: border-color 0.2s;
-}
-
-.srch-input:focus,
-.search-input:focus {
-  border-color: #ffc107;
-  outline: none;
-}
-
-/* 특별폭 인풋 */
-.srch-input.barcode-search     { width: 200px; }
-.srch-input.date,
-.search-input.date             { width: 180px; }
-.srch-input.view-count         { width: 140px; }
-
-/* =========================================
-   3. 버튼 – 단일 규격, 색상만 분리
-=========================================*/
-.search-button,
-.srch-button {                 /* 둘 다 같은 규격 사용 */
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-  padding: 0 20px;
-  height: 36px;
-  min-width: 110px;
-  font-size: 14px;
-  font-weight: bold;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background-color 0.2s;
-  background-color: #ffc107;   /* 기본(노란색) */
-  color: #fff;
-}
-
-.search-button:hover,
-.srch-button:hover             { background-color: #ffb300; }
-
-/* 변형 색상 */
-.search-button.print           { background-color: #ffb300; }
-.search-button.print:hover     { background-color: #ffa000; }
-
-.search-button.download        { background-color: #4caf50; }
-.search-button.download:hover  { background-color: #43a047; }
-
-.search-button.reset           { background-color: #9e9e9e; }
-.search-button.reset:hover     { background-color: #7e7e7e; }
-
-/* =========================================
-   4. 테이블(기존 유지)
-=========================================*/
-.srch-table-wrapper { width: 100%; overflow-x: auto; }
-
-.srch-asset-table,
-.search-asset-table {          /* 두 이름 모두 대응 */
-  width: 100%;
-  min-width: 1000px;
-  border-collapse: collapse;
-  font-size: 14px;
-}
-.srch-asset-table th,
-.srch-asset-table td,
-.search-asset-table th,
-.search-asset-table td {
-  border: 1px solid #e5e7eb;
-  padding: 10px;
-  text-align: center;
-}
-.srch-asset-table thead,
-.search-asset-table thead {
-  background: #f3f4f6;
-  border-bottom: 2px solid #cbd5e1;
-}
-.srch-asset-table tbody tr:hover,
-.search-asset-table tbody tr:hover { background: #f9fafb; }
-
-.detail-panel {
-  position: fixed;
-  right: 0;
-  top: 0;
-  width: 400px;
-  height: 100%;
-  background: #fff;
-  box-shadow: -2px 0 5px rgba(0,0,0,0.3);
-  padding: 20px;
-  overflow-y: auto;
-  z-index: 1000;
-}
-
+/* 상세 패널(공용) */
 .detail-overlay {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.2); /* 약간 투명한 배경 */
-  display: flex;
-  justify-content: flex-end; /* 사이드패널 */
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.2); display: flex; justify-content: flex-end;
   z-index: 9999;
 }
-
 .detail-panel {
-  width: 300px;
-  background: white;
-  height: 100%;
-  padding: 20px;
-  overflow-y: auto;
+  position: fixed; right: 0; top: 0;
+  width: 320px; height: 100%; background: #fff;
   box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+  padding: 16px; overflow-y: auto;
 }
+.detail-header { display: flex; justify-content: space-between; align-items: center; }
+.detail-header h3 { margin: 0; padding-right: 48px; } /* X와 겹치지 않게 여백 */
 
-
-.detail-header {
+/* 조회 상세패널 닫기 X (이 페이지에만 적용) */
+.search-container .detail-close-x{
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 48px;
+  height: 48px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 10px;               /* 버튼들과 동일한 둥근 모서리 */
+  background: #FFC107 !important;    /* ← 노란색으로 통일(다른 CSS의 !important 무력화) */
+  color: #000;                       /* X 색상: 흰색(통일감) */
+  font-size: 36px;                   /* X 크기 */
+  line-height: 1;
+  cursor: pointer;
+  z-index: 10;
+  transition: background-color .2s, transform .1s;
+}
+.search-container .detail-close-x:hover{ background: #ffb300 !important; }
+.search-container .detail-close-x:active{ transform: scale(.96); }
+
+
+.detail-body p { margin: 8px 0; color:#000; }
+
+/* 버튼 공통 톤 */
+.search-button,
+.srch-button {
+  display: inline-flex; justify-content: center; align-items: center;
+  height: 36px; min-width: 110px; padding: 0 20px;
+  font-size: 14px; font-weight: 700;
+  border: none; border-radius: 4px; cursor: pointer; white-space: nowrap;
+  background: #ffc107; color: #fff; transition: background-color .2s;
+}
+.search-button:hover, .srch-button:hover { background: #ffb300; }
+.search-button.print { background: #ffb300; }
+.search-button.print:hover { background: #ffa000; }
+.search-button.download { background: #4caf50; }
+.search-button.download:hover { background: #43a047; }
+.search-button.reset, .srch-button.reset { background: #9e9e9e; }
+.search-button.reset:hover, .srch-button.reset:hover { background: #7e7e7e; }
+
+/* =========================================
+   1) Web 모드
+   컨테이너: .web-mode
+=========================================*/
+.web-mode .srch-bar-wrapper {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 12px; width: 100%; max-width: 1300px; margin: 0 auto; padding: 12px;
+}
+.web-mode .srch-bar.top-bar {
+  display: flex; flex-wrap: nowrap; gap: 8px; justify-content: center;
+}
+.web-mode .srch-bar.bottom-bar {
+  display: flex; flex-wrap: nowrap; gap: 8px; justify-content: center; align-items: center;
 }
 
-.detail-body p {
-  margin: 8px 0;
+/* 인풋 (웹) */
+.web-mode .srch-input,
+.web-mode .search-input {
+  border: 1px solid #d1d5db; border-radius: 4px;
+  width: 140px; height: 36px; padding: 0 12px; font-size: 14px;
+  transition: border-color .2s;
 }
+.web-mode .srch-input:focus,
+.web-mode .search-input:focus { border-color: #ffc107; outline: none; }
+.web-mode .srch-input.barcode-search { width: 200px; }
+.web-mode .search-input.date { width: 180px; }
+.web-mode .srch-input.view-count { width: 140px; }
+
+/* 테이블 (웹) */
+ .web-mode .search-table-wrapper, .web-mode .srch-table-wrapper,
+ .pda-mode .search-table-wrapper, .pda-mode .srch-table-wrapper { width: 100%; overflow-x: auto; }
+ .web-mode .search-asset-table,
+ .web-mode .srch-asset-table,
+ .pda-mode .search-asset-table,
+ .pda-mode .srch-asset-table {
+   width: 100%; min-width: 1000px; border-collapse: collapse; font-size: 14px;
+ }
+ .web-mode .search-asset-table th, .web-mode .search-asset-table td,
+ .web-mode .srch-asset-table th, .web-mode .srch-asset-table td,
+ .pda-mode .search-asset-table th, .pda-mode .search-asset-table td,
+ .pda-mode .srch-asset-table th, .pda-mode .srch-asset-table td {
+   border: 1px solid #e5e7eb; padding: 10px; text-align: center;
+ }
+
+ .web-mode .search-asset-table thead, .web-mode .srch-asset-table thead,
+ .pda-mode .search-asset-table thead, .pda-mode .srch-asset-table thead {
+   background: #f3f4f6; border-bottom: 2px solid #cbd5e1;
+ }
+
+ .web-mode .search-asset-table tbody tr:hover,
+ .web-mode .srch-asset-table tbody tr:hover,
+ .pda-mode .search-asset-table tbody tr:hover,
+ .pda-mode .srch-asset-table tbody tr:hover { background: #f9fafb; }
 
 
 /* =========================================
-   5. 반응형
+   2) PDA 모드
+   컨테이너: .pda-mode
 =========================================*/
-@media (max-width: 768px) {
-  .srch-bar.top-bar,
-  .srch-bar.bottom-bar {
-    flex-wrap: wrap;
-  }
-  .srch-input,
-  .search-input,
-  .search-button,
-  .srch-button {
-    width: 100%;
-  }
+.pda-mode .srch-bar-wrapper {
+  width: 100%;
+  max-width: 420px;             /* 살짝 좁게 */
+  margin: 0 auto;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.pda-mode .srch-bar { display: flex; flex-direction: column; gap: 8px; }
+
+/* ✅ PDA: 2열 배치 (회사구분-부서구분 / 자산분류-품목) */
+.pda-mode .pda-grid{
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* 기본 2열 유지 */
+  gap: 8px;
+}
+/* 정말 작은 화면에서만 1열로 */
+@media (max-width: 320px){
+  .pda-mode .pda-grid{ grid-template-columns: 1fr; }
+}
+/* select의 기본 최소폭 때문에 넘침 방지 */
+.pda-mode .pda-grid > * { min-width: 0; }
+
+/* 인풋 (PDA) - 큰 터치, 둥근 모서리 */
+.pda-mode .search-input, .pda-mode .srch-input {
+  width: 100%; height: 40px; font-size: 16px; padding: 0 12px;
+  border: 1px solid #d1d5db; border-radius: 8px;
+}
+.pda-mode .search-input:focus, .pda-mode .srch-input:focus {
+  border-color: #111827; outline: none;
 }
 
-/* (선택) 데스크톱에서 하단 바 한 줄 유지 */
-@media (min-width: 769px) {
-  .srch-bar.bottom-bar { flex-wrap: nowrap; }
+/* 버튼 행 */
+/* PDA: 웹처럼 하단 버튼 바 */
+.pda-mode .srch-bar.bottom-bar {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+  margin-top: 10px;
+}
+.pda-mode .srch-bar.bottom-bar .search-button,
+.pda-mode .srch-bar.bottom-bar .srch-button {
+  height: 44px;
+  border-radius: 10px;
+  font-size: 15px;
+}
+
+/* (비활성) 카드/토글 UI */
+.pda-mode .pda-list,
+.pda-mode .fab-bar { display: none !important; }
+
+/* ✅ PDA: 표 위 액션 버튼 영역(조회/인쇄/초기화/내려받기) */
+.pda-mode .srch-bar.bottom-bar.pda-actions{
+  display: grid !important;                /* flex를 확실히 덮어쓰기 */
+  grid-template-columns: repeat(2, minmax(0,1fr)); /* 2열 고정 */
+  gap: 8px;
+  max-width: 420px;
+  margin: 8px auto 6px;
+}
+/* 정말 작은 화면에서만 1열로 접기(선택사항) */
+@media (max-width: 320px){
+.pda-mode .srch-bar.bottom-bar.pda-actions{ grid-template-columns: 1fr; }
+}
+.pda-mode .srch-bar.bottom-bar.pda-actions .search-button,
+.pda-mode .srch-bar.bottom-bar.pda-actions .srch-button{
+  width: 100%;
+  height: 44px;
+  border-radius: 10px;
+  font-size: 15px;
+}
+
+/* ===== PDA: 날짜 필드 좌측 라벨 ===== */
+.pda-mode .pda-field{
+  display: grid;
+ grid-template-columns: 72px 1fr;
+  align-items: center;
+  gap: 8px;
+}
+
+.pda-mode .pda-field + .pda-field{
+  margin-top: 8px; /* 시작과 끝 사이 간격 */
+}
+
+.pda-mode .pda-field__label{
+  height: 40px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #f3f4f6;
+  color: #374151;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
 }

@@ -1,4 +1,8 @@
-/* ─────────── 전체 래퍼 ─────────── */
+/* ================================
+   Asset Transfer (웹 / PDA 분리 완성본)
+   ================================ */
+
+/* ───────── 공통 래퍼 ───────── */
 .transfer-sketch-wrap {
   max-width: 1160px;
   margin: 32px auto;
@@ -6,128 +10,18 @@
   border-radius: 12px;
   padding: 28px 24px;
   background: #fff;
-}
-
-/* ─────────── 상단 검색 영역 (2행 구조) ─────────── */
-.transfer-search-section {
-  display: flex;
-  flex-direction: column;     /* 2행 구성 */
-  align-items: center;        /* 가운데 정렬 */
-  gap: 10px;
-  background: #fbfbfd;
-  padding: 18px;
-  border-radius: 12px;
-  border: 1.2px solid #ececec;
-  box-shadow: 0 2px 10px #d5d8e220;
-  margin-bottom: 32px;
-}
-
-/* 1행, 2행 공통 정렬 */
- .transfer-filter-row,
- .transfer-barcode-row {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;  /* 수평 가운데 정렬 */
-  gap: 10px;
-  width: 100%;
-  align-items: center;
-}
-
-/* ─────────── 공통 요소 스타일 ─────────── */
- .transfer-search-section select,
- .transfer-search-section input[type="number"],
- .transfer-search-section input[type="text"],
- .transfer-search-section button {
-  width: auto;
-  min-width: 100px;
-  max-width: 160px;
-  height: 34px;
-  font-size: 14px;
-  padding: 6px 10px;
   box-sizing: border-box;
-}
-
- .transfer-search-section select:focus,
- .transfer-search-section input:focus {
-  border-color: #8bb7fa;
-}
-
-/* 입력창 개별 크기 */
-.transfer-count-input { width: 60px; text-align: center; }         /* 개수 */
-.transfer-barcode-input { width: 180px; }       /* 바코드 */
-
-/* ─────────── 버튼 스타일 ─────────── */
-.search-btn,
-.transfer-barcode-btn {
-  height: 34px;
-  padding: 0 8px;
-  font-weight: 600;
-  font-size: 14px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  min-width: 64px;
-}
-
-.transfer-search-btn {
-  background: #2255d0;
-  color: #fff;
-}
-.transfer-search-btn:hover {
-  background: #1546af;
-}
-
-.transfer-barcode-btn {
-  background: #ffbe2e;
-  color: #fff;
-}
-.transfer-barcode-btn:hover {
-  background: #ffd400;
-  color: #222;
-}
-
-/* ─────────── 자산 이동 메인 (좌우 컬럼) ─────────── */
-.transfer-main-row {
-  display: flex;
-  gap: 28px;
-  align-items: flex-start;
-  justify-content: center;
-}
-
-.transfer-col {
-  min-width: 420px;
-  max-width: 520px;
-  width: 100%;
-  flex: 1 1 0;
-  background: #f7f8fa;
-  border-radius: 8px;
-  padding: 18px 14px;
-  border: 1px solid #ececec;
-  box-sizing: border-box;
-}
-
-.col-title {
-  font-weight: 700;
-  font-size: 1.1rem;
-  margin-bottom: 12px;
-  text-align: center;
 }
 
 .from-label { color: #e79c1b; }
-.to-label { color: #2255d0; }
+.to-label   { color: #2255d0; }
 
-/* ─────────── 화살표 버튼 ─────────── */
+/* ───────── 화살표 버튼(공통) ───────── */
 .transfer-arrow-btns {
   display: flex;
   align-items: center;
   justify-content: center;
   min-width: 44px;
-}
-.transfer-count-input {
-  width: 70px !important;        /* <- ⭐ 강제로 줄이기 */
-  min-width: 50px !important;
-  max-width: 80px !important;
-  text-align: center;
 }
 
 .arrow-btn {
@@ -139,42 +33,25 @@
   border: 2px solid #ffd33b;
   box-shadow: 0 2px 12px #f6e58450;
   cursor: pointer;
-  transition: 0.2s;
+  transition: transform .15s ease, box-shadow .2s ease, background .2s ease, opacity .2s ease;
 }
+.arrow-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px #f6e58460; }
+.arrow-btn:active { transform: translateY(0); }
 
 .arrow-btn:disabled {
-  opacity: 0.5;
+  opacity: .5;
   background: #fafbfc;
   border-color: #eee;
   cursor: not-allowed;
+  box-shadow: none;
 }
 
-.arrow-btn[data-tip] {
-  position: relative;
-}
-
-/* 🔹 disabled 상태일 때만 툴팁 표시 */
-.arrow-btn[disabled][data-tip]:hover::after {
-  content: attr(data-tip);
-  position: absolute;
-  top: -42px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #f44336;
-  color: #fff;
-  padding: 6px 10px;
-  border-radius: 6px;
-  font-size: 13px;
-  white-space: nowrap;
-  z-index: 1000;
-  pointer-events: none;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-}
-/* 호버 시 풍선말 */
+/* 툴팁: data-tip 속성이 있으면 hover 시 표시 */
+.arrow-btn[data-tip] { position: relative; }
 .arrow-btn[data-tip]:hover::after {
   content: attr(data-tip);
   position: absolute;
-  top: -42px;                 /* 버튼 위에 배치 */
+  top: -42px;
   left: 50%;
   transform: translateX(-50%);
   padding: 6px 10px;
@@ -184,41 +61,270 @@
   font-size: 13px;
   white-space: nowrap;
   z-index: 1000;
-  pointer-events: none;       /* 클릭 방해 X */
+  pointer-events: none;
   box-shadow: 0 2px 6px rgba(0,0,0,.25);
 }
-/* ─────────── 모바일 대응 ─────────── */
-@media (max-width: 768px) {
-  .transfer-sketch-wrap {
-    max-width: 100%;
-    padding: 18px 10px;
-  }
-
-  .transfer-search-section {
-    gap: 12px;
-  }
-
-     .transfer-filter-row,
-     .transfer-barcode-row {
-    gap: 8px;
-    justify-content: center;
-  }
-
-     .transfer-search-section select,
-     .transfer-search-section input,
-     .transfer-search-section button {
-    width: 100%;
-    max-width: none;
-    font-size: 14px;
-  }
-
-  .transfer-main-row {
-    flex-direction: column-reverse;
-    gap: 14px;
-  }
-
-  .transfer-col {
-    min-width: 0;
-    width: 100%;
-  }
+/* disabled 상태일 때는 경고색 */
+.arrow-btn[disabled][data-tip]:hover::after {
+  background: #f44336;
 }
+
+/* =========================
+   WEB MODE (데스크톱 레이아웃)
+   부모 엘리먼트에 .web-mode 클래스가 붙어있음
+   ========================= */
+.web-mode .transfer-search-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  background: #fbfbfd;
+  padding: 18px;
+  border-radius: 12px;
+  border: 1.2px solid #ececec;
+  box-shadow: 0 2px 10px #d5d8e220;
+  margin-bottom: 32px;
+}
+
+.web-mode .transfer-filter-row,
+.web-mode .transfer-barcode-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  align-items: center;
+}
+
+.web-mode .transfer-search-section select,
+.web-mode .transfer-search-section input[type="number"],
+.web-mode .transfer-search-section input[type="text"],
+.web-mode .transfer-search-section button {
+  width: auto;
+  min-width: 100px;
+  max-width: 160px;
+  height: 34px;
+  font-size: 14px;
+  padding: 6px 10px;
+  box-sizing: border-box;
+}
+
+.web-mode .transfer-search-section select:focus,
+.web-mode .transfer-search-section input:focus {
+  border-color: #8bb7fa;
+  outline: none;
+}
+
+.web-mode .transfer-count-input { width: 60px; text-align: center; }
+.web-mode .transfer-barcode-input { width: 180px; }
+
+/* 버튼 */
+.web-mode .transfer-search-btn {
+  background: #2255d0;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  height: 34px;
+  padding: 0 10px;
+  font-weight: 600;
+}
+.web-mode .transfer-search-btn:hover { background: #1546af; }
+
+.web-mode .transfer-barcode-btn {
+  background: #ffbe2e;
+  color: #222;
+  border: none;
+  border-radius: 6px;
+  height: 34px;
+  padding: 0 10px;
+  font-weight: 600;
+}
+.web-mode .transfer-barcode-btn:hover { background: #ffd400; }
+
+/* 본문 레이아웃 */
+.web-mode .transfer-main-row {
+  display: flex;
+  gap: 28px;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.web-mode .transfer-col {
+  min-width: 420px;
+  max-width: 520px;
+  width: 100%;
+  flex: 1 1 0;
+  background: #f7f8fa;
+  border-radius: 8px;
+  padding: 18px 14px;
+  border: 1px solid #ececec;
+  box-sizing: border-box;
+}
+
+.web-mode .col-title {
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+/* To 영역 위치 선택(웹) */
+.web-mode .transfer-to-select-row {
+  margin-bottom: 12px;
+  display: flex;
+  gap: 6px;
+}
+.web-mode .transfer-to-select-row select {
+  height: 34px;
+  min-width: 120px;
+}
+
+/* =========================
+   PDA MODE (핸디/모바일 레이아웃)
+   부모 엘리먼트에 .pda-mode 클래스가 붙어있음
+   ========================= */
+.pda-mode .transfer-sketch-wrap {
+  max-width: 100%;
+  padding: 12px 8px;        /* 좌우 여백 축소 → 입력폭 넓게 */
+  border: none;             /* PDA에선 외곽선 제거 */
+  box-shadow: none;
+  background: #fff;
+}
+
+.pda-mode .transfer-search-section {
+  background: transparent;  /* 노란 배경 제거 */
+  border: none;             /* 노란 테두리 제거 */
+  padding: 0;               /* 패딩 제거로 가용폭 극대화 */
+  margin-bottom: 12px;
+}
+
+.pda-mode .stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.pda-mode .row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pda-mode .row > select,
+.pda-mode .row > input,
+.pda-mode .row > button {
+  flex: 1 1 0;
+  min-width: 120px;
+  height: 42px;
+  font-size: 15px;
+  padding: 8px 10px;
+  box-sizing: border-box;
+}
+
+/* 개별 입력 크기 */
+.pda-mode .transfer-count-input {
+  max-width: 80px !important;
+  min-width: 70px !important;
+  width: 100% !important;
+  text-align: center;
+}
+.pda-mode .transfer-barcode-input { flex: 2 1 160px; }
+
+/* 버튼 */
+.pda-mode .transfer-search-btn {
+  background: #2255d0;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+}
+.pda-mode .transfer-barcode-btn {
+  background: #ffbe2e;
+  color: #222;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+}
+
+/* 본문 레이아웃 */
+.pda-mode .transfer-main-row {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pda-mode .transfer-col {
+  width: 100%;
+  min-width: 0;
+  background: #f7f8fa;
+  border: 1px solid #ececec;
+  border-radius: 8px;
+  padding: 14px;
+  box-sizing: border-box;
+}
+
+.pda-mode .col-title {
+  text-align: left;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+/* To 영역 위치 선택(PDA) */
+ .pda-mode .transfer-to-select-row{
+   display:grid;
+   grid-template-columns:1fr 1fr; /* 1열: 회사 · 부서 */
+   gap:8px;
+   margin-bottom:10px;
+ }
+ /* 2열: 세부위치는 가로 전체 */
+ .pda-mode .transfer-to-select-row select:nth-child(3){
+   grid-column:1 / -1;
+ }
+ .pda-mode .transfer-to-select-row select{
+   height:42px;
+   min-width:0; /* grid 환경에서 고정폭 제거 */
+ }
+
+/* ───────── 보조 반응형(안전망) ───────── */
+@media (max-width: 768px) {
+  .web-mode .transfer-sketch-wrap { padding: 18px 12px; }
+  .web-mode .transfer-main-row { flex-direction: column; gap: 14px; }
+  .web-mode .transfer-col { min-width: 0; width: 100%; }
+}
+
+/* === PDA 전용: pda-search 안에서 5줄 Grid 고정 === */
+/* 1) 행 그리드 유틸 */
+.pda-search .row{ display:grid !important; grid-template-columns:1fr; gap:10px; }
+.pda-search .row.grid-2{ grid-template-columns:1fr 1fr; gap:10px; }
+.pda-search .span-2{ grid-column:1 / -1; }
+
+/* 입력 영역을 살짝 오른쪽으로 이동 */
+/* 입력 영역을 살짝 왼쪽으로 이동 */
+.pda-search{ padding-left:0; }
+.pda-search .stack{ margin-left:-10px; }  /* 좌측으로 6px 당김 */
+
+
+/* 2) 폼 요소 사이즈(가로 100%) */
+.pda-search select,
+.pda-search input,
+.pda-search button{
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  height: 44px;            /* 터치 편의성 ↑ */
+  font-size: 15px;
+}
+.pda-search .transfer-count-input{ text-align:center; }
+.pda-search .transfer-search-btn{ height:44px; font-weight:700; }
+
+/* 갯수 + 검색 한 줄 레이아웃 보정 */
+.pda-search .row.count-search{ align-items:center; }
+.pda-search .count-search .transfer-count-input{ max-width:none; }
+.pda-search .count-search .transfer-search-btn{ width:100%; }
+
+/* 3) 아주 좁은 기기에서는 2열 대신 1열로 자동 폴백 */
+ @media (max-width:360px){
+  .pda-search .row.grid-2,
+  .pda-search .row.count-search{ grid-template-columns:1fr; }
+ }

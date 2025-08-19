@@ -1,22 +1,29 @@
 /* ───────────────────────────────
-   auditList.css  (완성본)
+   auditList.css  (웹/PDA 분리 완성본 + 웹 2행 충돌 Fix)
    ─────────────────────────────── */
 
 /* ===== 컨테이너 & 타이틀 ===== */
 .audit-search-container { padding: 20px; }
 .audit-title            { font-size: 24px; font-weight: 700; margin-bottom: 20px; }
 
-/* ===== 필터 영역 ===== */
-.audit-search-filter { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+/* ===== 필터 영역 컨테이너 ===== */
+.audit-search-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
 
-/* 한 줄(row) 공통 */
+/* 한 줄(row) 공통: 주로 Web에서 사용 */
 .audit-search-row {
   display: flex;
-  flex-wrap: wrap;          /* 기본은 줄바꿈 허용 → 모바일 대응 */
+  flex-wrap: wrap;     /* 기본 줄바꿈 허용 */
   gap: 8px;
   align-items: center;
   justify-content: center;
 }
+
+/* ===== 로딩 오버레이/스피너 ===== */
 .loading-overlay {
   position: fixed;
   inset: 0;
@@ -26,81 +33,35 @@
   justify-content: center;
   z-index: 9999;
 }
-
-.loading-spinner {
-  width: 64px;
-  height: 64px;
-  border: 6px solid #eee;
-  border-top: 6px solid #007bff;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-/* ===== 날짜 구간 입력 ===== */
-.audit-date-range {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap; /* 모바일 대응 */
-}
-
-.audit-date-label {
-  font-weight: 500;
-  white-space: nowrap;
-}
-
-.audit-date-separator {
-  margin: 0 4px;
-}
-
-/* 날짜 input은 살짝 넓게 */
-.audit-search-simple[type="date"] {
-  width: 160px;
-  min-width: 120px;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 .table-loading-overlay {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
-  background-color: rgba(255, 255, 255, 0.6); /* 밝은 반투명 */
+  background-color: rgba(255, 255, 255, 0.6);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 10;
 }
-
-.audit-table-wrapper {
-  position: relative;  /* 오버레이를 이 영역 기준으로 표시하기 위해 */
-  min-height: 300px;   /* 테이블이 없을 때도 오버레이 공간 확보 */
-}
-
 .loading-spinner {
-  width: 48px;
-  height: 48px;
+  width: 48px; height: 48px;
   border: 5px solid #f3f3f3;
   border-top: 5px solid #3498db;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
+@keyframes spin { to { transform: rotate(360deg); } }
 
-
-
-
-/* ✅ PC 전용: 두 번째 행(날짜 + 버튼)만 줄바꿈 금지 */
-@media (min-width: 769px) {
-  .audit-search-filter .audit-search-row:nth-of-type(2) {
-    flex-wrap: nowrap;      /* 한 줄 고정 */
-    gap: 10px;
-  }
+/* ===== 날짜 구간 입력 (기본) ===== */
+.audit-date-range {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
+.audit-date-label { font-weight: 500; white-space: nowrap; }
+.audit-date-separator { margin: 0 4px; }
 
-/* ===== 인풋·셀렉트 공통 ===== */
+/* ===== 인풋·셀렉트 기본 ===== */
 .audit-search-simple {
   border: 1px solid #ccc;
   padding: 0 10px;
@@ -110,11 +71,10 @@
   width: 140px;
   box-sizing: border-box;
 }
+/* 날짜 input은 살짝 넓게 */
+.audit-search-simple[type="date"] { width: 160px; min-width: 120px; }
 
-/* 날짜 input 은 살짝 넓게 */
-.audit-search-simple[type="date"] { width: 160px; }
-
-/* 조회·초기화 버튼 */
+/* ===== 버튼 (조회/초기화/다운로드) ===== */
 .audit-search-btn {
   background: #FFC107;
   color: #fff;
@@ -128,87 +88,209 @@
   transition: background-color .2s;
   white-space: nowrap;
 }
-/* auditList.css 맨 아래 */
-.audit-search-btn.download {
-  background:#4caf50;
-  color:#fff;
-}
-.audit-search-btn:hover          { background: #ffb300; }
-.audit-search-btn.reset          { background: #9e9e9e; }
-.audit-search-btn.reset:hover    { background: #7e7e7e; }
+.audit-search-btn:hover       { background: #ffb300; }
+.audit-search-btn.reset       { background: #9e9e9e; }
+.audit-search-btn.reset:hover { background: #7e7e7e; }
+.audit-search-btn.download    { background:#4caf50; color:#fff; }
 
-/* ✅ PC 전용: 버튼 폭을 내용만큼 */
-@media (min-width: 769px) {
-  .audit-search-btn { width: auto; flex: 0 0 auto; }
+/* ===== Web 모드 레이아웃 고정(충돌 Fix) ===== */
+.audit-search-container.web-mode .audit-search-filter .audit-search-row:nth-of-type(2) {
+  flex-wrap: nowrap;            /* 2행(날짜+버튼)은 한 줄 고정 */
+  align-items: center;
+  gap: 10px;
 }
+.audit-search-container.web-mode .audit-date-range{
+  display: inline-flex;
+  flex-wrap: nowrap;            /* 날짜 박스 내부도 줄바꿈 금지 */
+  white-space: nowrap;
+}
+.audit-search-container.web-mode .audit-search-btn{
+  flex: 0 0 auto;               /* 버튼이 줄 채우며 커지지 않게 */
+}
+
+/* ===== PDA 모드 전용 ===== */
+.audit-search-container.pda-mode .audit-search-filter{
+  max-width: 480px;
+  margin: 0 auto 16px;
+  gap: 10px;
+}
+
+
+.audit-search-container.pda-mode .audit-search-row{
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+
+/* ▶ PDA에서도 콘텐츠 기준 너비 유지 → 가로 스크롤로 보이게 */
+.audit-search-container.pda-mode .audit-table{
+  width: max-content;        /* 내용만큼 가로로 펼침 */
+  min-width: 1100px;         /* 너무 크게 잡히면 1100~1200px 권장 */
+  table-layout: auto;        /* 열 너비 자동 계산 */
+  display: table;            /* 모바일 브라우저 레이아웃 안정화 */
+}
+/* PDA: 헤더는 줄바꿈 금지 + 최소 폭, 본문은 줄바꿈 허용(겹침 방지) */
+.audit-search-container.pda-mode .audit-table th{
+  padding: 10px;
+  font-size: 14px;
+  white-space: nowrap;
+  min-width: 92px;           /* 각 열 기본 폭(필요시 90~110px 조절) */
+}
+.audit-search-container.pda-mode .audit-table td{
+  padding: 10px;
+  font-size: 14px;
+  white-space: normal;        /* 줄바꿈 허용으로 압축/겹침 방지 */
+  overflow-wrap: anywhere;    /* 긴 단어/숫자도 줄바꿈 */
+}
+
+/* PDA: 필터와 표 사이 간격 */
+.audit-search-container.pda-mode .audit-search-filter{ margin-bottom: 12px; }
+
+/* 2열 그리드 (회사-부서 / 자산분류-품목) */
+.audit-search-container.pda-mode .pda-grid{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+@media (max-width: 340px){
+  .audit-search-container.pda-mode .pda-grid{ grid-template-columns: 1fr; }
+}
+.audit-search-container.pda-mode .pda-grid > *{ min-width: 0; }
+
+/* PDA 인풋: 더 크게 */
+.audit-search-container.pda-mode .audit-search-simple{
+  width: 100%;
+  height: 40px;
+  font-size: 16px;
+  border-radius: 8px;
+}
+
+/* PDA: 좌측 라벨 필드(시작일/종료일) */
+.audit-search-container.pda-mode .pda-field{
+  display: grid;
+  grid-template-columns: 78px 1fr;
+  align-items: center;
+  gap: 8px;
+}
+.audit-search-container.pda-mode .pda-field__label{
+  height: 40px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #f3f4f6;
+  color:#374151;
+  font-size: 13px;
+  display:flex; align-items:center; justify-content:center;
+  font-weight:600;
+}
+
+/* PDA: 버튼 영역 (2열 + 마지막 전체폭) */
+.audit-search-container.pda-mode .pda-actions{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 8px;
+}
+.audit-search-container.pda-mode .pda-actions .audit-search-btn{
+  width: 100%;
+  height: 44px;
+  border-radius: 10px;
+  font-size: 15px;
+}
+.audit-search-container.pda-mode .pda-actions .wide{ grid-column: 1 / -1; }
+
+/* PDA: 상세 드로어는 전체폭 */
+.audit-search-container.pda-mode .drawer { width: 100vw; }
 
 /* ===== 테이블 ===== */
-.audit-table-wrapper { width: 100%; overflow-x: auto; }
-.audit-table         { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 1000px; }
+/* PDA: 표 영역이 너무 작게 잡히는 문제 방지 */
+.audit-search-container.pda-mode .audit-table-wrapper{
+  max-height: 55vh;   /* 필요 시 50~65vh 사이로 조절 */
+  min-height: 180px;  /* 데이터 없을 때도 영역 보이게 */
+  overflow: auto;     /* 가로/세로 스크롤 */
+}
+ /* 기본(공통) */
+.audit-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  /* 가로 스크롤을 위한 최소 너비 (필요시 더 키워도 됩니다) */
+  min-width: 1100px;
+  table-layout: auto;
+}
+ /* 웹에서만 넓게 보기 */
+ .web-mode .audit-table { min-width: 1000px; }
 .audit-table th,
-.audit-table td      { border: 1px solid #ccc; padding: 10px; text-align: center; }
+.audit-table td {
+  border: 1px solid #ccc;
+  padding: 10px;
+  text-align: center;
+  /* 줄바꿈 방지 → 가로로 넘치면 스크롤 */
+  white-space: nowrap;
+}
 .audit-table thead   { background: #f3f4f6; border-bottom: 2px solid #999; }
 .audit-table tbody tr:hover { background: #f9fafb; transition: background-color .2s; }
 
 /* ===== 페이징 ===== */
-/* ───────── CLEAN-SLATE PAGINATION ───────── */
 .audit-pagination {
-  all: unset;                     /* ✅ 기존 상속·라이브러리 규칙 초기화 */
+  all: unset;
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 10px;
   margin: 32px 0 0;
-  flex-wrap: wrap;                /* 화면이 아주 좁을 때만 줄바꿈 */
+  flex-wrap: wrap;
 }
-
 .audit-pagination button {
-  all: unset;                     /* ✅ 버튼 자체도 리셋 */
+  all: unset;
   cursor: pointer;
   display: inline-flex;
   justify-content: center;
   align-items: center;
-
-  min-width: 40px;            /* ✅ 더 좁게 */
-  height: 25px;               /* ✅ 높이도 줄임 */
-  padding: 0 12px;            /* 좌우 여백도 축소 */
+  min-width: 40px;
+  height: 25px;
+  padding: 0 12px;
   font-size: 13px;
   font-family: inherit;
   line-height: 1;
-  white-space: nowrap;            /* 줄바꿈 금지 */
-
+  white-space: nowrap;
   border: 1px solid #d1d5db;
   border-radius: 6px;
   background: #ffffff;
   color: #000000;
-
   transition: background-color .25s, color .25s, border-color .25s;
 }
-
-.audit-pagination button:hover:not(:disabled):not(.active) {
-  background: #f3f4f6;
-}
-
-.audit-pagination button.active {
-  background: #FFC107;
-  border-color: #FFC107;
-}
-
-.audit-pagination button:disabled {
-  background: #ffffff;
-  color: #9ca3af;
-  cursor: not-allowed;
-}
-
-/* 모바일에서도 가로폭 고정 */
-@media (max-width: 480px) {
-  .audit-pagination { gap: 8px; }
-  .audit-pagination button { flex: 0 0 auto; }
-}
+.audit-pagination button:hover:not(:disabled):not(.active){ background:#f3f4f6; }
+.audit-pagination button.active{ background:#FFC107; border-color:#FFC107; }
+.audit-pagination button:disabled{ background:#ffffff; color:#9ca3af; cursor:not-allowed; }
 
 /* ===== 상세 뷰 (풀·드로어) ===== */
-.detail-fullpage { padding: 20px; background: #fff; }
+.detail-title{ margin:0 48px 12px 0; } /* X와 겹치지 않도록 오른쪽 여유 */
+
 .detail-back     { background: none; border: none; font-size: 18px; cursor: pointer; margin-bottom: 10px; }
+.audit-search-container.pda-mode .detail-back { display: none; }
+
+
+ /* PDA 풀페이지 닫기 버튼 (반드시 파일 맨 아래쪽에 위치) */
+ .detail-close-x{
+   position:absolute;
+   top:8px;
+   right:12px;
+   width:48px;               /* 터치 영역 2배 */
+   height:48px;
+   display:flex;
+   align-items:center;
+   justify-content:center;
+   border:0;
+   background:transparent;
+   color:#000;
+   font-size:44px !important;/* 기존 22px → 44px(정확히 2배) */
+   line-height:1;
+   cursor:pointer;
+   z-index:10;
+ }
+ .detail-close-x:hover { opacity:.85; }
+ .detail-close-x:active{ transform:scale(.96); }
 .drawer-overlay  { position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 999; }
 .drawer {
   position: fixed; top: 0; right: 0; width: 400px; height: 100vh;
@@ -217,12 +299,22 @@
 }
 .drawer-close { background: none; border: none; font-size: 24px; float: right; cursor: pointer; }
 
-/* ===== 모바일 대응 ===== */
-@media (max-width: 768px) {
-  /* 모든 필터 요소 & 버튼을 꽉 채워 세로 배치 */
-  .audit-search-row         { flex-direction: column; align-items: stretch; }
-  .audit-search-simple,
-  .audit-search-btn         { width: 100%; }
-  .drawer                   { width: 100vw; }
+/* ───────── Web 전용: 액션 버튼 컴팩트 사이즈 ───────── */
+.audit-search-container.web-mode .audit-search-btn{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;           /* ↓ 높이 축소 */
+  padding: 0 10px;        /* ↓ 좌우 패딩 축소 */
+  font-size: 13px;        /* ↓ 글자 크기 축소 */
+  border-radius: 6px;
+  flex: 0 0 auto !important;   /* 크기 늘어남 방지 */
+  width: auto !important;      /* 강제로 내용만큼 */
+  min-width: 0;                /* 혹시 모를 최소폭 제거 */
 }
 
+/* 웹 2번째 줄 버튼 간격도 조금 줄이기(선택) */
+.audit-search-container.web-mode
+  .audit-search-filter .audit-search-row:nth-of-type(2){
+  gap: 6px;  /* 기존 10px → 6px */
+}

@@ -15,6 +15,93 @@
   box-sizing: border-box;
 }
 
+/* ===== 모드 스위치 ===== */
+.web-mode .audit-table { display: table; }
+.web-mode .audit-card-list { display: none; }
+.pda-mode .audit-table { display: none; }
+.pda-mode .audit-card-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 10px 0;
+  justify-content: center;
+  width: 100%;
+}
+/* ===== PDA 입력 3줄 레이아웃 ===== */
+.pda-mode .pda-form{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  max-width:420px;
+  margin:0 auto 12px;
+}
+.pda-mode .pda-field{
+  display:grid;
+  grid-template-columns:84px 1fr; /* 라벨 | 입력 */
+  align-items:center;
+  gap:8px;
+}
+.pda-mode .pda-label{
+  height:40px;
+  border-radius:8px;
+  border:1px solid #e5e7eb;
+  background:#f3f4f6;
+  color:#374151;
+  font-size:13px;
+  display:flex; align-items:center; justify-content:center;
+  font-weight:600;
+}
+ .pda-mode .pda-input.barcode{
+   width:210px;        /* 원하는 값(180~230px 권장) */
+   height:40px;
+   font-size:16px;
+   padding:0 12px;
+   border:1px solid #d1d5db;
+   border-radius:8px;
+ }
+.pda-mode .pda-actions-3{
+  display:grid;
+  grid-template-columns:repeat(3, minmax(0,1fr));
+  gap:8px;
+}
+/* PDA에서도 같은 크기/모양 유지 + 전체폭 */
+.pda-mode .pda-actions-3 > .delete-btn,
+.pda-mode .pda-actions-3 > .verify-btn,
+.pda-mode .pda-actions-3 > .register-btn{
+  width:100%;
+  height:48px;        /* 웹과 동일 높이 */
+  border-radius:14px; /* 웹과 동일 라운드 */
+  font-size:16px;
+}
+@media (max-width:340px){
+  .pda-mode .pda-actions-3{ grid-template-columns:1fr; }
+}
+
+/* ===== PDA 전용 스케일/레이아웃 ===== */
+.pda-mode .audit-container {
+  max-width: 100vw;
+  padding: 10px 4px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  border-radius: 12px;
+}
+.pda-mode .location-wrapper select { width: 160px; height: 40px; }
+.barcode-left input {
+  width: auto;        /* ← 더 이상 강제로 100% 차지하지 않게 */
+  max-width: none;
+}
+.pda-mode .button-row-inline { flex-direction: column; align-items: stretch; }
+.pda-mode .button-row-inline .delete-btn,
+.pda-mode .button-row-inline .register-btn { width: 100%; font-size: 13px; padding: 6px 12px; }
+.pda-mode .audit-card {
+  width: 95vw; max-width: 340px; min-width: 120px;
+  border: 1px solid #ccc; border-radius: 8px; padding: 10px;
+  background: #fff; box-shadow: 0 1px 5px rgba(0,0,0,0.04);
+}
+.pda-mode .audit-card-header { display:flex; justify-content:space-between; align-items:center; font-weight:bold; margin-bottom:10px; }
+.pda-mode .audit-card-row { display:flex; justify-content:space-between; font-size:14px; padding:6px 0; border-bottom:1px solid #eee; }
+.pda-mode .audit-card-row:last-child { border-bottom:none; }
+
 .card-select-all {
     width: 100%;
     display: flex;
@@ -49,51 +136,68 @@
 }
 .barcode-icon       { width: 32px; height: 32px; cursor: pointer; }
 .barcode-icon:hover { transform: scale(1.1); }
-.barcode-left input {
+ /* 웹 기본 폭 */
+ .web-mode .barcode-left input{
+   width: 260px;    /* 원하는 값으로 */
+   height: 36px;
+   font-size: 14px;
+   flex: 0 0 auto;  /* flex 늘어남 방지 */
+ }
 
-    width: 100%;
-    max-width: 100%;
-    font-size: 14px;
-    height: 36px;
-  }
-
-/* ② 삭제/등록 버튼 묶음 (PC: 가로, 모바일: 세로) */
-.button-row-inline {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  align-items: center;
-  gap: 12px;
+ /* PDA에서 더 좁게 */
+.pda-mode .barcode-left input{
+  width: 210px;
+  height: 40px;
+  font-size: 16px;
+  flex: 0 0 auto;     /* ← flex로 늘어나지 않게 */
 }
+
+/* ② 버튼 묶음 (Web 기본 가로) */
+.button-row-inline{
+  display:flex;
+  flex-direction:row;
+  flex-wrap:nowrap;
+  align-items:center;
+  gap:12px;
+}
+
+/* === 공통 액션 버튼 사이즈/모양 통일 === */
+.delete-btn,
+.verify-btn,
+.register-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  height:48px;               /* ← 통일된 높이 */
+  padding:0 18px;            /* 넉넉한 좌우 패딩 */
+  border-radius:14px;        /* 더 둥글게 */
+  font-size:16px;
+  font-weight:700;
+  line-height:1;
+  white-space:nowrap;        /* 줄바꿈 방지 */
+  border:none;
+  box-shadow:0 2px 6px rgba(0,0,0,.08);
+  transition:transform .06s ease, box-shadow .2s ease, background-color .2s ease, opacity .2s ease;
+}
+.delete-btn:hover,
+.verify-btn:hover,
+.register-btn:hover{ box-shadow:0 4px 10px rgba(0,0,0,.12); transform:translateY(-1px); }
+.delete-btn:active,
+.verify-btn:active,
+.register-btn:active{ transform:translateY(0); box-shadow:0 2px 6px rgba(0,0,0,.08); }
+
+/* Web에서 최소폭 지정(문구가 줄바꿈되지 않도록) */
 .button-row-inline .delete-btn,
-.button-row-inline .register-btn {
-  width: auto;
-  min-width: 80px;
-  font-size: 14px;
-  padding: 8px 16px;
-  white-space: nowrap;
-}
-/* ===== 검증하기 버튼 ===== */
-.button-row-inline .verify-btn {
-  background: #2196f3;
-  color: #fff;
-  border: none;
-  min-width: 80px;
-  font-size: 14px;
-  padding: 8px 16px;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background 0.2s;
-}
-.button-row-inline .verify-btn:hover {
-  background: #1769aa;
+.button-row-inline .verify-btn,
+.button-row-inline .register-btn{
+  min-width:120px;
 }
 
-/* ===== 비고 컬럼 ===== */
-.audit-table td,
-.audit-table th {
-  /* 기존 스타일과 동일하게 */
-}
+/* 색상(기존 유지) */
+.button-row-inline .verify-btn{ background:#2196f3; color:#fff; }
+.button-row-inline .verify-btn:hover{ background:#1769aa; }
+
+
 
 /* 에러 메시지 컬러 강조 (비고에만 적용) */
 .audit-table td.error-message {
@@ -128,8 +232,8 @@
 /* 검증/등록 버튼 공통 비활성화 스타일 */
 .verify-btn:disabled,
 .register-btn:disabled {
-  background: #bdbdbd !important;
-  color: #fff !important;
+  background:#bdbdbd !important;
+  color:#fff !important;
   cursor: not-allowed !important;
   opacity: 0.7;
   box-shadow: none;
@@ -265,15 +369,19 @@
     font-size: 13px;
     padding: 6px 12px;
   }
-  .barcode-left input {
-    width: 100px;
-    max-width: 120px;
-    font-size: 13px;
-    height: 28px;
-  }
+
 }
 
 @media (max-width: 480px) {
   .audit-card { width: 98vw; max-width: 240px; }
   .header-user-info * { font-size: 12px; }
 }
+
+ /* ==== 최종 오버라이드: 바코드 입력 폭 고정 ==== */
+ .audit-container.web-mode .barcode-left > input[type="text"]{
+   width:260px !important;    /* 웹에서 원하는 폭 */
+   flex:0 0 auto;
+ }
+ .audit-container.pda-mode .pda-input.barcode{
+   width:210px !important;    /* PDA에서 원하는 폭 */
+ }

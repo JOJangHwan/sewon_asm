@@ -47,6 +47,11 @@ const [affiliationId, setAffiliationId] = useState(null);
 const [locationId, setLocationId] = useState(null);
 
 
+ // ▼ Web/PDA 모드 상태 (auto | web | pda)
+const effectiveMode = useResponsiveMode();
+
+
+
 const handlePrint = () => {
   /* 1) 선택 검사 */
   if (selected.size === 0) {
@@ -462,11 +467,13 @@ const data = resData.data?.list || [];
     setItems([]); setSearched(false); setViewCount(30);
   };
 
-  return (
-    
-    <div className="search-container">
-      <h1 className="search-title">자산 조회</h1>
+   return (
+     <div className={`search-container ${effectiveMode}-mode`}>
 
+      {/* ===== Web 전용 ===== */}
+      {effectiveMode === 'web' && (
+        <>
+      <h1 className="search-title">자산 조회</h1>
       <div className="srch-bar-wrapper">
       <div className="srch-bar top-bar">
           <select className="search-input" value={company} onChange={e => {
@@ -557,7 +564,7 @@ const data = resData.data?.list || [];
           />
         </div>
 
-        <div className="search-bar bottom-bar">
+       <div className="srch-bar bottom-bar">
           <input type="text" className="search-input barcode-search" placeholder="바코드 검색"
                  value={barcode} onChange={e => setBarcode(e.target.value)} />
           <input type="date" className="search-input date" value={startDate} onChange={e => setStartDate(e.target.value)} />
@@ -577,22 +584,20 @@ const data = resData.data?.list || [];
           <button className="srch-button reset" onClick={handleReset}>↺ 초기화</button>
           <button className="search-button download" onClick={handleExportExcel}>⬇️내려받기</button>
         </div>
-      </div>
+      </div>{/* /.srch-bar-wrapper */}
 
-      {searched && (
+    {searched && (
       <div className="search-table-wrapper">
         <table className="search-asset-table">
           <thead>
             <tr>
-              {/* 🆕 전체선택 체크박스 */}
               <th>
-              <input
-  type="checkbox"
-  ref={headerCheckboxRef} // ✅ ref 연결
-  checked={selected.size === items.length && items.length > 0}
-  onChange={toggleAll}
-/>
-
+                <input
+                  type="checkbox"
+                  ref={headerCheckboxRef}
+                  checked={selected.size === items.length && items.length > 0}
+                  onChange={toggleAll}
+                />
               </th>
               <th>바코드</th><th>회사</th><th>부서</th><th>위치</th>
               <th>자산분류</th><th>품목</th><th>상태</th>
@@ -602,16 +607,15 @@ const data = resData.data?.list || [];
           </thead>
           <tbody>
             {items.map((item) => (
-             <tr key={item.barcode} onClick={() => handleRowClick(item)} style={{cursor:"pointer"}}>
-                {/* 🆕 개별 체크박스 */}
+              <tr key={item.barcode} onClick={() => handleRowClick(item)} style={{cursor:'pointer'}}>
                 <td>
-                 <input
-   type="checkbox"
-   checked={selected.has(item.barcode)}
-   onClick={(e) => e.stopPropagation()}   // ✅ onClick에 stopPropagation
-   onChange={() => toggleRow(item.barcode)}
- />
-</td>
+                  <input
+                    type="checkbox"
+                    checked={selected.has(item.barcode)}
+                    onClick={(e)=>e.stopPropagation()}
+                    onChange={()=>toggleRow(item.barcode)}
+                  />
+                </td>
                 <td>{item.barcode}</td>
                 <td>{item.corporation}</td>
                 <td>{item.department}</td>
@@ -628,15 +632,26 @@ const data = resData.data?.list || [];
               </tr>
             ))}
           </tbody>
-          </table>
-        </div>
-      )}
+        </table>
+      </div>
+    )}
+        </>
+      )} {/* /Web */}
 {isDetailOpen && selectedItem && (
   <div className="detail-overlay" onClick={() => setIsDetailOpen(false)}>
     <div
       className="detail-panel"
       onClick={e => e.stopPropagation()} // 내부 클릭 방지
     >
+            {/* 닫기 X */}
+      <button
+        type="button"
+        className="detail-close-x"
+        aria-label="닫기"
+        onClick={() => setIsDetailOpen(false)}
+      >
+        ×
+      </button>
       <div className="detail-header">
         <h3>자산 상세</h3>
       </div>
@@ -668,7 +683,166 @@ const data = resData.data?.list || [];
   </div>
 )}
 
+{/* ===== PDA 전용 ===== */}
+{effectiveMode === 'pda' && (
+  <>
+    <h1 className="search-title">자산 조회</h1>
+    <div className="srch-bar-wrapper">
+     <div className="srch-bar">
+        {/* ✅ 1행: 회사구분 - 부서구분 */}
+        <div className="pda-grid two">
+          <select className="search-input" value={company}
+            onChange={(e)=>{const v=e.target.value; setCompany(v); setCorporationId(companyIdMap[v]?.id||null);}}>
+            <option value="">회사구분</option>
+            {Object.keys(companyData).map(c=> <option key={c} value={c}>{c}</option>)}
+          </select>
+          <select className="search-input" value={department}
+            onChange={(e)=>{const v=e.target.value; setDepartment(v);
+              const dept=companyIdMap[company]?.departments?.[v]; setAffiliationId(dept?dept.id:null);}}>
+            <option value="">부서구분</option>
+            {Object.keys(companyData[company]||{}).map(d=> <option key={d} value={d}>{d}</option>)}
+          </select>
+        </div>
+
+        {/* ✅ 2행: 세부위치(1열 풀폭) */}
+        <select className="search-input" value={location}
+          onChange={(e)=>{const v=e.target.value; setLocation(v);
+            const id=companyIdMap[company]?.departments?.[department]?.locations?.[v]; setLocationId(id||null);}}>
+          <option value="">세부위치</option>
+          {(companyData[company]?.[department]||[]).map(l=> <option key={l} value={l}>{l}</option>)}
+        </select>
+
+        {/* ✅ 3행: 자산분류 - 품목 */}
+        <div className="pda-grid two">
+          <select className="search-input" value={assetCategory}
+            onChange={(e)=>{const v=e.target.value; setAssetCategory(v); setParentTypeId(assetCategoryMap[v]?.id||null); setItemName(''); setChildTypeId(null);}}>
+            <option value="">자산분류</option>
+            {Object.keys(assetCategoryData).map(a=> <option key={a} value={a}>{a}</option>)}
+          </select>
+          <select className="search-input" value={itemName}
+            onChange={(e)=>{const v=e.target.value; setItemName(v); setChildTypeId(assetCategoryMap[assetCategory]?.children?.[v]||null);}}>
+            <option value="">품목</option>
+            {(assetCategoryData[assetCategory]||[]).map(i=> <option key={i} value={i}>{i}</option>)}
+          </select>
+        </div>
+
+        {/* ✅ 4행: 바코드 검색(1열 풀폭) */}
+        <input className="search-input" placeholder="바코드 검색" value={barcode} onChange={e=>setBarcode(e.target.value)} />
+        {/* ✅ 시작/끝 라벨 있는 날짜 필드 */}
+        <div className="pda-field">
+          <span className="pda-field__label">시작날짜</span>
+          <input
+            type="date"
+            className="search-input"
+            value={startDate}
+            onChange={e=>setStartDate(e.target.value)}
+          />
+        </div>
+        <div className="pda-field">
+          <span className="pda-field__label">종료날짜</span>
+          <input
+            type="date"
+            className="search-input"
+            value={endDate}
+            onChange={e=>setEndDate(e.target.value)}
+          />
+        </div>
+        <input
+          type="number"
+          className="search-input"
+          placeholder="출력 개수"
+          value={viewCount}
+          onChange={e=>setViewCount(Number(e.target.value))}
+        />
+      </div>
+    </div>
+
+        {/* ✅ PDA 액션 버튼: 표 위에 배치 */}
+    <div className="srch-bar bottom-bar pda-actions">
+      <button className="search-button" onClick={handleSearch}>🔍 조회</button>
+      <button className="search-button print" onClick={handlePrint}>🖨️ 인쇄</button>
+      <button className="srch-button reset" onClick={handleReset}>↺ 초기화</button>
+      <button className="search-button download" onClick={handleExportExcel}>⬇️내려받기</button>
+    </div>
+
+
+    {searched && (
+      <div className="search-table-wrapper">
+        <table className="search-asset-table">
+          <thead>
+            <tr>
+              <th>
+                <input
+                  type="checkbox"
+                  ref={headerCheckboxRef}
+                  checked={selected.size === items.length && items.length > 0}
+                  onChange={toggleAll}
+                />
+              </th>
+              <th>바코드</th><th>회사</th><th>부서</th><th>위치</th>
+              <th>자산분류</th><th>품목</th><th>상태</th>
+              <th>제조사</th><th>모델</th><th>취득일자</th>
+              <th>취득가</th><th>등록자</th><th>등록일자</th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((item) => (
+              <tr key={item.barcode} onClick={() => handleRowClick(item)} style={{cursor:"pointer"}}>
+                <td>
+                  <input
+                    type="checkbox"
+                    checked={selected.has(item.barcode)}
+                    onClick={(e)=>e.stopPropagation()}
+                    onChange={()=>toggleRow(item.barcode)}
+                  />
+                </td>
+                <td>{item.barcode}</td>
+                <td>{item.corporation}</td>
+                <td>{item.department}</td>
+                <td>{item.location}</td>
+                <td>{item.parentCategory}</td>
+                <td>{item.childCategory}</td>
+                <td>{item.status}</td>
+                <td>{item.manufacturer}</td>
+                <td>{item.model}</td>
+                <td>{item.acquisitionDate}</td>
+                <td>{Number(item.acquisitionPrice).toLocaleString()}</td>
+                <td>{item.registerName}</td>
+                <td>{item.registrationDate}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )}
+
+    
+  </>
+)}
+
   </div>
 );
 
 }
+
+ // 반응형 모드 계산 훅
+ // 반응형 모드 계산 훅 (자동)
+ function useResponsiveMode(){
+   const [eff, setEff] = React.useState('web');
+   React.useEffect(()=>{
+     const compute=()=>{
+       const width = window.innerWidth;
+       const coarse = window.matchMedia?.('(pointer: coarse)').matches ?? false;
+       const isPDA = width <= 920 || (coarse && width <= 1200);
+       setEff(isPDA ? 'pda' : 'web');
+     };
+     compute();
+     window.addEventListener('resize', compute);
+     window.addEventListener('orientationchange', compute);
+     return ()=> {
+       window.removeEventListener('resize', compute);
+       window.removeEventListener('orientationchange', compute);
+     };
+   },[]);
+   return eff;
+ }

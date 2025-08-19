@@ -45,8 +45,9 @@ function useMediaQuery(query) {
 function FullPageDetail({ item, onClose }) {
   return (
     <div className="detail-fullpage">
-      <button className="detail-back" onClick={onClose}>← 뒤로</button>
-      <h2>자산 상세</h2>
+
+     <button type="button" className="detail-close-x" onClick={onClose} aria-label="닫기">×</button>
+     <h2 className="detail-title">자산 상세</h2>
       <ul>
   {COLUMN_LABELS.map(col => (
     <li key={col.key}>
@@ -128,6 +129,8 @@ export default function StockTakingSearch() {
  const [childTypeId,       setChildTypeId]       = useState(null);
 
   const itemsPerPage = 10;
+  // 현재 화면 모드(web | pda)
+  const effectiveMode = useResponsiveMode();
 
   useEffect(() => {
     async function fetchLookups() {
@@ -324,94 +327,126 @@ export default function StockTakingSearch() {
   };
 
   return (
-    <div className="audit-search-container">
+    <div className={`audit-search-container ${effectiveMode}-mode`}>
       <h2 className="audit-title">실사 조회</h2>
-      <div className="audit-search-filter">
-        <div className="audit-search-row">
-         {/* 회사 */}
-<select
- className="audit-search-simple"
-value={company} onChange={e=>{
-  const v=e.target.value; setCompany(v);
-  setCorporationId(companyIdMap[v]?.id||null);
-  setDepartment(""); setLocation("");
-}}>
-  <option value="">회사구분</option>
-  {companyList.map(c=> <option key={c}>{c}</option>)}
-</select>
+    {/* ---------- Web 모드 ---------- */}
+      {effectiveMode === 'web' && (
+        <div className="audit-search-filter">
+          <div className="audit-search-row">
+            {/* 회사 */}
+            <select className="audit-search-simple" value={company}
+              onChange={e=>{ const v=e.target.value; setCompany(v); setCorporationId(companyIdMap[v]?.id||null); setDepartment(''); setLocation(''); }}>
+              <option value="">회사구분</option>
+              {companyList.map(c=> <option key={c}>{c}</option>)}
+            </select>
+            {/* 부서 */}
+            <select className="audit-search-simple" value={department}
+              onChange={e=>{ const v=e.target.value; setDepartment(v); const dept=companyIdMap[company]?.departments?.[v]; setAffiliationId(dept?.id||null); setLocation(''); }}>
+              <option value="">부서구분</option>
+              {Object.keys(companyData[company]||{}).map(d=> <option key={d}>{d}</option>)}
+            </select>
+            {/* 세부위치 */}
+            <select className="audit-search-simple" value={location}
+              onChange={e=>{ const v=e.target.value; setLocation(v); const id=companyIdMap[company]?.departments?.[department]?.locations?.[v]; setLocationId(id||null); }}>
+              <option value="">세부위치</option>
+              {(companyData[company]?.[department]||[]).map(l=> <option key={l}>{l}</option>)}
+            </select>
+            {/* 자산분류 */}
+            <select className="audit-search-simple" value={category}
+              onChange={e=>{ const v=e.target.value; setCategory(v); setParentTypeId(assetCategoryMap[v]?.id||null); setItem(''); setChildTypeId(null); }}>
+              <option value="">자산분류</option>
+              {Object.keys(assetCategoryData).map(a=> <option key={a}>{a}</option>)}
+            </select>
+            {/* 품목 */}
+            <select className="audit-search-simple" value={item} disabled={!parentTypeId}
+              onChange={e=>{ const v=e.target.value; setItem(v); setChildTypeId(assetCategoryMap[category]?.children?.[v]||null); }}>
+              <option value="">품목</option>
+              {(assetCategoryData[category]||[]).map(i=> <option key={i}>{i}</option>)}
+            </select>
+            {/* 실사상태 */}
+            <select className="audit-search-simple" value={inspectionStatus} onChange={e=>setInspectionStatus(e.target.value)}>
+              <option value="">실사상태</option>
+              <option value="완료">완료</option>
+              <option value="미완료">미완료</option>
+            </select>
+          </div>
+          <div className="audit-search-row">
+            <input type="number" className="audit-search-simple" placeholder="출력개수" value={viewCount} onChange={e=> setViewCount(+e.target.value)} />
+            <div className="audit-date-range">
+              <label className="audit-date-label">실사일 :</label>
+              <input type="date" className="audit-search-simple" value={startDate} onChange={e=>setStartDate(e.target.value)} />
+              <span className="audit-date-separator">~</span>
+              <input type="date" className="audit-search-simple" value={endDate} onChange={e=>setEndDate(e.target.value)} />
+            </div>
 
-{/* 부서 */}
-<select  className="audit-search-simple"  value={department} onChange={e=>{
-  const v=e.target.value; setDepartment(v);
-  const dept = companyIdMap[company]?.departments?.[v];
-  setAffiliationId(dept?.id||null);
-  setLocation("");
-}}>
-  <option value="">부서구분</option>
-  {Object.keys(companyData[company]||{}).map(d=> <option key={d}>{d}</option>)}
-</select>
+ <button type="button" className="audit-search-btn" onClick={handleSearch}>🔍 조회</button>
+ <button type="button" className="audit-search-btn reset" onClick={handleReset}>↺ 초기화</button>
+ <button type="button" className="audit-search-btn download wide" onClick={handleExportExcel}>⬇️ 내려받기</button>
+          </div>
+        </div>
+      )}
 
- {/* 세부위치 */}
-<select  className="audit-search-simple" value={location} onChange={e=>{
-  const v=e.target.value; setLocation(v);
-  const id = companyIdMap[company]?.departments?.[department]?.locations?.[v];
-  setLocationId(id||null);
-}}>
-  <option value="">세부위치</option>
-  {(companyData[company]?.[department]||[]).map(l=> <option key={l}>{l}</option>)}
-</select>
-
-{/* 자산분류 */}
-<select  className="audit-search-simple" value={category} onChange={e=>{
-  const v=e.target.value; setCategory(v);
-  setParentTypeId(assetCategoryMap[v]?.id||null);
-  setItem(""); setChildTypeId(null);
-}}>
-  <option value="">자산분류</option>
-  {Object.keys(assetCategoryData).map(a=> <option key={a}>{a}</option>)}
-</select>
-
-{/* 품목 */}
-<select  className="audit-search-simple" value={item} disabled={!parentTypeId}
-        onChange={e=>{
-          const v=e.target.value; setItem(v);
-          setChildTypeId(assetCategoryMap[category]?.children?.[v]||null);
-}}>
-  <option value="">품목</option>
-  {(assetCategoryData[category]||[]).map(i=> <option key={i}>{i}</option>)}
-</select>
-          <select className="audit-search-simple" value={inspectionStatus} onChange={e => setInspectionStatus(e.target.value)}>
+      {/* ---------- PDA 모드 ---------- */}
+      {effectiveMode === 'pda' && (
+        <div className="audit-search-filter">
+          {/* 1행: 회사 - 부서 */}
+          <div className="pda-grid">
+            <select className="audit-search-simple" value={company}
+              onChange={e=>{ const v=e.target.value; setCompany(v); setCorporationId(companyIdMap[v]?.id||null); setDepartment(''); setLocation(''); }}>
+              <option value="">회사구분</option>
+              {companyList.map(c=> <option key={c}>{c}</option>)}
+            </select>
+            <select className="audit-search-simple" value={department}
+              onChange={e=>{ const v=e.target.value; setDepartment(v); const dept=companyIdMap[company]?.departments?.[v]; setAffiliationId(dept?.id||null); setLocation(''); }}>
+              <option value="">부서구분</option>
+              {Object.keys(companyData[company]||{}).map(d=> <option key={d}>{d}</option>)}
+            </select>
+          </div>
+          {/* 2행: 세부위치(풀폭) */}
+          <select className="audit-search-simple" value={location}
+            onChange={e=>{ const v=e.target.value; setLocation(v); const id=companyIdMap[company]?.departments?.[department]?.locations?.[v]; setLocationId(id||null); }}>
+            <option value="">세부위치</option>
+            {(companyData[company]?.[department]||[]).map(l=> <option key={l}>{l}</option>)}
+          </select>
+          {/* 3행: 자산분류 - 품목 */}
+          <div className="pda-grid">
+            <select className="audit-search-simple" value={category}
+              onChange={e=>{ const v=e.target.value; setCategory(v); setParentTypeId(assetCategoryMap[v]?.id||null); setItem(''); setChildTypeId(null); }}>
+              <option value="">자산분류</option>
+              {Object.keys(assetCategoryData).map(a=> <option key={a}>{a}</option>)}
+            </select>
+            <select className="audit-search-simple" value={item} disabled={!parentTypeId}
+              onChange={e=>{ const v=e.target.value; setItem(v); setChildTypeId(assetCategoryMap[category]?.children?.[v]||null); }}>
+              <option value="">품목</option>
+              {(assetCategoryData[category]||[]).map(i=> <option key={i}>{i}</option>)}
+            </select>
+          </div>
+          {/* 4행: 실사상태 */}
+          <select className="audit-search-simple" value={inspectionStatus} onChange={e=>setInspectionStatus(e.target.value)}>
             <option value="">실사상태</option>
             <option value="완료">완료</option>
             <option value="미완료">미완료</option>
           </select>
+          {/* 5행: 날짜(라벨 좌측) */}
+          <div className="pda-field">
+            <span className="pda-field__label">시작일</span>
+            <input type="date" className="audit-search-simple" value={startDate} onChange={e=>setStartDate(e.target.value)} />
+          </div>
+          <div className="pda-field">
+            <span className="pda-field__label">종료일</span>
+            <input type="date" className="audit-search-simple" value={endDate} onChange={e=>setEndDate(e.target.value)} />
+          </div>
+          {/* 6행: 출력개수 */}
+          <input type="number" className="audit-search-simple" placeholder="출력개수" value={viewCount} onChange={e=> setViewCount(+e.target.value)} />
+          {/* 7행: 버튼(2열, 마지막은 전체폭) */}
+          <div className="pda-actions">
+
+ <button type="button" className="audit-search-btn" onClick={handleSearch}>🔍 조회</button>
+ <button type="button" className="audit-search-btn reset" onClick={handleReset}>↺ 초기화</button>
+ <button type="button" className="audit-search-btn download" onClick={handleExportExcel}>⬇️ 내려받기</button>
+          </div>
         </div>
-        <div className="audit-search-row">
-          {/* <input type="text" className="audit-search-simple" placeholder="바코드 검색" value={barcodeKeyword} onChange={e => setBarcodeKeyword(e.target.value)} /> */}
-          <input type="number" className="audit-search-simple" placeholder="출력개수" value={viewCount} onChange={e => setViewCount(+e.target.value)} />
-          <div className="audit-date-range">
-  <label className="audit-date-label">실사일 :</label>
-  <input
-    type="date"
-    className="audit-search-simple"
-    value={startDate}
-    onChange={e => setStartDate(e.target.value)}
-  />
-  <span className="audit-date-separator">~</span>
-  <input
-    type="date"
-    className="audit-search-simple"
-    value={endDate}
-    onChange={e => setEndDate(e.target.value)}
-  />
-</div>
-          <button className="audit-search-btn" onClick={handleSearch}>
-  🔍 조회
-</button>
-          <button className="audit-search-btn reset" onClick={handleReset}>↺ 초기화</button>
-          <button className="audit-search-btn download" onClick={handleExportExcel}>⬇️ 내려받기</button>
-        </div>
-      </div>
+      )}
 
       <div className="audit-table-wrapper">
       {loading && (
@@ -459,4 +494,25 @@ value={company} onChange={e=>{
       {detailItem && <DetailWrapper item={detailItem} onClose={() => setDetailItem(null)} />}
     </div>
   );
+}
+
+// -------------------------------
+function useResponsiveMode() {
+  const [mode, setMode] = useState('web');
+  useEffect(() => {
+    const compute = () => {
+      const w = window.innerWidth;
+      const coarse = window.matchMedia?.('(pointer: coarse)').matches ?? false;
+      const isPDA = w <= 920 || (coarse && w <= 1200);
+      setMode(isPDA ? 'pda' : 'web');
+   };
+    compute();
+    window.addEventListener('resize', compute);
+    window.addEventListener('orientationchange', compute);
+    return () => {
+      window.removeEventListener('resize', compute);
+      window.removeEventListener('orientationchange', compute);
+    };
+  }, []);
+  return mode;
 }
