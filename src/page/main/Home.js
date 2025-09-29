@@ -2,57 +2,62 @@ import React, { useEffect, useState, useContext } from 'react';
 import { UserContext } from '../../utils/UserContext';
 import { useNavigate } from 'react-router-dom';
 import { authFetchWithRefresh } from '../../utils/authFetchWithRefresh';
+import { useTranslation } from 'react-i18next';
+import { getUILang, uiToI18n } from '../../utils/lang/pref';
 import {
   PieChart, Pie, Cell, ResponsiveContainer,
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
 } from 'recharts';
 import './Home.css';
 
+/** 모든 요청에 언어 헤더 자동 부착 */
+const withLang = (opts = {}) => {
+  const ui = getUILang();           // 'KR' | 'CN' | 'VN'
+  const lng = uiToI18n(ui);         // 'ko' | 'zh' | 'vi'
+  return {
+    ...opts,
+    headers: {
+      ...(opts.headers || {}),
+      'X-Client-Lang': lng,
+      'X-Client-Lang-UI': ui,
+    },
+  };
+};
 
 // 1. 부서 자산 현황 카드 (API연동)
 function DepartmentAssetsCard() {
+  const { t } = useTranslation('home');
   const { user } = useContext(UserContext);
   const affiliationId = user?.affiliationId || localStorage.getItem('affiliationId');
   const [summary, setSummary] = useState(null);
   const API_BASE = window._env_?.REACT_APP_API_URL || 'http://localhost:8888';
   const navigate = useNavigate();
 
-
   useEffect(() => {
     if (!affiliationId) return;
     const fetchSummary = async () => {
       try {
-        // [여기!] authFetchWithRefresh로 요청
-        const res = await authFetchWithRefresh(`${API_BASE}/metrics/assets/${affiliationId}`);
-        // 콘솔로 응답 확인
-       // console.log('[부서 자산 현황] 응답 status:', res.status);
-        const raw = await res.clone().text();
-        //console.log('[부서 자산 현황] 응답 RAW:', raw);
+        const res = await authFetchWithRefresh(`${API_BASE}/metrics/assets/${affiliationId}`, withLang());
         const result = await res.json();
-        //console.log('[부서 자산 현황] 응답 JSON:', result);
-
-        setSummary(result.data); // { totalAssets: 100, rentedAssets: 30, ... }
+        setSummary(result.data); // { totalCount, rentedCount, rentableCount }
       } catch (e) {
         setSummary(null);
-        //alert('부서 자산 현황 불러오기 실패');
         console.error('[부서 자산 현황] 오류:', e);
       }
     };
     fetchSummary();
   }, [affiliationId]);
 
-  if (!summary) return (
-    <div className="card clickable" tabIndex={0} role="button"
-         onClick={() => navigate('/Search')}>
-      <h3>부서 자산 현황</h3>
-      <p>불러오는 중...</p>
-    </div>
-  );
+  if (!summary) {
+    return (
+      <div className="card clickable" tabIndex={0} role="button" onClick={() => navigate('/Search')}>
+        <h3>{t('Home_DepartmentAssetOverview')}</h3>
+        <p>{t('Home_Loading')}</p>
+      </div>
+    );
+  }
 
-  const { totalCount, rentedCount, rentableCount } = summary;
-
-  const { totalAssets, rentedAssets, brokenAssets } = summary;
-  const availableAssets = totalAssets - (rentedAssets ?? 0) - (brokenAssets ?? 0);
+  const { totalCount, rentedCount /*, rentableCount*/ } = summary;
 
   return (
     <div
@@ -60,19 +65,23 @@ function DepartmentAssetsCard() {
       tabIndex={0}
       role="button"
       onClick={() => navigate('/Search')}
-      onKeyDown={e => (e.key === "Enter" || e.key === " ") && navigate('/Search')}
+      onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && navigate('/Search')}
     >
-    <h3>부서 자산 현황</h3>
-    <p>총 자산: <strong>{totalCount?.toLocaleString()}개</strong></p>
-    <p>대여 중: <strong>{rentedCount?.toLocaleString()}개</strong></p>
-    {/* <p>대여 가능: <strong>{rentableCount?.toLocaleString()}개</strong></p> */}
-  </div>
+      <h3>{t('Home_DepartmentAssetOverview')}</h3>
+      <p>
+        {t('Home_TotalAssets')}: <strong>{totalCount?.toLocaleString()}{t('Home_Unit_Count')}</strong>
+      </p>
+      <p>
+        {t('Home_OnLoan')}: <strong>{rentedCount?.toLocaleString()}{t('Home_Unit_Count')}</strong>
+      </p>
+      {/* <p>{t('Home_Available')}: <strong>{rentableCount?.toLocaleString()}{t('Home_Unit_Count')}</strong></p> */}
+    </div>
   );
 }
 
-
-// 2. 실사 현황 카드 (API연동 예시)
+// 2. 실사 현황 카드 (API연동)
 function InspectionStatusCard({ setCompletionRate }) {
+  const { t } = useTranslation('home');
   const { user } = useContext(UserContext);
   const affiliationId = user?.affiliationId || localStorage.getItem('affiliationId');
   const [status, setStatus] = useState(null);
@@ -83,90 +92,71 @@ function InspectionStatusCard({ setCompletionRate }) {
     if (!affiliationId) return;
     const fetchStatus = async () => {
       try {
-        const res = await authFetchWithRefresh(`${API_BASE}/metrics/stock-takings/${affiliationId}`);
+        const res = await authFetchWithRefresh(`${API_BASE}/metrics/stock-takings/${affiliationId}`, withLang());
         const result = await res.json();
         setStatus(result.data);
 
-        // 완료율 계산 후 부모로 전달!
         const totalCount = result.data.totalCount ?? 0;
         const completeCount = result.data.completeCount ?? 0;
         const completionRate = totalCount > 0 ? (completeCount / totalCount) : 0;
-        setCompletionRate(completionRate); // 0~1 실수로 내려줌
+        setCompletionRate(completionRate);
       } catch (e) {
         setStatus(null);
         setCompletionRate(0);
-        //alert('실사 현황 불러오기 실패');
       }
     };
     fetchStatus();
   }, [affiliationId, setCompletionRate]);
 
-  if (!status) return (
-    <div className="card clickable" tabIndex={0} role="button"
-         onClick={() => navigate('/audit/list')}>
-      <h3>부서 실사 진행 현황</h3>
-      <p>불러오는 중...</p>
-    </div>
-  );
-   // 여기서 직접 계산!
-   const totalCount = status.totalCount ?? 0;
-   const completeCount = status.completeCount ?? 0;
-   const incompleteCount = totalCount - completeCount;
-   const completionRate = totalCount > 0 ? ((completeCount / totalCount) * 100).toFixed(1) : '0.0';
- 
+  if (!status) {
+    return (
+      <div className="card clickable" tabIndex={0} role="button" onClick={() => navigate('/audit/list')}>
+        <h3>{t('Home_DepartmentAuditProgress')}</h3>
+        <p>{t('Home_Loading')}</p>
+      </div>
+    );
+  }
 
-  // 예시: 실제 API 응답 필드명 맞게 변경
-
+  const totalCount = status.totalCount ?? 0;
+  const completeCount = status.completeCount ?? 0;
+  const incompleteCount = totalCount - completeCount;
+  const completionRate = totalCount > 0 ? ((completeCount / totalCount) * 100).toFixed(1) : '0.0';
 
   return (
     <div
-    className="card clickable"
-    tabIndex={0}
-    role="button"
-    onClick={() => navigate('/audit/list')}
-    onKeyDown={e => (e.key === "Enter" || e.key === " ") && navigate('/audit/list')}
-  >
-      <h3>부서 실사 진행 현황</h3>
-      <p>실사 대상: <strong>{totalCount.toLocaleString()}개</strong></p>
-      <p>완료된 실사: <strong>{completeCount.toLocaleString()}개</strong></p>
-      <p>미완료 실사: <strong>{incompleteCount.toLocaleString()}개</strong></p>
+      className="card clickable"
+      tabIndex={0}
+      role="button"
+      onClick={() => navigate('/audit/list')}
+      onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && navigate('/audit/list')}
+    >
+      <h3>{t('Home_DepartmentAuditProgress')}</h3>
+      <p>{t('Home_AuditTargetLabel')} <strong>{totalCount.toLocaleString()}{t('Home_Unit_Count')}</strong></p>
+      <p>{t('Home_AuditCompleted')}: <strong>{completeCount.toLocaleString()}{t('Home_Unit_Count')}</strong></p>
+      <p>{t('Home_AuditIncomplete')}: <strong>{incompleteCount.toLocaleString()}{t('Home_Unit_Count')}</strong></p>
       <div className="progress-bar">
         <div className="progress-filled" style={{ width: `${completionRate}%` }} />
       </div>
-      <p>완료율: <strong>{completionRate}%</strong></p>
+      <p>{t('Home_CompletionRate')}: <strong>{completionRate}%</strong></p>
     </div>
   );
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // 2. 자산 카테고리별 분포 파이 차트
 const CategoryPie = () => {
+  const { t } = useTranslation('home');
   const data = [
-    { name: 'IT 장비', value: 800 },
-    { name: '가구', value: 400 },
-    { name: '사무용품', value: 300 },
-    { name: '설비', value: 200 },
-    { name: '기타', value: 100 },
+    { name: t('Home_ITEquipment'), value: 800 },
+    { name: t('Home_Furniture'), value: 400 },
+    { name: t('Home_OfficeSupplies'), value: 300 },
+    { name: t('Home_Facilities'), value: 200 },
+    { name: t('Home_Others'), value: 100 },
   ];
   const COLORS = ['#FFD54F', '#FFB300', '#FFC107', '#FFE082', '#FFECB3'];
 
   return (
     <div className="chart-card">
-      <h4 className="chart-title">자산 카테고리별 분포</h4>
+      <h4 className="chart-title">{t('Home_AssetCategoryDistribution')}</h4>
       <ResponsiveContainer width="100%" height={240}>
         <PieChart>
           <Pie
@@ -175,9 +165,7 @@ const CategoryPie = () => {
             nameKey="name"
             innerRadius={60}
             outerRadius={80}
-            label={({ name, percent }) =>
-              `${name}: ${(percent * 100).toFixed(1)}%`
-            }
+            label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(1)}%`}
             labelLine={false}
             startAngle={90}
             endAngle={-270}
@@ -194,6 +182,7 @@ const CategoryPie = () => {
 
 // 3. 월별 대여·반납 추이 차트
 const BorrowReturnBar = () => {
+  const { t } = useTranslation('home');
   const data = [
     { month: '2025-01', borrow: 50, return: 45 },
     { month: '2025-02', borrow: 65, return: 60 },
@@ -204,40 +193,36 @@ const BorrowReturnBar = () => {
   ];
   return (
     <div className="chart-card">
-      <h4 className="chart-title">월별 대여·반납 추이</h4>
+      <h4 className="chart-title">{t('Home_MonthlyLoanReturnTrend')}</h4>
       <ResponsiveContainer width="100%" height={240}>
-        <BarChart
-          data={data}
-          margin={{ top: 20, right: 20, left: 0, bottom: 0 }}
-        >
+        <BarChart data={data} margin={{ top: 20, right: 20, left: 0, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="month" />
           <YAxis />
           <Tooltip />
           <Legend verticalAlign="top" height={32} />
-          <Bar dataKey="borrow" name="대여 건수" fill="#FFB300" />
-          <Bar dataKey="return" name="반납 건수" fill="#FFB300" opacity={0.5} />
+          <Bar dataKey="borrow" name={t('Home_LoanCount')} fill="#FFB300" />
+          <Bar dataKey="return" name={t('Home_ReturnCount')} fill="#FFB300" opacity={0.5} />
         </BarChart>
       </ResponsiveContainer>
     </div>
   );
 };
 
-// 4. 실사 완료율 도넛 차트
 // 4. 실사 완료율 도넛 차트 (실제 완료율로 표시)
 const AuditGauge = ({ completionRate }) => {
-  // undefined 방지, 0~1로 보장
-  const gaugeRate = typeof completionRate === "number" ? completionRate : 0;
+  const { t } = useTranslation('home');
+  const gaugeRate = typeof completionRate === 'number' ? completionRate : 0;
   const data = [
-    { name: '완료', value: gaugeRate },
-    { name: '미완료', value: 1 - gaugeRate },
+    { name: t('Home_Completed'), value: gaugeRate },
+    { name: t('Home_Incomplete'), value: 1 - gaugeRate },
   ];
   const COLORS = ['#FFB300', '#e0e0e0'];
 
   return (
     <div className="chart-card audit-gauge">
-      <h4 className="chart-title">실사 완료율</h4>
-<div className="gauge-wrapper" style={{ width: '100%', maxWidth: '100%' }}>
+      <h4 className="chart-title">{t('Home_AuditCompletionRate')}</h4>
+      <div className="gauge-wrapper" style={{ width: '100%', maxWidth: '100%' }}>
         <ResponsiveContainer width="100%" height={240}>
           <PieChart>
             <Pie
@@ -265,37 +250,31 @@ const AuditGauge = ({ completionRate }) => {
   );
 };
 
-
-
-
 // 5. Home 컴포넌트
 const Home = () => {
+  const { t } = useTranslation('home');
   const navigate = useNavigate();
-
-  // 실사 완료율 상태 추가
   const [completionRate, setCompletionRate] = useState(0);
 
   return (
     <div className="home-content">
       <header className="home-header">
-        <h1>🏠  Home</h1>
+        <h1>🏠 {t('Home_Title')}</h1>
       </header>
       <section className="dashboard-cards">
         <DepartmentAssetsCard />
-        {/* completionRate setter를 InspectionStatusCard에 prop으로 넘김 */}
         <InspectionStatusCard setCompletionRate={setCompletionRate} />
       </section>
       <section className="charts-section">
         <div className="charts-container">
+          {/* 필요 시 다른 차트 활성화 */}
           {/* <CategoryPie />
           <BorrowReturnBar /> */}
-          {/* completionRate를 prop으로 넘김 */}
           <AuditGauge completionRate={completionRate} />
         </div>
       </section>
     </div>
   );
 };
-
 
 export default Home;

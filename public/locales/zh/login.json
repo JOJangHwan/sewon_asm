@@ -1,0 +1,12 @@
+{
+  "Login_SignUp": "加会员",
+  "Login_RememberId": "储存用户名",
+  "Login_Button": "登录",
+  "Login_EnterIdAndPassword": "请输入用户和密码",
+  "Login_Failed_InvalidCredentials": "失败登录：错误的使用者信息",
+  "Login_ServerConnectionFailed": "失败链接服务器",
+  "Login_Loading": "读取中",
+  "Login_Username": "用户",
+  "Login_AppTitle": "世元电子资产管理系统",
+  "Login_Password": "密码"
+}

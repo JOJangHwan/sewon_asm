@@ -5,10 +5,27 @@ import { createRoot } from "react-dom/client";
 import LabelPrint from "../MyInfor/LabelPrint";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
+import { useTranslation } from "react-i18next";     
+import { getUILang, uiToI18n } from "../../utils/lang/pref"; // ✅ 언어 유틸
 const API_BASE_URL = window._env_?.REACT_APP_API_URL || "http://localhost:8888";
 
 
 export default function Search() {
+    const { t } = useTranslation("search");                     
+
+  // ✅ 모든 fetch 옵션에 언어 헤더 자동 부착
+  const withLang = (opts = {}) => {
+    const ui = getUILang();           // 'KR' | 'CN' | 'VN'
+    const lng = uiToI18n(ui);         // 'ko' | 'zh' | 'vi'
+    return {
+      ...opts,
+      headers: {
+        ...(opts.headers || {}),
+        "X-Client-Lang": lng,
+        "X-Client-Lang-UI": ui,
+      },
+    };
+  };
   const [companyData, setCompanyData] = useState({});
   const [assetCategoryData, setAssetCategoryData] = useState({});
   const [items, setItems] = useState([]);
@@ -33,7 +50,9 @@ export default function Search() {
     const [parentTypeId, setParentTypeId] = useState(null);  // 자산 분류 ID
     const [assetCategoryMap, setAssetCategoryMap] = useState({});
 
-    const [childTypeId, setChildTypeId] = useState(null);    
+    const [childTypeId, setChildTypeId] = useState(null);  
+    const [statusFilter, setStatusFilter] = useState("");   // ✅ 상태 필터
+    const STATUS_CODE = { "사용": 0, "미사용": 1, "폐각": 2 }; // ✅ 서버 코드 맵 (필요 시 조정)  
 
     const headerCheckboxRef = useRef(); // ✅ ref 선언
 
@@ -52,41 +71,70 @@ const effectiveMode = useResponsiveMode();
 
 
 
+// ▼ 기존 handlePrint 를 이걸로 교체
 const handlePrint = () => {
-  /* 1) 선택 검사 */
   if (selected.size === 0) {
-    alert('인쇄할 항목을 한 개 이상 체크해주세요.');
+    alert(t("Search_Warn_SelectAtLeastOnePrintItem"));
     return;
   }
 
-  /* 2) 선택된 자산 목록 */
   const toPrint = items.filter((it) => selected.has(it.barcode));
 
-  /* 3) 팝업 */
   const popup = window.open('', '_blank', 'width=900,height=600');
   if (!popup) {
-    alert('팝업이 차단되었습니다. 팝업 허용을 확인하세요.');
+    alert(t("Search_PopupBlocked"));
     return;
   }
 
-  /* 4) 템플릿 주입 */
+  // ✅ 로고 제거, 바코드 좌정렬, 3줄 구조용 CSS
+  const VERTICAL_OFFSET_MM = 1.2; // ← 여기 숫자만 조절하면 더 위/아래로 이동
   popup.document.write(`
     <html>
       <head>
-        <title>라벨 인쇄</title>
+        <title>${t("Search_LabelPrint")}</title>
         <style>
+          /* === Label Print - Clean CSS (40x15mm) === */
           @page { size: 40mm 15mm; margin: 0; }
           @media print { body { margin: 0; } }
-          html,body { width:40mm; height:15mm; margin:0; padding:0; font-family:Arial; }
-          .label-print-wrapper{display:flex;flex-direction:column;width:40mm;height:15mm;margin:0;padding:0;}
-          .label-box{width:40mm;height:15mm;display:flex;align-items:center;margin:0;padding:0;page-break-after:always;}
-          .qr-section{width:13mm;display:flex;justify-content:center;align-items:center;}
-          .qr-canvas{width:11.5mm!important;height:11.5mm!important;}
-          .info-section{display:flex;flex-direction:column;align-items:flex-start;padding-left:1.5mm;}
-          .logo-wrapper{width:100%;display:flex;justify-content:flex-start;margin-bottom:0.3mm;}
-          .logo{max-width:32mm;height:5.5mm;object-fit:contain;}
-          .text-line{font-size:2.2mm;margin:0;padding:0;white-space:nowrap;}
-          .barcode-text{font-size:2.6mm;font-weight:bold;}
+          html, body { width:40mm; height:15mm; margin:0; padding:0; font-family:Arial, sans-serif; }
+
+          .label-print-wrapper { display:flex; flex-direction:column; width:40mm; height:15mm; margin:0; padding:0; }
+
+          .label-box {
+            width:40mm; height:15mm; display:flex; align-items:center;
+            page-break-after:always; box-sizing:border-box;
+            padding-left:1.4mm; /* QR 왼쪽 여백 */
+            padding-top:${VERTICAL_OFFSET_MM}mm; /* ★ 위 여백을 조금 주어 전체를 아래로 */
+          }
+
+          .qr-section { width:13mm; height:100%; display:flex; justify-content:center; align-items:center; }
+          .qr-canvas  { width:11.0mm !important; height:11.0mm !important; }
+
+          .info-section {
+            display:flex; flex-direction:column; align-items:flex-start; justify-content:center;
+            padding-left:1.7mm; /* 텍스트 왼쪽 여백 */
+            flex:1;
+          }
+
+          /* 공통 텍스트 */
+          .text-line {
+            font-size:2.0mm; line-height:2.35mm;
+            margin:0; padding:0; white-space:nowrap; color:#000;
+          }
+
+          /* 2열: 바코드(좌정렬, 볼드) */
+          .barcode-text {
+            font-size:2.4mm; line-height:2.35mm; font-weight:700;
+            text-align:left; align-self:flex-start;
+            margin:0.2mm 0 0.1mm;
+          }
+
+          /* 3열: 자산분류 + 품목 (공백만, 말줄임) */
+          .category-line {
+            font-size:2.0mm; line-height:2.2mm;
+            max-width:25mm; /* 40 - 13(QR) - 1.7(padding) 대략 */
+            overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+          }
         </style>
       </head>
       <body>
@@ -96,7 +144,7 @@ const handlePrint = () => {
   `);
   popup.document.close();
 
-  /* 5) React 라벨 렌더 후 print */
+  // React로 실제 라벨 렌더 → 인쇄
   const timer = setInterval(() => {
     const mount = popup.document.getElementById('print-root');
     if (mount) {
@@ -114,7 +162,8 @@ const handlePrint = () => {
       );
     }
   }, 100);
-};   // ←★★ handlePrint 닫는 중괄호 꼭 필요
+};
+
 
 
   /* -----------------------------------------------------------
@@ -122,7 +171,7 @@ const handlePrint = () => {
   ----------------------------------------------------------- */
   const handleExportExcel = () => {
     if (!items.length) {
-      alert("내보낼 데이터가 없습니다.");
+      alert(t("Search_NoDataToExport"));
       return;
     }
 
@@ -161,12 +210,12 @@ const handlePrint = () => {
     // 2) 워크시트/워크북 생성
     const worksheet = XLSX.utils.json_to_sheet(exportData);
     const workbook  = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "자산목록");
+    XLSX.utils.book_append_sheet(workbook, worksheet, t("Search_AssetList"));
 
     // 3) 클라이언트에 저장
     const buffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
     const blob   = new Blob([buffer], { type: "application/octet-stream" });
-    saveAs(blob, "자산_조회_결과.xlsx");
+    saveAs(blob, t("Search_ExportFileName"));
   };
 
 
@@ -202,7 +251,7 @@ const handlePrint = () => {
     const fetchCorporation = async () => {
       try {
         // const res = await authFetchWithRefresh('http://192.168.0.220:8888/corporations');
-        const res = await authFetchWithRefresh(`${API_BASE_URL}/corporations`);
+        const res = await authFetchWithRefresh(`${API_BASE_URL}/corporations`, withLang());
         const result = await res.json();
     
       //  console.log("📦 corporations API 응답 전체 (JSON 형태):");//자산 찍는 부분분
@@ -247,11 +296,11 @@ const handlePrint = () => {
           setCompanyList(names); // ✅ 회사명 리스트 저장
           setCompanyIdMap(idMap);  // ✅ ID 매핑까지 저장
         } else {
-          alert(result.message || '법인 정보 조회 실패');
+          alert(result.message || t("Search_Error_LoadCorporationFailed"));
         }
               // 자산 유형 계층 정보 가져오기
               // const typeRes = await authFetchWithRefresh('http://192.168.0.220:8888/asset-types/hierarchy');
-              const typeRes = await authFetchWithRefresh(`${API_BASE_URL}/asset-types/hierarchy`);
+              const typeRes = await authFetchWithRefresh(`${API_BASE_URL}/asset-types/hierarchy`, withLang());
               const typeResult = await typeRes.json();
 
               //console.log("📦 부서 API 응답 전체 (JSON 형태):");
@@ -281,7 +330,7 @@ const handlePrint = () => {
                 setAssetCategoryData(nestedAssetType);
                 setAssetCategoryMap(typeIdMap); // ✅ ID map 저장
               } else {
-                alert(typeResult.message || '자산 유형 정보 조회 실패');
+                alert(typeResult.message || t("Search_Error_LoadAssetTypeFailed"));
               }
 
 
@@ -290,7 +339,7 @@ const handlePrint = () => {
 
     } catch (err) {
       console.error('초기 데이터 조회 실패:', err);
-      alert('초기 데이터를 불러오지 못했습니다.');
+      alert(t("Search_Error_LoadInitialDataFailed"));
     }
   };
   
@@ -335,7 +384,7 @@ const handlePrint = () => {
 
   const handleSearch = async () => {
     if (startDate && endDate && startDate > endDate) {
-      return alert("시작일이 종료일보다 늦을 수 없습니다.");
+      return alert(t("Search_Error_StartAfterEnd"));
     }
   
     try {
@@ -343,12 +392,12 @@ const handlePrint = () => {
   
       if (barcode.trim()) {
         const url = `${API_BASE_URL}/assets/barcode?value=${encodeURIComponent(barcode.trim())}`;
-        const res      = await authFetchWithRefresh(url, { method: 'GET' });
+        const res      = await authFetchWithRefresh(url, withLang({ method: 'GET' }));
         const resJson  = await res.json();
         // const res = await fetch(`http://192.168.0.220:8888/assets/${barcode}`);
 
         if (resJson.code !== 1 || !resJson.data) {
-          alert('❌ 해당 바코드를 찾을 수 없습니다.');
+          alert('❌ ' + t("Search_Error_BarcodeNotFound"));
           setItems([]);          // 테이블 비우기
           setSearched(true);
           return;
@@ -387,7 +436,14 @@ const handlePrint = () => {
         //if (assetCategory) queryParams.append("parentType", assetCategory); // 자산 대분류
         //if (itemName) queryParams.append("childType", itemName);      // 자산 중분류
         if (parentTypeId) queryParams.append("parentTypeId", parentTypeId);
+
         if (childTypeId) queryParams.append("childTypeId", childTypeId);
+                // ✅ 상태 필터: 코드(자주 쓰는 assetStatus)와 문자열(status) 동시 전송
+        if (statusFilter) {
+          const code = STATUS_CODE[statusFilter];
+          if (code !== undefined) queryParams.append("assetStatus", code);
+          queryParams.append("status", statusFilter);
+        }
         if (startDate) queryParams.append("after", startDate);        // 시작일
         if (endDate) queryParams.append("before", endDate);           // 종료일
         if (sortField) queryParams.append("sortField", sortField);    // 정렬 필드
@@ -419,7 +475,7 @@ const handlePrint = () => {
         //   viewCount,
         // });
   
-        const res = await authFetchWithRefresh(url);
+        const res = await authFetchWithRefresh(url, withLang());
         const resData = await res.json();
 
         // ✅ 응답 전체 로그 출력
@@ -435,7 +491,7 @@ const data = resData.data?.list || [];
 
   
         if (!Array.isArray(data) || data.length === 0) {
-          alert("❌ 자산 검색 실패: 조건에 맞는 항목이 없습니다.");
+          alert("❌ " + t("Search_Error_NoResults"));
           setItems([]);
           setSearched(true);
           return;
@@ -443,12 +499,17 @@ const data = resData.data?.list || [];
   
         result = data;
       }
+      
+      // ✅ 서버가 상태 파라미터를 무시할 경우 대비, 클라이언트에서도 한 번 더 거르기
+      if (statusFilter) {
+        result = result.filter(it => String(it.status) === statusFilter);
+      }
   
       setItems(result);
       setSearched(true);
     } catch (err) {
       console.error("❌ 검색 중 예외 발생:", err);
-      alert("🚨 서버와의 연결에 실패했습니다. 담당자에게 문의하세요.");
+      alert("🚨 " + t("Search_Error_ServerConnection"));
     }
   };
 
@@ -465,6 +526,7 @@ const data = resData.data?.list || [];
     setAssetCategory(""); setItemName(""); setBarcode("");
     setStartDate(""); setEndDate(""); setSortField(""); setSortOrder("asc");
     setItems([]); setSearched(false); setViewCount(30);
+    setStatusFilter("");
   };
 
    return (
@@ -473,7 +535,7 @@ const data = resData.data?.list || [];
       {/* ===== Web 전용 ===== */}
       {effectiveMode === 'web' && (
         <>
-      <h1 className="search-title">자산 조회</h1>
+      <h1 className="search-title">{t("Search_AssetSearch")}</h1>
       <div className="srch-bar-wrapper">
       <div className="srch-bar top-bar">
           <select className="search-input" value={company} onChange={e => {
@@ -482,7 +544,7 @@ const data = resData.data?.list || [];
   const corpId = companyIdMap[selected]?.id;
   setCorporationId(corpId || null);
 }}>
-            <option value="">회사구분</option>
+            <option value="">{t("Search_CompanyType")}</option>
             {Object.keys(companyData).map(c => <option key={c} value={c}>{c}</option>)}
           </select>
           <select className="search-input" value={department} onChange={e => {
@@ -505,7 +567,7 @@ const data = resData.data?.list || [];
   }
 }}>
 
-            <option value="">부서구분</option>
+            <option value="">{t("Search_DepartmentType")}</option>
             {Object.keys(companyData[company] || {}).map(d => <option key={d} value={d}>{d}</option>)}
           </select>
           <select className="search-input" value={location} onChange={e => {
@@ -515,7 +577,7 @@ const data = resData.data?.list || [];
  // console.log("세부위치 선택:", selected, "→ ID:", locId);
   setLocationId(locId || null);
 }}>
-  <option value="">세부위치</option>
+  <option value="">{t("Search_DetailLocation")}</option>
   {(companyData[company]?.[department] || []).map(l => (
     <option key={l} value={l}>{l}</option>
   ))}
@@ -535,7 +597,7 @@ const data = resData.data?.list || [];
     setChildTypeId(null);
   }}
 >
-<option value="">자산분류</option>
+<option value="">{t("Search_AssetCategory")}</option>
   {Object.keys(assetCategoryData).map(a => (
     <option key={a} value={a}>{a}</option>
   ))}
@@ -550,7 +612,7 @@ const data = resData.data?.list || [];
     setChildTypeId(childId); // ✅ childTypeId 설정
   }}
 >
-  <option value="">품목</option>
+   <option value="">{t("Search_Item")}</option>
   {(assetCategoryData[assetCategory] || []).map(i => (
     <option key={i} value={i}>{i}</option>
   ))}
@@ -558,18 +620,29 @@ const data = resData.data?.list || [];
           <input
             type="number"
             className="srch-input view-count"
-            placeholder="출력 개수"
+            placeholder={t("Search_PrintCount")}
             value={viewCount}
             onChange={e => setViewCount(Number(e.target.value))}
           />
         </div>
 
        <div className="srch-bar bottom-bar">
-          <input type="text" className="search-input barcode-search" placeholder="바코드 검색"
+          <input type="text" className="search-input barcode-search" placeholder={t("Search_SearchBarcode")}
                  value={barcode} onChange={e => setBarcode(e.target.value)} />
-          <input type="date" className="search-input date" value={startDate} onChange={e => setStartDate(e.target.value)} />
+          {/* ✅ 상태 필터 */}
+          <select
+            className="search-input"
+            value={statusFilter}
+            onChange={e => setStatusFilter(e.target.value)}
+          >
+            <option value="">{t("Search_Status")}</option>
+          <option value="">{t("Search_InUse")}</option>
+          <option value="">{t("Search_NotInUse")}</option>
+          <option value="">{t("Search_Disposed")}</option>
+         </select>
+          <input type="date" className="search-input date" value={startDate} onChange={e => setStartDate(e.target.value)} aria-label={t("Search_StartDate")} />
           <span>~</span>
-          <input type="date" className="search-input date" value={endDate} onChange={e => setEndDate(e.target.value)} />
+          <input type="date" className="search-input date" value={endDate} onChange={e => setEndDate(e.target.value)} aria-label={t("Search_EndDate")} />
           {/* <select className="search-input" value={sortField} onChange={e => setSortField(e.target.value)}>
             <option value="">정렬 항목</option>
             <option value="acquisitionDate">취득일자</option>
@@ -579,10 +652,10 @@ const data = resData.data?.list || [];
             <option value="asc">오름차순</option>
             <option value="desc">내림차순</option>
           </select> */}
-          <button className="search-button" onClick={handleSearch}>🔍 조회</button>
-          <button className="search-button print" onClick={handlePrint}>🖨️ 인쇄</button>
-          <button className="srch-button reset" onClick={handleReset}>↺ 초기화</button>
-          <button className="search-button download" onClick={handleExportExcel}>⬇️내려받기</button>
+          <button className="search-button" onClick={handleSearch}>🔍 {t("Search_Search")}</button>
+          <button className="search-button print" onClick={handlePrint}>🖨️ {t("Search_Print")}</button>
+          <button className="srch-button reset" onClick={handleReset}>↺ {t("Search_Reset")}</button>
+          <button className="search-button download" onClick={handleExportExcel}>⬇️ {t("Search_Download")}</button>
         </div>
       </div>{/* /.srch-bar-wrapper */}
 
@@ -599,10 +672,10 @@ const data = resData.data?.list || [];
                   onChange={toggleAll}
                 />
               </th>
-              <th>바코드</th><th>회사</th><th>부서</th><th>위치</th>
-              <th>자산분류</th><th>품목</th><th>상태</th>
-              <th>제조사</th><th>모델</th><th>취득일자</th>
-              <th>취득가</th><th>등록자</th><th>등록일자</th>
+              <th>{t("Search_Barcode")}</th><th>{t("Search_Company")}</th><th>{t("Search_Department")}</th><th>{t("Search_Location")}</th>
+              <th>{t("Search_AssetCategory")}</th><th>{t("Search_Item")}</th><th>{t("Search_Status")}</th>
+              <th>{t("Search_Manufacturer")}</th><th>{t("Search_Model")}</th><th>{t("Search_AcquisitionDate")}</th>
+              <th>{t("Search_AcquisitionCost")}</th><th>{t("Search_Registrar")}</th><th>{t("Search_RegisteredDate")}</th>
             </tr>
           </thead>
           <tbody>
@@ -653,29 +726,34 @@ const data = resData.data?.list || [];
         ×
       </button>
       <div className="detail-header">
-        <h3>자산 상세</h3>
+        <h3>{t("Search_AssetDetail")}</h3>
       </div>
       <div className="detail-body">
-        <p style={{ color: '#000' }}><strong>바코드:</strong> {selectedItem.barcode}</p>
-        <p style={{ color: '#000' }} ><strong>회사:</strong> {selectedItem.corporation}</p>
-        <p style={{ color: '#000' }}><strong>부서:</strong> {selectedItem.department}</p>
-        <p style={{ color: '#000' }}><strong>위치:</strong> {selectedItem.location}</p>
-        <p style={{ color: '#000' }}><strong>자산분류:</strong> {selectedItem.parentCategory}</p>
-        <p style={{ color: '#000' }}><strong>품목:</strong> {selectedItem.childCategory}</p>
-        <p style={{ color: '#000' }}><strong>상태:</strong> {selectedItem.status}</p>
-        <p style={{ color: '#000' }}><strong>제조사:</strong> {selectedItem.manufacturer}</p>
-        <p style={{ color: '#000' }}><strong>모델:</strong> {selectedItem.model}</p>
-        <p style={{ color: '#000' }}><strong>취득일자:</strong> {selectedItem.acquisitionDate}</p>
-        <p style={{ color: '#000' }}><strong>취득가:</strong> {Number(selectedItem.acquisitionPrice).toLocaleString()}</p>
-        <p style={{ color: '#000' }}><strong>등록자:</strong> {selectedItem.registerName}</p>
-        <p style={{ color: '#000' }}><strong>등록일자:</strong> {selectedItem.registrationDate}</p>
+        <p style={{ color: '#000' }}><strong>{t("Search_Detail_BarcodeLabel")}</strong> {selectedItem.barcode}</p>
+                {/* ✅ 회계코드: 서버 필드명 categoryCode를 그대로 사용 */}
+        {selectedItem.categoryCode !== undefined && selectedItem.categoryCode !== null && (
+          <p style={{ color: '#000' }}><strong>회계코드:</strong> {selectedItem.categoryCode}</p>
+        )}
+
+        <p style={{ color: '#000' }} ><strong>{t("Search_Detail_CompanyLabel")}</strong> {selectedItem.corporation}</p>
+        <p style={{ color: '#000' }}><strong>{t("Search_Detail_DepartmentLabel")}</strong> {selectedItem.department}</p>
+        <p style={{ color: '#000' }}><strong>{t("Search_Detail_LocationLabel")}</strong> {selectedItem.location}</p>
+        <p style={{ color: '#000' }}><strong>{t("Search_Detail_AssetCategoryLabel")}</strong> {selectedItem.parentCategory}</p>
+        <p style={{ color: '#000' }}><strong>{t("Search_Detail_ItemLabel")}</strong> {selectedItem.childCategory}</p>
+        <p style={{ color: '#000' }}><strong>{t("Search_Detail_StatusLabel")}</strong> {selectedItem.status}</p>
+        <p style={{ color: '#000' }}><strong>{t("Search_Detail_ManufacturerLabel")}</strong> {selectedItem.manufacturer}</p>
+        <p style={{ color: '#000' }}><strong>{t("Search_Detail_ModelLabel")}</strong> {selectedItem.model}</p>
+        <p style={{ color: '#000' }}><strong>{t("Search_Detail_AcquisitionDateLabel")}</strong> {selectedItem.acquisitionDate}</p>
+        <p style={{ color: '#000' }}><strong>{t("Search_Detail_AcquisitionCostLabel")}</strong> {Number(selectedItem.acquisitionPrice).toLocaleString()}</p>
+        <p style={{ color: '#000' }}><strong>{t("Search_Detail_RegistrarLabel")}</strong> {selectedItem.registerName}</p>
+        <p style={{ color: '#000' }}><strong>{t("Search_Detail_RegisteredDateLabel")}</strong> {selectedItem.registrationDate}</p>
 
         {["노트북", "컴퓨터"].includes(selectedItem.childCategory) && (
           <>
-            <p style={{ color: '#000' }}><strong>CPU:</strong> {selectedItem.cpu}</p>
-            <p style={{ color: '#000' }}><strong>그래픽카드:</strong> {selectedItem.gpu}</p>
-            <p style={{ color: '#000' }}><strong>RAM:</strong> {selectedItem.ram} GB</p>
-            <p style={{ color: '#000' }}><strong>총 저장장치:</strong> {selectedItem.storage} GB</p>
+            <p style={{ color: '#000' }}><strong>{t("Search_Detail_CPULabel")}</strong> {selectedItem.cpu}</p>
+            <p style={{ color: '#000' }}><strong>{t("Search_Detail_GraphicsCardLabel")}</strong> {selectedItem.gpu}</p>
+            <p style={{ color: '#000' }}><strong>{t("Search_Detail_RAMLabel")}</strong> {selectedItem.ram} GB</p>
+            <p style={{ color: '#000' }}><strong>{t("Search_Detail_TotalStorageLabel")}</strong> {selectedItem.storage} GB</p>
           </>
         )}
       </div>
@@ -686,20 +764,20 @@ const data = resData.data?.list || [];
 {/* ===== PDA 전용 ===== */}
 {effectiveMode === 'pda' && (
   <>
-    <h1 className="search-title">자산 조회</h1>
+    <h1 className="search-title">{t("Search_AssetSearch")}</h1>
     <div className="srch-bar-wrapper">
      <div className="srch-bar">
         {/* ✅ 1행: 회사구분 - 부서구분 */}
         <div className="pda-grid two">
           <select className="search-input" value={company}
             onChange={(e)=>{const v=e.target.value; setCompany(v); setCorporationId(companyIdMap[v]?.id||null);}}>
-            <option value="">회사구분</option>
+             <option value="">{t("Search_CompanyType")}</option>
             {Object.keys(companyData).map(c=> <option key={c} value={c}>{c}</option>)}
           </select>
           <select className="search-input" value={department}
             onChange={(e)=>{const v=e.target.value; setDepartment(v);
               const dept=companyIdMap[company]?.departments?.[v]; setAffiliationId(dept?dept.id:null);}}>
-            <option value="">부서구분</option>
+            <option value="">{t("Search_DepartmentType")}</option>
             {Object.keys(companyData[company]||{}).map(d=> <option key={d} value={d}>{d}</option>)}
           </select>
         </div>
@@ -708,7 +786,7 @@ const data = resData.data?.list || [];
         <select className="search-input" value={location}
           onChange={(e)=>{const v=e.target.value; setLocation(v);
             const id=companyIdMap[company]?.departments?.[department]?.locations?.[v]; setLocationId(id||null);}}>
-          <option value="">세부위치</option>
+          <option value="">{t("Search_DetailLocation")}</option>
           {(companyData[company]?.[department]||[]).map(l=> <option key={l} value={l}>{l}</option>)}
         </select>
 
@@ -716,21 +794,33 @@ const data = resData.data?.list || [];
         <div className="pda-grid two">
           <select className="search-input" value={assetCategory}
             onChange={(e)=>{const v=e.target.value; setAssetCategory(v); setParentTypeId(assetCategoryMap[v]?.id||null); setItemName(''); setChildTypeId(null);}}>
-            <option value="">자산분류</option>
+            <option value="">{t("Search_AssetCategory")}</option>
             {Object.keys(assetCategoryData).map(a=> <option key={a} value={a}>{a}</option>)}
           </select>
           <select className="search-input" value={itemName}
             onChange={(e)=>{const v=e.target.value; setItemName(v); setChildTypeId(assetCategoryMap[assetCategory]?.children?.[v]||null);}}>
-            <option value="">품목</option>
+           <option value="">{t("Search_Item")}</option>
             {(assetCategoryData[assetCategory]||[]).map(i=> <option key={i} value={i}>{i}</option>)}
           </select>
         </div>
+        
+        {/* ✅ 3.5행: 상태 필터 */}
+        <select
+          className="search-input"
+          value={statusFilter}
+          onChange={e => setStatusFilter(e.target.value)}
+        >
+          <option value="">{t("Search_Status")}</option>
+          <option value="">{t("Search_InUse")}</option>
+          <option value="">{t("Search_NotInUse")}</option>
+          <option value="">{t("Search_Disposed")}</option>
+        </select>
 
         {/* ✅ 4행: 바코드 검색(1열 풀폭) */}
         <input className="search-input" placeholder="바코드 검색" value={barcode} onChange={e=>setBarcode(e.target.value)} />
         {/* ✅ 시작/끝 라벨 있는 날짜 필드 */}
         <div className="pda-field">
-          <span className="pda-field__label">시작날짜</span>
+          <span className="pda-field__label">{t("Search_StartDate")}</span>
           <input
             type="date"
             className="search-input"
@@ -739,7 +829,7 @@ const data = resData.data?.list || [];
           />
         </div>
         <div className="pda-field">
-          <span className="pda-field__label">종료날짜</span>
+          <span className="pda-field__label">{t("Search_EndDate")}</span>
           <input
             type="date"
             className="search-input"
@@ -759,10 +849,10 @@ const data = resData.data?.list || [];
 
         {/* ✅ PDA 액션 버튼: 표 위에 배치 */}
     <div className="srch-bar bottom-bar pda-actions">
-      <button className="search-button" onClick={handleSearch}>🔍 조회</button>
-      <button className="search-button print" onClick={handlePrint}>🖨️ 인쇄</button>
-      <button className="srch-button reset" onClick={handleReset}>↺ 초기화</button>
-      <button className="search-button download" onClick={handleExportExcel}>⬇️내려받기</button>
+      <button className="search-button" onClick={handleSearch}>🔍 {t("Search_Search")}</button>
+      <button className="search-button print" onClick={handlePrint}>🖨️ {t("Search_Print")}</button>
+      <button className="srch-button reset" onClick={handleReset}>↺ {t("Search_Reset")}</button>
+      <button className="search-button download" onClick={handleExportExcel}>⬇️ {t("Search_Download")}</button>
     </div>
 
 

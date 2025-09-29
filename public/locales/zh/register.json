@@ -1,0 +1,43 @@
+{
+  "RegisterPage_Title": "加会员",
+  "RegisterPage_UsernameLabel": "用户 : ",
+  "RegisterPage_PasswordLabel": "密码 : ",
+  "RegisterPage_PasswordConfirmLabel": "确认密码 : ",
+  "RegisterPage_NameLabel": "人名 : ",
+  "RegisterPage_CompanyTypeLabel": "区分公司 : ",
+  "RegisterPage_DepartmentTypeLabel": "区分部门 : ",
+
+  "RegisterPage_SelectCompany": "选择公司",
+  "RegisterPage_Corporation": "法人",
+
+  "RegisterPage_SignUpCompleted": "做好了加入会员",
+  "RegisterPage_FillAllFieldsAccurately": "请填所有项目",
+
+  "RegisterPage_Error_SignUpFailed_ServerRejected": "失败加入会员：在服务器处理成失败",
+  "RegisterPage_Error_SignUpFailed_Unknown": "失败加入会员 未知的错误",
+  "RegisterPage_Error_Unknown": "出现了不知的错误",
+  "RegisterPage_Error_RequestFailed": "邀请服务器当中出现了错误",
+  "RegisterPage_Error_ServerConnection": "与服务器链接失败了",
+
+  "RegisterPage_Validation_UsernameRequired": "输入以下密码",
+  "RegisterPage_Validation_UsernameMinLen": "输入5位数以上的用户名",
+  "RegisterPage_Validation_UsernameMaxLen": "输入15位数以下的用户名",
+  "RegisterPage_Validation_UsernameAlnumOnly": "只能用英文与数字组成的用户名",
+  "RegisterPage_Validation_UsernameAvailable": "可使用的密码",
+
+  "RegisterPage_Validation_PasswordRequired": "请输入以下密码",
+  "RegisterPage_Validation_PasswordMinLen": "输入5位数以上的密码",
+  "RegisterPage_Validation_PasswordMaxLen": "输入20位数以下的密码",
+  "RegisterPage_Validation_PasswordValid": "可使用的密码",
+  "RegisterPage_Validation_PasswordsMatch": "和基准数据一致的密码",
+  "RegisterPage_Validation_PasswordsNotMatch": "和基准数据不一致的密码",
+
+  "RegisterPage_Validation_NameRequired": "输入以下人名",
+  "RegisterPage_Validation_NameMinLen": "人名需要输入2字以上",
+  "RegisterPage_Validation_NameMaxLen": "人名需要输入20字以下",
+  "RegisterPage_Validation_NameKrEnOnly": "只能使用韩文与英文人名",
+  "RegisterPage_Validation_NameAvailable": "可使用的人名",
+
+  "RegisterPage_Confirm": "确认",
+  "RegisterPage_SelectDepartment": "选择部门"
+}

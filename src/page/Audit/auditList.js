@@ -6,30 +6,34 @@ import { authFetchWithRefresh } from "../../utils/authFetchWithRefresh";  // 인
 // 📦 [추가] 엑셀 내보내기용 라이브러리
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
+import { useTranslation } from "react-i18next";
+import { getUILang, uiToI18n } from "../../utils/lang/pref";
 
 const API_BASE_URL = window._env_?.REACT_APP_API_URL || "http://localhost:8888";
+const withLang = (opts = {}) => {
+  const ui  = getUILang();              // 'KR' | 'CN' | 'VN'
+  const lng = uiToI18n(ui);             // 'ko' | 'zh' | 'vi'
+  return {
+    ...opts,
+    headers: {
+      ...(opts.headers || {}),
+      "Accept-Language": lng,
+      "language": ui,
+      "X-Client-Lang": lng,
+      "X-Client-Lang-UI": ui,
+    },
+  };
+};
 
 // ✅ 환경변수에서 API URL 사용 추가
 //const API_BASE = window._env_?.REACT_APP_API_URL|| 'http://localhost:8080';
 
-const COLUMN_LABELS = [
-  { key: "barcode", label: "바코드" },
-  { key: "corporation",  label: "회사" },
-  { key: "department", label: "부서" },
-  { key: "location", label: "위치" },
-  { key: "division", label: "취득구분" }, 
-  { key: "parentCategory",  label: "자산분류" },
-  { key: "childCategory",   label: "품목" },
-  { key: "status",          label: "상태" },
-  { key: "manufacturer", label: "제조사" },
-  { key: "model", label: "모델" },
-  { key: "acquisitionDate", label: "취득일자" },
-  { key: "acquisitionPrice", label: "취득가" },
-  { key: "registerName", label: "등록자" },
-  { key: "isStockTaking", label: "실사상태" },
+const COLUMN_KEYS = [
+  "barcode","corporation","department","location","division",
+  "parentCategory","childCategory","status","manufacturer","model",
+  "acquisitionDate","acquisitionPrice","registerName","isStockTaking"
 ];
-
-
+const DETAIL_KEYS = ["barcode","categoryCode", ...COLUMN_KEYS.slice(1)];
 
 function useMediaQuery(query) {
   const [matches, setMatches] = useState(window.matchMedia(query).matches);
@@ -43,44 +47,88 @@ function useMediaQuery(query) {
 }
 
 function FullPageDetail({ item, onClose }) {
+  const { t } = useTranslation('auditList');
+  const label = (k) => ({
+    barcode: t('AuditList_Barcode'),
+    corporation: t('AuditList_Company'),
+    department: t('AuditList_Department'),
+    location: t('AuditList_Location'),
+    division: t('AuditList_AcquisitionType'),
+    parentCategory: t('AuditList_AssetCategory'),
+    childCategory: t('AuditList_Item'),
+    status: t('AuditList_Status'),
+    manufacturer: t('AuditList_Manufacturer'),
+    model: t('AuditList_Model'),
+    acquisitionDate: t('AuditList_AcquisitionDate'),
+    acquisitionPrice: t('AuditList_AcquisitionCost'),
+    registerName: t('AuditList_Registrar'),
+    isStockTaking: t('AuditList_AuditStatus'),
+    categoryCode: t('AuditList_AccountingCode','회계코드'),
+  }[k]);
   return (
     <div className="detail-fullpage">
-
-     <button type="button" className="detail-close-x" onClick={onClose} aria-label="닫기">×</button>
-     <h2 className="detail-title">자산 상세</h2>
+      <button type="button" className="detail-close-x" onClick={onClose} aria-label={t('AuditList_Close')}>×</button>
+      <h2 className="detail-title">{t('AuditList_AssetDetail')}</h2>
       <ul>
-  {COLUMN_LABELS.map(col => (
-    <li key={col.key}>
-      <strong>{col.label}:</strong>{" "}
-      {col.key === "isStockTaking"
-        ? (item[col.key] ? "완료" : "미완료")
-        : item[col.key]}
-    </li>
-  ))}
-</ul>
-
+        {DETAIL_KEYS.map(key => {
+          // ✅ 회계코드가 null/undefined/'' 이면 항목 숨김
+          if (key === "categoryCode" && (item[key] === undefined || item[key] === null || item[key] === "")) {
+            return null;
+          }
+          return (
+            <li key={key}>
+              <strong>{label(key)}:</strong>{" "}
+              {key === "isStockTaking"
+                ? (item[key] ? t('AuditList_Completed') : t('AuditList_Incomplete'))
+                : item[key]}
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }
 
 function SideDrawerDetail({ item, onClose }) {
+  const { t } = useTranslation('auditList');
+  const label = (k) => ({
+    barcode: t('AuditList_Barcode'),
+    corporation: t('AuditList_Company'),
+    department: t('AuditList_Department'),
+    location: t('AuditList_Location'),
+    division: t('AuditList_AcquisitionType'),
+    parentCategory: t('AuditList_AssetCategory'),
+    childCategory: t('AuditList_Item'),
+    status: t('AuditList_Status'),
+    manufacturer: t('AuditList_Manufacturer'),
+    model: t('AuditList_Model'),
+    acquisitionDate: t('AuditList_AcquisitionDate'),
+    acquisitionPrice: t('AuditList_AcquisitionCost'),
+    registerName: t('AuditList_Registrar'),
+    isStockTaking: t('AuditList_AuditStatus'),
+    categoryCode: t('AuditList_AccountingCode','회계코드'),
+  }[k]);
   return (
     <>
       <div className="drawer-overlay" onClick={onClose} />
       <div className="drawer">
         <button className="drawer-close" onClick={onClose}>×</button>
-        <h2>자산 상세</h2>
+        <h2>{t('AuditList_AssetDetail')}</h2>
         <ul>
-  {COLUMN_LABELS.map(col => (
-    <li key={col.key}>
-      <strong>{col.label}:</strong>{" "}
-      {col.key === "isStockTaking"
-        ? (item[col.key] ? "완료" : "미완료")
-        : item[col.key]}
-    </li>
-  ))}
-</ul>
-
+          {DETAIL_KEYS.map(key => {
+            if (key === "categoryCode" && (item[key] === undefined || item[key] === null || item[key] === "")) {
+              return null;
+            }
+            return (
+              <li key={key}>
+                <strong>{label(key)}:</strong>{" "}
+                {key === "isStockTaking"
+                  ? (item[key] ? t('AuditList_Completed') : t('AuditList_Incomplete'))
+                  : item[key]}
+              </li>
+            );
+          })}
+        </ul>
       </div>
     </>
   );
@@ -94,6 +142,7 @@ function DetailWrapper({ item, onClose }) {
 }
 
 export default function StockTakingSearch() {
+  const { t } = useTranslation('auditList');
   const [companyData, setCompanyData] = useState({});
   const [assetCategoryData, setAssetCategoryData] = useState({});
   const [items, setItems] = useState([]);
@@ -135,7 +184,7 @@ export default function StockTakingSearch() {
   useEffect(() => {
     async function fetchLookups() {
       /* ── ① corporations */
-      const res  = await authFetchWithRefresh(`${API_BASE_URL}/corporations`);
+      const res  = await authFetchWithRefresh(`${API_BASE_URL}/corporations`, withLang());
       const json = await res.json();
       if (json.code === 1) {
         const nested   = {};   // UI용 {회사: {부서: [위치]}}
@@ -169,7 +218,7 @@ export default function StockTakingSearch() {
       }
   
       /* ── ② 자산분류 */
-      const typeRes  = await authFetchWithRefresh(`${API_BASE_URL}/asset-types/hierarchy`);
+      const typeRes  = await authFetchWithRefresh(`${API_BASE_URL}/asset-types/hierarchy`, withLang());
       const typeJson = await typeRes.json();
       if (typeJson.code === 1) {
         const nested = {};
@@ -202,12 +251,12 @@ export default function StockTakingSearch() {
     if (!locationId || !startDate) {
     setLoading(false);
     // return alert("❌ 세부위치와 시작/종료 날짜를 모두 선택해야 조회할 수 있습니다.");
-    return alert("❌ 세부위치와 실사 시작일은 필수입니다.");
+    return alert(`❌ ${t('AuditList_Error_DetailLocAndStartRequired')}`);
   }
         // if (startDate > endDate) {
           if (startDate && endDate && startDate > endDate) {
           setLoading(false);
-          return alert("시작일이 종료일보다 늦을 수 없습니다.");
+          return alert(t('AuditList_Error_StartAfterEnd'));
         }
     
         try {
@@ -229,16 +278,16 @@ export default function StockTakingSearch() {
           const url = `${API_BASE_URL}/stock-takings?${params.toString()}`;
          // console.log("📤 호출 URL:", url);
     
-          const res  = await authFetchWithRefresh(url);
+          const res  = await authFetchWithRefresh(url, withLang());
           const json = await res.json();
-         // console.log(JSON.stringify(json, null, 2));
+          //console.log(JSON.stringify(json, null, 2));
  
           if (
             json.code !== 1 ||
             (!Array.isArray(json.data?.competedList) &&
              !Array.isArray(json.data?.uncompetedList))
           ) {
-            alert("❌ 조건에 맞는 자산이 없습니다.");
+            alert(`❌ ${t('AuditList_Error_NoAssetsMatch')}`);
             setFilteredItems([]);  setSearched(true);
             return;
           }
@@ -253,7 +302,7 @@ export default function StockTakingSearch() {
           setSelectedItems([]); setCurrentPage(1);
         } catch (err) {
           console.error("❌ 실사 조회 실패:", err);
-          alert("🚨 서버 오류 또는 통신 실패");
+          alert(`🚨 ${t('AuditList_Error_ServerOrNetwork')}`);
         } finally {
            setLoading(false);  // ⏹️ 로딩 종료
         }
@@ -273,7 +322,7 @@ export default function StockTakingSearch() {
     ----------------------------------------------------------- */
     const handleExportExcel = () => {
       if (!currentItems.length) {
-        alert("내보낼 데이터가 없습니다.");
+        alert(t('AuditList_NoDataToExport'));
         return;
       }
   
@@ -281,22 +330,22 @@ export default function StockTakingSearch() {
       // const dataToExport = currentItems.filter(row => selectedItems.includes(row.barcode));
       const dataToExport = currentItems;
   
-      const jsonData = dataToExport.map(row => ({
-        바코드:           row.barcode,
-        회사:             row.corporation,
-        부서:             row.department,
-        위치:             row.location,
-        취득구분:         row.division,
-        자산분류:         row.parentCategory,
-        품목:             row.childCategory,
-        상태:             row.status,
-        제조사:           row.manufacturer,
-        모델:             row.model,
-        취득일자:         row.acquisitionDate,
-        취득가:           row.acquisitionPrice,
-        등록자:           row.registerName,
-        실사상태:         row.isStockTaking ? "완료" : "미완료",
-      }));
+ const jsonData = dataToExport.map(row => ({
+   [t('AuditList_Barcode')]: row.barcode,
+   [t('AuditList_Company')]: row.corporation,
+   [t('AuditList_Department')]: row.department,
+   [t('AuditList_Location')]: row.location,
+   [t('AuditList_AcquisitionType')]: row.division,
+   [t('AuditList_AssetCategory')]: row.parentCategory,
+   [t('AuditList_Item')]: row.childCategory,
+   [t('AuditList_Status')]: row.status,
+   [t('AuditList_Manufacturer')]: row.manufacturer,
+   [t('AuditList_Model')]: row.model,
+   [t('AuditList_AcquisitionDate')]: row.acquisitionDate,
+   [t('AuditList_AcquisitionCost')]: row.acquisitionPrice,
+   [t('AuditList_Registrar')]: row.registerName,
+   [t('AuditList_AuditStatus')]: row.isStockTaking ? t('AuditList_Completed') : t('AuditList_Incomplete'),
+ }));
   
       const ws = XLSX.utils.json_to_sheet(jsonData);
       const wb = XLSX.utils.book_new();
@@ -304,7 +353,7 @@ export default function StockTakingSearch() {
   
       const buffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
       const blob   = new Blob([buffer], { type: "application/octet-stream" });
-      saveAs(blob, "실사_조회_결과.xlsx");
+      saveAs(blob, t('AuditList_ExportFileName'));
     };
 
   const listToDisplay = searched ? filteredItems : items;
@@ -328,7 +377,7 @@ export default function StockTakingSearch() {
 
   return (
     <div className={`audit-search-container ${effectiveMode}-mode`}>
-      <h2 className="audit-title">실사 조회</h2>
+      <h2 className="audit-title">{t('AuditList_AuditSearch')}</h2>
     {/* ---------- Web 모드 ---------- */}
       {effectiveMode === 'web' && (
         <div className="audit-search-filter">
@@ -336,52 +385,52 @@ export default function StockTakingSearch() {
             {/* 회사 */}
             <select className="audit-search-simple" value={company}
               onChange={e=>{ const v=e.target.value; setCompany(v); setCorporationId(companyIdMap[v]?.id||null); setDepartment(''); setLocation(''); }}>
-              <option value="">회사구분</option>
+              <option value="">{t('AuditList_CompanyType')}</option>
               {companyList.map(c=> <option key={c}>{c}</option>)}
             </select>
             {/* 부서 */}
             <select className="audit-search-simple" value={department}
               onChange={e=>{ const v=e.target.value; setDepartment(v); const dept=companyIdMap[company]?.departments?.[v]; setAffiliationId(dept?.id||null); setLocation(''); }}>
-              <option value="">부서구분</option>
+              <option value="">{t('AuditList_DepartmentType')}</option>
               {Object.keys(companyData[company]||{}).map(d=> <option key={d}>{d}</option>)}
             </select>
             {/* 세부위치 */}
             <select className="audit-search-simple" value={location}
               onChange={e=>{ const v=e.target.value; setLocation(v); const id=companyIdMap[company]?.departments?.[department]?.locations?.[v]; setLocationId(id||null); }}>
-              <option value="">세부위치</option>
+              <option value="">{t('AuditList_DetailLocation')}</option>
               {(companyData[company]?.[department]||[]).map(l=> <option key={l}>{l}</option>)}
             </select>
             {/* 자산분류 */}
             <select className="audit-search-simple" value={category}
               onChange={e=>{ const v=e.target.value; setCategory(v); setParentTypeId(assetCategoryMap[v]?.id||null); setItem(''); setChildTypeId(null); }}>
-              <option value="">자산분류</option>
+              <option value="">{t('AuditList_AssetCategory')}</option>
               {Object.keys(assetCategoryData).map(a=> <option key={a}>{a}</option>)}
             </select>
             {/* 품목 */}
             <select className="audit-search-simple" value={item} disabled={!parentTypeId}
               onChange={e=>{ const v=e.target.value; setItem(v); setChildTypeId(assetCategoryMap[category]?.children?.[v]||null); }}>
-              <option value="">품목</option>
+              <option value="">{t('AuditList_Item')}</option>
               {(assetCategoryData[category]||[]).map(i=> <option key={i}>{i}</option>)}
             </select>
             {/* 실사상태 */}
             <select className="audit-search-simple" value={inspectionStatus} onChange={e=>setInspectionStatus(e.target.value)}>
-              <option value="">실사상태</option>
-              <option value="완료">완료</option>
-              <option value="미완료">미완료</option>
+ <option value="">{t('AuditList_AuditStatus')}</option>
+ <option value="완료">{t('AuditList_Completed')}</option>
+ <option value="미완료">{t('AuditList_Incomplete')}</option>
             </select>
           </div>
           <div className="audit-search-row">
-            <input type="number" className="audit-search-simple" placeholder="출력개수" value={viewCount} onChange={e=> setViewCount(+e.target.value)} />
+            <input type="number" className="audit-search-simple" placeholder="{t('AuditList_PrintCount')}" value={viewCount} onChange={e=> setViewCount(+e.target.value)} />
             <div className="audit-date-range">
-              <label className="audit-date-label">실사일 :</label>
+              <label className="audit-date-label">{t('AuditList_AuditDate')} :</label>
               <input type="date" className="audit-search-simple" value={startDate} onChange={e=>setStartDate(e.target.value)} />
               <span className="audit-date-separator">~</span>
               <input type="date" className="audit-search-simple" value={endDate} onChange={e=>setEndDate(e.target.value)} />
             </div>
 
- <button type="button" className="audit-search-btn" onClick={handleSearch}>🔍 조회</button>
- <button type="button" className="audit-search-btn reset" onClick={handleReset}>↺ 초기화</button>
- <button type="button" className="audit-search-btn download wide" onClick={handleExportExcel}>⬇️ 내려받기</button>
+ <button type="button" className="audit-search-btn" onClick={handleSearch}>🔍 {t('AuditList_Search')}</button>
+ <button type="button" className="audit-search-btn reset" onClick={handleReset}>↺ {t('AuditList_Reset')}</button>
+ <button type="button" className="audit-search-btn download wide" onClick={handleExportExcel}>⬇️ {t('AuditList_Download')}</button>
           </div>
         </div>
       )}
@@ -393,57 +442,57 @@ export default function StockTakingSearch() {
           <div className="pda-grid">
             <select className="audit-search-simple" value={company}
               onChange={e=>{ const v=e.target.value; setCompany(v); setCorporationId(companyIdMap[v]?.id||null); setDepartment(''); setLocation(''); }}>
-              <option value="">회사구분</option>
+              <option value="">{t('AuditList_CompanyType')}</option>
               {companyList.map(c=> <option key={c}>{c}</option>)}
             </select>
             <select className="audit-search-simple" value={department}
               onChange={e=>{ const v=e.target.value; setDepartment(v); const dept=companyIdMap[company]?.departments?.[v]; setAffiliationId(dept?.id||null); setLocation(''); }}>
-              <option value="">부서구분</option>
+              <option value="">{t('AuditList_DepartmentType')}</option>
               {Object.keys(companyData[company]||{}).map(d=> <option key={d}>{d}</option>)}
             </select>
           </div>
           {/* 2행: 세부위치(풀폭) */}
           <select className="audit-search-simple" value={location}
             onChange={e=>{ const v=e.target.value; setLocation(v); const id=companyIdMap[company]?.departments?.[department]?.locations?.[v]; setLocationId(id||null); }}>
-            <option value="">세부위치</option>
+            <option value="">{t('AuditList_DetailLocation')}</option>
             {(companyData[company]?.[department]||[]).map(l=> <option key={l}>{l}</option>)}
           </select>
           {/* 3행: 자산분류 - 품목 */}
           <div className="pda-grid">
             <select className="audit-search-simple" value={category}
               onChange={e=>{ const v=e.target.value; setCategory(v); setParentTypeId(assetCategoryMap[v]?.id||null); setItem(''); setChildTypeId(null); }}>
-              <option value="">자산분류</option>
+              <option value="">{t('AuditList_AssetCategory')}</option>
               {Object.keys(assetCategoryData).map(a=> <option key={a}>{a}</option>)}
             </select>
             <select className="audit-search-simple" value={item} disabled={!parentTypeId}
               onChange={e=>{ const v=e.target.value; setItem(v); setChildTypeId(assetCategoryMap[category]?.children?.[v]||null); }}>
-              <option value="">품목</option>
+              <option value="">{t('AuditList_Item')}</option>
               {(assetCategoryData[category]||[]).map(i=> <option key={i}>{i}</option>)}
             </select>
           </div>
           {/* 4행: 실사상태 */}
           <select className="audit-search-simple" value={inspectionStatus} onChange={e=>setInspectionStatus(e.target.value)}>
-            <option value="">실사상태</option>
-            <option value="완료">완료</option>
-            <option value="미완료">미완료</option>
+            <option value="">{t('AuditList_AuditStatus')}</option>
+ <option value="완료">{t('AuditList_Completed')}</option>
+ <option value="미완료">{t('AuditList_Incomplete')}</option>
           </select>
           {/* 5행: 날짜(라벨 좌측) */}
           <div className="pda-field">
-            <span className="pda-field__label">시작일</span>
+            <span className="pda-field__label">{t('AuditList_StartDate')}</span>
             <input type="date" className="audit-search-simple" value={startDate} onChange={e=>setStartDate(e.target.value)} />
           </div>
           <div className="pda-field">
-            <span className="pda-field__label">종료일</span>
+            <span className="pda-field__label">{t('AuditList_EndDate')}</span>
             <input type="date" className="audit-search-simple" value={endDate} onChange={e=>setEndDate(e.target.value)} />
           </div>
           {/* 6행: 출력개수 */}
-          <input type="number" className="audit-search-simple" placeholder="출력개수" value={viewCount} onChange={e=> setViewCount(+e.target.value)} />
+          <input type="number" className="audit-search-simple" placeholder="{t('AuditList_PrintCount')}" value={viewCount} onChange={e=> setViewCount(+e.target.value)} />
           {/* 7행: 버튼(2열, 마지막은 전체폭) */}
           <div className="pda-actions">
 
- <button type="button" className="audit-search-btn" onClick={handleSearch}>🔍 조회</button>
- <button type="button" className="audit-search-btn reset" onClick={handleReset}>↺ 초기화</button>
- <button type="button" className="audit-search-btn download" onClick={handleExportExcel}>⬇️ 내려받기</button>
+ <button type="button" className="audit-search-btn" onClick={handleSearch}>🔍 {t('AuditList_Search')}</button>
+ <button type="button" className="audit-search-btn reset" onClick={handleReset}>↺ {t('AuditList_Reset')}</button>
+ <button type="button" className="audit-search-btn download" onClick={handleExportExcel}>⬇️ {t('AuditList_Download')}</button>
           </div>
         </div>
       )}
@@ -458,7 +507,26 @@ export default function StockTakingSearch() {
           <thead>
             <tr>
               <th><input type="checkbox" checked={isAllSelected} onChange={handleSelectAll} /></th>
-              {COLUMN_LABELS.map(col => <th key={col.key}>{col.label}</th>)}
+               {COLUMN_KEYS.map(k => (
+   <th key={k}>
+     {{
+       barcode: t('AuditList_Barcode'),
+       corporation: t('AuditList_Company'),
+       department: t('AuditList_Department'),
+       location: t('AuditList_Location'),
+       division: t('AuditList_AcquisitionType'),
+       parentCategory: t('AuditList_AssetCategory'),
+       childCategory: t('AuditList_Item'),
+       status: t('AuditList_Status'),
+       manufacturer: t('AuditList_Manufacturer'),
+       model: t('AuditList_Model'),
+       acquisitionDate: t('AuditList_AcquisitionDate'),
+       acquisitionPrice: t('AuditList_AcquisitionCost'),
+       registerName: t('AuditList_Registrar'),
+       isStockTaking: t('AuditList_AuditStatus'),
+     }[k]}
+   </th>
+ ))}
             </tr>
           </thead>
           <tbody>
@@ -467,11 +535,11 @@ export default function StockTakingSearch() {
                 <td onClick={e => e.stopPropagation()}>
                   <input type="checkbox" checked={selectedItems.includes(row.barcode)} onChange={() => handleSelectItem(row.barcode)} />
                 </td>
-                 {COLUMN_LABELS.map(col => (
-   <td key={col.key}>
-     {col.key === "isStockTaking"         
-       ? (row[col.key] ? "완료" : "미완료") 
-       : row[col.key]}                    
+ {COLUMN_KEYS.map(k => (
+   <td key={k}>
+     {k === "isStockTaking"
+       ? (row[k] ? t('AuditList_Completed') : t('AuditList_Incomplete'))
+       : row[k]}
    </td>
  ))}
                 
@@ -482,13 +550,13 @@ export default function StockTakingSearch() {
       </div>
 
       <div className="audit-pagination">
-        <button onClick={() => setCurrentPage(1)}>처음</button>
-        <button onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}>이전</button>
+        <button onClick={() => setCurrentPage(1)}>{t('AuditList_First')}</button>
+        <button onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}>{t('AuditList_Prev')}</button>
         {Array.from({ length: groupEnd - groupStart + 1 }, (_, i) => groupStart + i).map(n => (
           <button key={n} onClick={() => setCurrentPage(n)} className={currentPage === n ? "active" : ""}>{n}</button>
         ))}
-        <button onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}>다음</button>
-        <button onClick={() => setCurrentPage(totalPages)}>끝</button>
+        <button onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}>{t('AuditList_Next')}</button>
+        <button onClick={() => setCurrentPage(totalPages)}>{t('AuditList_End')}</button>
       </div>
 
       {detailItem && <DetailWrapper item={detailItem} onClose={() => setDetailItem(null)} />}

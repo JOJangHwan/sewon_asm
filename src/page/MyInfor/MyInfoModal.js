@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { useContext } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
+import { useTranslation } from 'react-i18next';
+import { getUILang, uiToI18n } from '../../utils/lang/pref.js';
 import { UserContext } from '../../utils/UserContext';
 import './MyInfoModal.css';
 import { authFetchWithRefresh } from '../../utils/authFetchWithRefresh'
@@ -11,6 +12,9 @@ const API_BASE = window._env_?.REACT_APP_API_URL || 'http://localhost:8080';
    ───────────────────────────────────────── */
 
 const InfoEditModal = ({ userInfo, onClose /*, onSave */ }) => {
+  const { t } = useTranslation('MyInfoModal');        // ✅ i18n
+  const langUI = getUILang();                     // 'KR' | 'CN' | 'VN'
+  const langI18n = uiToI18n(langUI);              // 'ko' | 'zh' | 'vi'
   //const { login } = useContext(UserContext);
   const { setUser } = useContext(UserContext);
   /* 동적 목록용 상태 */
@@ -41,7 +45,12 @@ const InfoEditModal = ({ userInfo, onClose /*, onSave */ }) => {
     useEffect(() => {
         (async () => {
           try {
-            const res  = await authFetchWithRefresh(`${API_BASE}/corporations`);
+             const res  = await authFetchWithRefresh(`${API_BASE}/corporations`, {
+   headers: {
+     'Accept-Language': langI18n,
+     'language': langUI,
+   },
+ });
             const json = await res.json();
             if (json.code !== 1) throw new Error('API 실패');
       
@@ -70,7 +79,7 @@ const InfoEditModal = ({ userInfo, onClose /*, onSave */ }) => {
     const targetAff = departments.find(d => d.department === department);
     const affiliationId = targetAff?.affiliationId;
     if (!affiliationId) {
-      alert('❌ 부서 선택이 올바르지 않습니다.');
+      alert('❌ ' + t('MyInfoModal_Error_InvalidDepartmentSelection'));
       return;
     }
 
@@ -85,7 +94,7 @@ if (current.password) changed.password = current.password;
   
     // 변경된 항목이 없다면
     if (Object.keys(changed).length === 0) {
-      alert('변경된 내용이 없습니다.');
+      alert(t('MyInfoModal_NoChanges'));
       return;
     }
   
@@ -100,13 +109,17 @@ if (current.password) changed.password = current.password;
         try {
             const res = await authFetchWithRefresh(`${API_BASE}/account`, {
               method : 'PUT',
-              body   : JSON.stringify(payload),  // Content-Type 은 훅에서 자동 세팅
+                 headers: {
+     'Accept-Language': langI18n,
+     'language': langUI,
+   },
+   body   : JSON.stringify(payload),
        });
     //   console.log("전송주소 : "+res)
       
             const json = await res.json();
             if (json.code === 1) {
-              alert('✅ 정보 수정이 완료되었습니다.');
+              alert('✅ ' + t('MyInfoModal_InfoUpdateCompleted'));
                 /* ───────── 로컬 스토리지 반영 ───────── */
                       /* 1️⃣  먼저 user 객체를 임시로 만들고 */
                       const newUser = {
@@ -126,6 +139,8 @@ if (current.password) changed.password = current.password;
                                                   'Content-Type':'application/json',
                                                   'Authorization-a': localStorage.getItem('accessToken') || '',
                                                   'Authorization-r': localStorage.getItem('refreshToken') || '',
+                                                  'Accept-Language': langI18n,
+                                                  'language': langUI,
                                                 },
                                                 body   : JSON.stringify({
                                                   refreshToken: localStorage.getItem('refreshToken')
@@ -155,7 +170,7 @@ const refJson = await refRes.json();
                         return;
                       }
                       // +++ 실패 조건 추가 (둘 중 하나라도 없으면) +++
-                      alert('🚨 토큰 재발급 실패 - 다시 로그인해주세요.');
+                      alert('🚨 ' + t('MyInfoModal_Error_TokenRefreshFailed_PleaseLogin'));
                       localStorage.removeItem('accessToken');
                       localStorage.removeItem('refreshToken');
                       localStorage.removeItem('user');
@@ -167,7 +182,7 @@ const refJson = await refRes.json();
 
                
             } else {
-              alert('🚨 토큰이 없습니다. 다시 로그인해주세요.');
+              alert('🚨 ' + t('MyInfoModal_Error_NoToken_PleaseLogin'));
               localStorage.removeItem('accessToken');
               localStorage.removeItem('refreshToken');
               localStorage.removeItem('user');
@@ -190,9 +205,9 @@ const refJson = await refRes.json();
       <div className="modal-content">
   {/* 상단 닫기 버튼 (X) */}
 
-  <h2>내정보 수정하기</h2>
+  <h2>{t('MyInfoModal_EditMyInfo')}</h2>
 
-  <label>회사구분</label>
+ <label>{t('MyInfoModal_CompanyType')}</label>
   <select value={company} onChange={handleCompanyChange}>
   {companies.map(corp => (
     <option key={corp.id} value={corp.name}>
@@ -201,7 +216,7 @@ const refJson = await refRes.json();
   ))}
 </select>
 
-  <label>부서구분</label>
+  <label>{t('MyInfoModal_DepartmentType')}</label>
   <select value={department} onChange={e => setDepartment(e.target.value)}>
   {departments.map(dept => (
     <option key={dept.affiliationId} value={dept.department}>
@@ -211,21 +226,21 @@ const refJson = await refRes.json();
 </select>
 
 
-  <label>이름</label>
+  <label>{t('MyInfoModal_Name')}</label>
   <input
     type="text"
     value={name}
     onChange={e => setName(e.target.value)}
   />
 
-  <label>아이디</label>
+  <label>{t('MyInfoModal_Id')}</label>
   <input
     type="text"
     value={id}
     onChange={e => setId(e.target.value)}
   />
 
-  <label>비밀번호</label>
+ <label>{t('MyInfoModal_Password')}</label>
   <input
     type="password"
     placeholder="********"
@@ -234,8 +249,8 @@ const refJson = await refRes.json();
   />
 
   <div className="modal-actions">
-    <button className="save-btn" onClick={handleSubmit}>수정하기</button>
-    <button className="modal-close-btn" onClick={onClose}>닫기</button>
+    <button className="save-btn" onClick={handleSubmit}>{t('MyInfoModal_Edit')}</button>
+    <button className="modal-close-btn" onClick={onClose}>{t('MyInfoModal_Close')}</button>
   </div>
 </div>
     </div>

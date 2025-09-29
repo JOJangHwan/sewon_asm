@@ -1,0 +1,49 @@
+{
+  "RegisterCorpAndItem_Title": "법인 및 자산 분류 등록",
+  "RegisterCorpAndItem_RegisterOrgChart": "법인 조직도 등록",
+  "RegisterCorpAndItem_RegisteredCorporations": "등록된 법인",
+  "RegisterCorpAndItem_RegisterCategoryAndItem": "자산분류 / 품목 등록",
+  "RegisterCorpAndItem_RegisteredItems": "등록된 품목",
+
+  "RegisterCorpAndItem_DepartmentNameRequired": "부서명(필수입력)",
+  "RegisterCorpAndItem_DetailLocationRequired": "세부위치 (필수입력)",
+  "RegisterCorpAndItem_AssetCategoryRequired": "자산분류(필수입력)",
+  "RegisterCorpAndItem_ItemNameRequired": "품목명(필수입력)",
+    "RegisterCorpAndItem_ItemName": "품목명",
+
+  "RegisterCorpAndItem_ConfirmEditName": "이름을 수정할까요?",
+  "RegisterCorpAndItem_ConfirmDelete": "을(를) 삭제할까요?",
+
+  "RegisterCorpAndItem_NotFoundDeptOrCorpId": "부서 ID 또는 법인 ID를 찾지 못했습니다.",
+  "RegisterCorpAndItem_NotFoundDeptOrDetailLocationId": "부서 ID 또는 세부위치 ID를 찾지 못했습니다.",
+  "RegisterCorpAndItem_DuplicateItemName": "이미 동일한 이름의 품목이 존재합니다.",
+  "RegisterCorpAndItem_ItemIdNotFoundLabel": "품목ID를 찾지 못했습니다: ",
+  "RegisterCorpAndItem_NotEditableItem": "수정할 수 없는 항목입니다.",
+  "RegisterCorpAndItem_ChangeCompleted": "변경이 완료되었습니다.",
+
+  "RegisterCorpAndItem_AffiliationIdNotFoundRefresh": "소속ID를 찾지 못했습니다.(새로고침을 하시오)",
+  "RegisterCorpAndItem_DetailLocationIdNotFoundRefresh": "세부위치ID를 찾지 못했습니다.(새로고침을 하시오)",
+  "RegisterCorpAndItem_AssetCategoryIdMissingRefresh": "자산분류 ID가 없습니다.(새로고침을 하시오)",
+  "RegisterCorpAndItem_ItemIdMissingRefresh": "품목 ID가 없습니다.(새로고침을 하세요)",
+
+  "RegisterCorpAndItem_CannotDeleteItem": "삭제할 수 없는 항목입니다.",
+  "RegisterCorpAndItem_DeleteCompleted": "삭제가 완료되었습니다.",
+
+  "RegisterCorpAndItem_Error_EnterCompanyDeptDetailLocationAll": "⚠️ 회사·부서·세부위치를 모두 입력해야 합니다.",
+  "RegisterCorpAndItem_Error_AlreadyRegisteredDeptAndDetailLocation": "⚠️ 이미 등록된 부서 및 세부위치입니다.",
+  "RegisterCorpAndItem_Error_NotFoundDeptIdForDetailLocationRegister": "❌ 세부위치를 등록할 부서 ID를 찾지 못했습니다.",
+
+  "RegisterCorpAndItem_DetailLocationRegisterCompleted": "✅ 세부위치 등록 완료",
+  "RegisterCorpAndItem_DetailLocationRegisterFailedLabel": "❌ 세부위치 등록 실패: ",
+
+  "RegisterCorpAndItem_DepartmentRegisterCompleted": "✅ 부서 등록 완료",
+  "RegisterCorpAndItem_DepartmentRegisterFailedLabel": "❌ 부서 등록 실패: ",
+
+  "RegisterCorpAndItem_Error_MustEnterAssetCategoryAndItemName": "자산분류와 품목명을 모두 입력해야 합니다.",
+  "RegisterCorpAndItem_Error_AlreadyRegisteredAssetCategoryAndItem": "⚠️ 이미 등록된 자산분류 및 품목입니다.",
+  "RegisterCorpAndItem_AssetCategoryRegisteredFirst": "✅ 자산분류가 먼저 등록되었습니다.",
+  "RegisterCorpAndItem_ItemRegisterCompleted": "✅ 품목 등록 완료",
+
+  "RegisterCorpAndItem_DeleteFailed": "삭제 실패",
+  "RegisterCorpAndItem_Register": "등록"
+}

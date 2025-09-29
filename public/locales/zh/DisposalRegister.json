@@ -1,0 +1,32 @@
+{
+  "DisposalRegister_Reset": "初始化",
+  "DisposalRegister_First": "初次",
+  "DisposalRegister_Prev": "以前",
+  "DisposalRegister_UnknownError": "不知的错误",
+  "DisposalRegister_Select": "选择",
+  "DisposalRegister_Delete": "删除",
+  "DisposalRegister_BarcodeInput": "输入条形码",
+  "DisposalRegister_Barcode": "条形码",
+  "DisposalRegister_Title": "登录资产废弃",
+  "DisposalRegister_Add": "追加",
+  "DisposalRegister_DisposeSelected": "选择废弃",
+  "DisposalRegister_DeleteSelected": "选择删除",
+
+  "DisposalRegister_Legend_SuccessGreen_FailRed": "✅ 绿色是成功 / ❌ 红色是失败",
+    "DisposalRegister_Legend_Green": "绿色",
+    "DisposalRegister_Legend_Text_Middle": "是成功 / ",
+    "DisposalRegister_Legend_Red": "红色",
+    "DisposalRegister_Legend_Text_End": "是失败",
+  "DisposalRegister_TotalRegisteredLabel": "总登录： ",
+
+  "DisposalRegister_SuccessLabel": "成功： ",
+  "DisposalRegister_FailLabel": "失败： ",
+  "DisposalRegister_Count": "个",
+  "DisposalRegister_PleaseSelectItemsToDispose": "请选择需要废弃项目",
+  "DisposalRegister_AlreadyRegisteredBarcode": "已登录的条形码",
+  "DisposalRegister_ConfirmReset": "真的需要初始化？",
+  "DisposalRegister_CheckDisposeResult": "却惹废弃邀请的结果",
+  "DisposalRegister_ErrorLabel": "错误 : ",
+  "DisposalRegister_Next": "下一个",
+  "DisposalRegister_End": "结束"
+}

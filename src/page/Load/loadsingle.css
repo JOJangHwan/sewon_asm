@@ -1,21 +1,23 @@
+/* =========================
+   공통(웹/모바일 공용)
+   ========================= */
 .asset-register-page {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 40px;
-  padding: 0 16px;
+  padding: 16px 12px;
+  background: #f9f9f9;
+  box-sizing: border-box;
 }
 
 .asset-register-title {
   font-size: 26px;
   font-weight: 700;
-  margin-bottom: 24px;
+  margin: 16px 0 20px;
 }
 
 .asset-register-form {
   width: 100%;
-  max-width: 460px;
-  padding: 24px 28px;
   background: #fff;
   border: 1px solid #ddd;
   border-radius: 12px;
@@ -23,21 +25,9 @@
   display: flex;
   flex-direction: column;
   gap: 18px;
+  box-sizing: border-box;
 }
-/* 라디오 버튼 묶음 전체는 이미 가로로 배치되고 있으므로 그대로 두고,
-   각 라벨 안에서 input·텍스트를 옆으로 붙여준다 */
-   .radio-group label {
-    display: flex;              /* 가로 정렬 */
-    align-items: center;        /* 수직 가운데 */
-    gap: 6px;
-    white-space: nowrap;        /* 📌 텍스트 줄바꿈 방지 */
-    font-size: 14px;
-  }
-  
-  /* 라디오 input 자체 여백 초기화 (브라우저 기본이 약간 클 때) */
-  .radio-group input[type="radio"] {
-    margin: 0;
-  }
+
 .form-row {
   display: flex;
   flex-direction: column;
@@ -50,6 +40,7 @@
   font-size: 15px;
 }
 
+/* 모든 input/select 기본값 */
 .form-row input,
 .form-row select {
   padding: 10px;
@@ -57,11 +48,8 @@
   border: 1px solid #ccc;
   border-radius: 6px;
   transition: border-color 0.2s;
-
-   width: 100%;    /* ✅ 가로 사이즈 통일 */
- box-sizing: border-box; /* ✅ padding 포함 너비 계산 */
-
-  
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .form-row input:focus,
@@ -76,56 +64,27 @@
   margin-top: 4px;
 }
 
-.submit-button,
-.reset-button {
-  padding: 12px;
-  background-color: #FFC107;
-  border: none;
-  border-radius: 8px;
-  font-size: 15px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background-color 0.2s ease-in-out;
-  width: 100%;
-  margin-top: 10px;
-}
-
-button[type="button"] {
-  padding: 10px 16px;
-  font-size: 14px;
-  background-color: #FFC107;
-  border: none;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s ease-in-out;
-}
-
-button[type="button"]:hover {
-  background-color: #e0a800;
-}
-
-.button-group-inline {
+.radio-group label {
   display: flex;
-  gap: 10px;
-  justify-content: flex-start;
-  margin-top: 8px;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  font-size: 14px;
 }
 
-/* 변환기 입력 줄 */
+.radio-group input[type="radio"] {
+  margin: 0;
+}
+
+/* 변환기(저장공간) */
 .conversion-group {
   display: flex;
   align-items: center;
   gap: 8px;
   margin-bottom: 8px;
 }
-
-.conversion-group input {
-  flex: 1;
-}
-.conversion-group select {
-  width: 80px;
-}
+.conversion-group input { flex: 1; min-width: 120px; }
+.conversion-group select { width: 80px; }
 
 .add-btn,
 .remove-btn {
@@ -142,13 +101,91 @@ button[type="button"]:hover {
   align-items: center;
   justify-content: center;
 }
-
-/* 아래처럼 마지막에 마무리 */
 .add-btn:hover,
-.remove-btn:hover {
-  background-color: #e6ac00;
+.remove-btn:hover { background-color: #e6ac00; }
+
+.submit-button,
+.reset-button {
+  padding: 12px;
+  background-color: #FFC107;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+  width: 100%;
 }
 .submit-button:hover,
-.reset-button:hover {
-  background-color: #e6ac00;
+.reset-button:hover { background-color: #e6ac00; }
+
+/* =========================
+   WEB 전용
+   ========================= */
+.web-mode .asset-register-title {
+  font-size: 26px;
 }
+
+.web-mode .asset-register-form {
+  max-width: 520px;
+  padding: 24px 28px;
+}
+
+.web-mode .conversion-group { flex-wrap: nowrap; }
+.web-mode .submit-button,
+.web-mode .reset-button { margin-top: 10px; }
+
+/* =========================
+   PDA(모바일) 전용
+   ========================= */
+.pda-mode .asset-register-title {
+  font-size: 22px;
+  margin: 12px 0 16px;
+}
+
+ .pda-mode .asset-register-form {
+  /* 더 좁게: 좌우 여백 확보 */
+  width: min(72vw, 240px);
+  max-width: 300px;
+   margin: 0 auto;
+   padding: 14px;
+   border-radius: 10px;
+ }
+
+.pda-mode .asset-register-page{
+  /* PDA: 좌우 스크롤 방지 + 여백 살짝 축소 */
+  overflow-x: hidden;
+  padding: 12px 8px;
+}
+
+.pda-mode .form-row label {
+  font-size: 14px;
+}
+
+.pda-mode .form-row input,
+.pda-mode .form-row select {
+  font-size: 14px;
+  padding: 10px;
+}
+
+.pda-mode .radio-group {
+  gap: 16px;             /* 좀 더 촘촘하게 */
+}
+
+.pda-mode .conversion-group {
+  flex-wrap: wrap;       /* 좁은 화면에서 줄바꿈 허용 */
+  gap: 6px;
+}
+.pda-mode .conversion-group input { flex: 1 1 130px; }
+.pda-mode .conversion-group select { width: 72px; }
+.pda-mode .add-btn,
+.pda-mode .remove-btn { height: 34px; width: 34px; font-size: 18px; }
+
+.pda-mode .submit-button,
+.pda-mode .reset-button {
+  margin-top: 6px;
+}
+
+/* 스크롤/넘침 안전장치 */
+.pda-mode .asset-register-page { overflow-x: hidden; }
+.pda-mode .asset-register-form { overflow: visible; } /* 세로 스크롤 가능 */

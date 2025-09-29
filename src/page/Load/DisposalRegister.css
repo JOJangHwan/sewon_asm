@@ -1,35 +1,33 @@
+/* =========================
+   공통(웹/모바일 공용)
+   ========================= */
 .disposal-container {
-  max-width: 800px;    /* 기존 400px → 800px */
-    margin: auto;
-    background: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    font-family: sans-serif;
-  }
-  
-  .disposal-title {
-    text-align: center;
-  }
-  .row-success {
-    background-color: #d0f0c0 !important; /* 연한 초록 */
-  }
-  
-  .row-fail {
-    background-color: #ffd6d6 !important; /* 연한 빨강 */
-  }
-  .status-summary {
-    margin-top: 20px;
-    margin-bottom: 10px;
-    text-align: center;
-    font-size: 14px;
-
-   color: #000000;   /* 검은색 */
-  }
-
-.status-summary p {
-  margin: 4px 0;
+  margin: 0 auto;
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  font-family: sans-serif;
+  box-sizing: border-box;
 }
+
+.disposal-title {
+  text-align: center;
+  margin: 0 0 10px;
+}
+
+.status-summary {
+  margin-top: 16px;
+  margin-bottom: 10px;
+  text-align: center;
+  font-size: 14px;
+  color: #000;
+}
+.status-summary p { margin: 4px 0; }
+
+/* 색상 상태 */
+.row-success { background-color: #d0f0c0 !important; }
+.row-fail    { background-color: #ffd6d6 !important; }
 
 /* 공통 버튼 */
 .disposal-btn {
@@ -40,184 +38,194 @@
   cursor: pointer;
   font-size: 16px;
 }
-.disposal-btn-reset {
-  background: #616161;   /* 진회색 */
-  color: #fff;
+
+.disposal-btn-submit { background: #ff9800; color: #fff; }
+.disposal-btn-remove { background: #9E9E9E; color: #fff; }
+.disposal-btn-reset  { background: #616161; color: #fff; }
+
+.disposal-btn-add    { background: #2196F3; color: #fff; }
+.disposal-btn-delete { background: #f44336; color: #fff; }
+
+/* 입력/테이블 공통 */
+.disposal-input-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 15px;
+  justify-content: center;
+}
+
+.disposal-input {
+  padding: 10px;
+}
+
+.disposal-table-wrap { width: 100%; }
+.disposal-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  min-width: 520px; /* 모바일에서 가로 스크롤 생기도록 최소 폭 */
+}
+.disposal-table th, .disposal-table td {
+  padding: 12px;
+  border-bottom: 1px solid #ccc;
+  text-align: center;
+  font-size: 15px;
+}
+
+.disposal-pagination {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+.disposal-page-btn {
+  width: 50px;
+  background: #ff9800;
+  border: none;
+  padding: 6px 10px;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 14px;
+  min-width: 30px;
+  transition: background 0.2s;
+}
+.disposal-page-btn:hover:not(:disabled) { background: #FFC107; }
+.disposal-page-btn.active { background: #FFB300; font-weight: bold; }
+.disposal-page-btn:disabled { background: #ccc; cursor: not-allowed; }
+
+.disposal-button-group {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+/* =========================
+   WEB 전용
+   ========================= */
+.web-mode.disposal-container {
+  max-width: 840px;
+  padding: 24px;
+}
+
+.web-mode .disposal-input {
+  width: 60%;
+}
+.web-mode .disposal-btn-add {
+  width: 80px;
+  padding: 8px 12px;
+  white-space: nowrap;
+}
+.web-mode .disposal-btn-delete {
+  width: 80px;
+  height: 40px;
+  padding: 6px 10px;
+  white-space: nowrap;
+  font-size: 14px;
+}
+
+.web-mode .disposal-button-group .disposal-btn-submit,
+.web-mode .disposal-button-group .disposal-btn-remove {
+  width: 48%;
+  margin-top: 20px;
+}
+.web-mode .disposal-btn-reset {
   width: 48%;
   margin-top: 20px;
 }
 
-/* 추가 버튼만 폭 줄이기 */
-.disposal-btn-add {
-  width: 80px;
-  padding: 8px 12px;   /* 추가 버튼 작게 */
-  background: #2196F3;
-  color: #fff;
-  white-space: nowrap;
+/* =========================
+   PDA(모바일) 전용
+   ========================= */
+ .pda-mode.disposal-container {
+  width: calc(100vw - 140px); /* 훨씬 더 좁게 */
+  max-width: 340px;           /* 최대폭도 확 줄임 */
+  padding: 10px;
+  margin: 0 auto;
+  overflow-x: hidden;         /* 혹시 모를 가로 넘침 방지 */
+ }
+
+.pda-mode .disposal-table {
+  min-width: 440px;           /* 기존 520px → 440px */
 }
 
-/* 삭제 버튼만 더 작게 */
-.disposal-btn-delete {
-  width: 80px;
-  height: 40px;
-  padding: 6px 10px;   /* 삭제 버튼 더 작게 */
-  background: #f44336;
-  color: #fff;
-  white-space: nowrap;
+.pda-mode .disposal-title {
+  font-size: 20px;
+}
+
+.pda-mode .disposal-input-row {
+  flex-direction: column;
+  align-items: flex-start;     /* 왼쪽 정렬 */
+  gap: 8px;
+}
+
+/* ⬇️ 입력창과 추가 버튼을 같은 규격으로 */
+.pda-mode .disposal-input,
+.pda-mode .disposal-btn-add {
+  width: calc(100% - 48px);
+  max-width: 280px;
+  box-sizing: border-box;
+  align-self: center;           /* ✅ 가운데 */
+  display: block;
+  margin: 0 auto;
+}
+.pda-mode .disposal-input { padding: 10px; font-size: 16px; }
+.pda-mode .disposal-btn-add { padding: 10px; font-size: 16px; margin: 0 auto; }
+
+
+/* 테이블: 가로 스크롤 허용 */
+.pda-mode .disposal-table-wrap {
+  overflow-x: auto;
+}
+.pda-mode .disposal-table th,
+.pda-mode .disposal-table td {
+  padding: 10px;
   font-size: 14px;
 }
-  
-  .disposal-btn-scan { background: #4CAF50; color: #fff; }
-  .disposal-btn-add { background: #2196F3; color: #fff; }
-  .disposal-btn-delete { background: #f44336; color: #fff; }
-  .disposal-btn-submit { background: #ff9800; color: #fff; width: 48%; margin-top: 20px; }
-  .disposal-btn-remove { background: #9E9E9E; color: #fff; width: 48%; margin-top: 20px; }
-  
-  .disposal-input {
-    padding: 10px;
-    width: 60%;           /* 기존 80% → 60%로 변경 */
-    margin-right: 5px;
-  }
-  
-  .disposal-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-  }
-  
-  .disposal-table th, .disposal-table td {
-    padding: 12px;
-    border-bottom: 1px solid #ccc;
-    text-align: center;
-    font-size: 15px;
-  }
-  
-  .disposal-button-group {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 20px;
-  }
-  
-  .disposal-pagination {
-    display: flex;
-    justify-content: center;
-    margin-top: 20px;
-    gap: 8px;
-    flex-wrap: nowrap;
-  }
-  
-  .disposal-page-btn {
-    width: 50px;
-    background: #ff9800;;        /* 노란색 계열 */
-    border: none;
-    padding: 6px 10px;  
-    cursor: pointer;
-    border-radius: 4px;
-    font-size: 14px;     
-    min-width: 30px;     
-    transition: background 0.2s;
-  }
-  .disposal-page-btn:hover:not(:disabled) {
-    background: #FFC107;        /* 진한 노랑 (hover 효과) */
-  }
-  
-  .disposal-page-btn.active {
-    background: #FFB300;        /* 현재 페이지는 더 진한 노랑 */
-    font-weight: bold;
-  }
-  
-  .disposal-page-btn:disabled {
-    background: #ccc;           /* 비활성 버튼은 회색 */
-    cursor: not-allowed;
-  }
-  
-  .disposal-page-btn.active {
-    font-weight: bold;
-    background: #bbb;
-  }
 
-   .disposal-input-row {
-       display: flex;
-       align-items: center;
-       justify-content: center;
-       gap: 10px;
-       margin-top: 15px;
-     }
-    
-     .disposal-qr-img {
-       width: 40px;
-       height: 40px;
-       cursor: pointer;
-     }
-  
-     .qr-reader {
-         width: 100%;
-         max-width: 300px;
-         margin: 20px auto;
-       }
+.pda-mode .disposal-pagination {
+  flex-wrap: wrap;
+  gap: 6px;
+}
+ .pda-mode .disposal-page-btn {
+   padding: 4px 6px;
+   font-size: 12px;
+   min-width: 24px;
+ }
 
-       /* 반응형 */
-@media (max-width: 768px) {
+.pda-mode .disposal-button-group {
+  flex-direction: column;
+  gap: 10px;
+}
+.pda-mode .disposal-button-group .disposal-btn-submit,
+.pda-mode .disposal-button-group .disposal-btn-remove,
+.pda-mode .disposal-btn-reset {
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+}
 
-  .disposal-btn-reset {
-    width: 100%;
-    padding: 12px;
-    font-size: 16px;
-  }
-  .disposal-container {
-    width: 95%;
-    padding: 10px;
-  }
+/* QR 영역 */
+.qr-reader {
+  width: 100%;
+  max-width: 300px;
+  margin: 20px auto;
+}
 
-  .disposal-input-row {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-  }
+/* ✅ PDA: 삭제 버튼 폭 줄이기 + 가운데 정렬 */
+.pda-mode .disposal-table td:last-child{
+  width: 110px;           /* 필요시 80~120px로 조절 */
+  text-align: center;
+}
 
-  .disposal-qr-img {
-    width: 60px;
-    height: 60px;
-    margin: auto;
-  }
-
-  .disposal-input {
-    width: 100%;
-    padding: 10px;
-    font-size: 16px;
-  }
-
-  .disposal-btn-add {
-    width: 100%;
-    padding: 10px;
-    font-size: 16px;
-  }
-
-  .disposal-btn-delete {
-    padding: 6px 10px;
-    font-size: 14px;
-  }
-
-  .disposal-pagination {
-    flex-wrap: wrap;
-    gap: 4px;
-  }
-
-  .disposal-page-btn {
-    padding: 5px 8px;
-    font-size: 13px;
-    min-width: 28px;
-  }
-
-  .disposal-button-group {
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .disposal-btn-submit,
-  .disposal-btn-remove {
-    width: 100%;
-    padding: 12px;
-    font-size: 16px;
-  }
+.pda-mode .disposal-btn-delete{
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 90px !important; /* ▶ 버튼 폭 */
+  height: 34px;           /* ▶ 버튼 높이 */
+  padding: 4px 8px;
+  font-size: 14px;
+  border-radius: 6px;
 }

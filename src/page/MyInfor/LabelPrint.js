@@ -1,56 +1,46 @@
-
-
-// src/page/MyInfor/LabelPrint.js
-import React, { useState, useEffect } from 'react';
+// src/page/MyInfor/LabelPrint.js (최종 3줄/로고 없음)
+import React, { useEffect } from 'react';
 import { QRCodeCanvas } from 'qrcode.react';
 
-
-export default function LabelPrint({ selectedAssets, onAllImagesLoaded }) {
-  const [loadedCount, setLoadedCount] = useState(0);
-
-  const handleLogoLoad = () => {
-    setLoadedCount(prev => prev + 1);
-  };
-
+export default function LabelPrint({ selectedAssets = [], onAllImagesLoaded = () => {} }) {
   useEffect(() => {
-    if (loadedCount === selectedAssets.length) {
-      onAllImagesLoaded();
-    }
-  }, [loadedCount, selectedAssets.length, onAllImagesLoaded]);
+    const id = requestAnimationFrame(() => onAllImagesLoaded());
+    return () => cancelAnimationFrame(id);
+  }, [selectedAssets, onAllImagesLoaded]);
 
   return (
     <div className="label-print-wrapper">
-      {selectedAssets.map((asset, idx) => (
-        <div className="label-box" key={idx}>
-          {/* 좌측 QR 코드 */}
-          <div className="qr-section">
-            <QRCodeCanvas
-              value={asset.barcode}
-              size={46}  // mm 단위 고려, 약 11~13mm에 해당
-              level="H"
-              includeMargin={false}
-              className="qr-canvas"
-            />
-          </div>
+      {selectedAssets.map((asset, idx) => {
+        const corpDeptLoc = [
+          asset.company || asset.corporation || "",
+          asset.department || "",
+          asset.location || ""
+        ].filter(Boolean).join(" ");
 
-          {/* 우측 정보 */}
-          <div className="info-section">
-            <div className="logo-wrapper">
-              <img
-                src="/img/sewon.jpg"
-                alt="sewon logo"
-                className="logo"
-                onLoad={handleLogoLoad}
+        // 공백만으로 결합 (하이픈 X)
+        const parentName = asset.parentCategory ?? asset.assetCategory ?? "";
+        const childName  = asset.childCategory  ?? asset.itemName      ?? "";
+        const categoryLine = [parentName, childName].filter(Boolean).join(" ");
+
+        return (
+          <div className="label-box" key={asset.barcode || idx}>
+            <div className="qr-section">
+              <QRCodeCanvas
+                value={String(asset.barcode || "")}
+                size={46}
+                level="H"
+                includeMargin={false}
+                className="qr-canvas"
               />
             </div>
-            <p className="text-line main-location">
-              {asset.company} {asset.department} {asset.location}
-            </p>
-            <p className="text-line barcode-text">{asset.barcode}</p>
-            <p className="text-line item-name">{asset.itemName}</p>
+            <div className="info-section">
+              <p className="text-line">{corpDeptLoc}</p>              {/* 1열 */}
+              <p className="text-line barcode-text">{asset.barcode}</p> {/* 2열 */}
+              <p className="text-line category-line">{categoryLine}</p>  {/* 3열 */}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

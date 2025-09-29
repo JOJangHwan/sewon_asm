@@ -1,15 +1,19 @@
-import React, { useState } from 'react';
+
 import { Html5QrcodeScanner } from 'html5-qrcode';
-import { useRef, useEffect } from 'react';
 import barcodeIcon from '../../assets/img/scan.png';
 import { authFetchWithRefresh } from '../../utils/authFetchWithRefresh';
+import { useTranslation } from 'react-i18next';
 import './DisposalRegister.css';
+import React, { useState, useRef, useEffect } from 'react';
 
 const API_BASE = window._env_?.REACT_APP_API_URL || 'http://localhost:8888';
 
 
 const DisposalRegister = () => {
   const token = localStorage.getItem('accessToken');
+  const { t } = useTranslation('disposalRegister');
+  const nCount = (n) => `${n}${t('DisposalRegister_Count')}`;
+  const effectiveMode = useResponsiveMode(); // 'web' | 'pda'
 
   const [barcodeList, setBarcodeList] = useState([]);
   const [barcodeInput, setBarcodeInput] = useState('');
@@ -70,28 +74,41 @@ const failCount = barcodeList.filter(item => item.status === 'FAIL').length;
 
   const handleSubmitDisposal = async () => {
     const selected = barcodeList.filter(item => item.checked);
-    if (selected.length === 0) return alert('폐기할 항목을 선택하세요.');
+    if (selected.length === 0) return alert(t('DisposalRegister_PleaseSelectItemsToDispose'));
   
     const payload = {
       barcodes: selected.map(item => item.barcode),
     };
   
    // console.log('📤 [전송 데이터]', `${API_BASE}/assets/dispose`, payload);
+
+       // ➕ 요청 로그: 어떤 데이터를, 어디로, 어떤 옵션으로 보내는지
+    const url = `${API_BASE}/assets/dispose`;
+    const options = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    };
+    console.groupCollapsed('%c[Disposal][REQUEST]', 'color:#0aa;font-weight:600;');
+    console.log('URL:', url);
+    console.log('Payload (object):', payload);
+    console.log('Options:', { ...options, body: '(JSON string below)' });
+    console.log('Body (JSON):', options.body);
+    console.groupEnd();
   
     try {
-      const response = await authFetchWithRefresh(`${API_BASE}/assets/dispose`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
+const response = await authFetchWithRefresh(url, options);
   
       const rawText = await response.clone().text();
      // console.log('📥 [응답 RAW TEXT]', rawText);
+      console.groupCollapsed('%c[Disposal][RESPONSE]', 'color:#0aa;font-weight:600;');
+      console.log('HTTP status:', response.status, '| ok:', response.ok);
+      console.log('RAW TEXT:', rawText);
   
       const result = await response.json();
      // console.log('📥 [응답 JSON]', result);
+     console.log('JSON:', result);
+     console.groupEnd();
   
       if (!response.ok) {
         const serverMessage = result.message || '알 수 없는 오류';
@@ -112,11 +129,11 @@ const failCount = barcodeList.filter(item => item.status === 'FAIL').length;
       });
   
       setBarcodeList(updatedList);
-      alert('폐기 요청 결과를 확인하세요.');
+      alert(t('DisposalRegister_CheckDisposeResult'));
   
     } catch (err) {
-      console.error('🚨 폐기 요청 오류:', err);
-      alert(`🚨 오류: ${err.message}`);
+      console.error('🚨 [Disposal][ERROR]:', err);
+      alert(`🚨 ${t('DisposalRegister_ErrorLabel')}${err.message}`);
     }
   };
   
@@ -141,7 +158,7 @@ const failCount = barcodeList.filter(item => item.status === 'FAIL').length;
        if (!barcodeList.some(item => item.barcode === barcode)) {
          setBarcodeList(prev => [...prev, { barcode, checked: false }]);
        } else {
-         alert('이미 등록된 바코드입니다.');
+         alert(t('DisposalRegister_AlreadyRegisteredBarcode'));
        }
         if (scannerInstance) {
            scannerInstance.clear()
@@ -183,7 +200,7 @@ const failCount = barcodeList.filter(item => item.status === 'FAIL').length;
          };
 
          const handleReset = () => {
-          if (window.confirm('정말 초기화하시겠습니까?')) {
+          if (window.confirm(t('DisposalRegister_ConfirmReset'))) {
             setBarcodeList([]);
             setCurrentPage(1);
           }
@@ -193,8 +210,8 @@ const failCount = barcodeList.filter(item => item.status === 'FAIL').length;
 
 
   return (
-    <div className="disposal-container">
-      <h2 className="disposal-title">자산 폐기 등록</h2>
+    <div className={`disposal-container ${effectiveMode}-mode`}>
+      <h2 className="disposal-title">{t('DisposalRegister_Title')}</h2>
       <div>
        <div className="disposal-input-row">
  {/* <img
@@ -208,34 +225,46 @@ const failCount = barcodeList.filter(item => item.status === 'FAIL').length;
      value={barcodeInput}
      onChange={(e) => setBarcodeInput(e.target.value)}
      onKeyPress={handleEnter}
-     placeholder="바코드 입력"
+     placeholder={t('DisposalRegister_BarcodeInput')}
      className="disposal-input"
    />
-   <button className="disposal-btn disposal-btn-add" onClick={handleAddBarcode}>추가</button>
+   <button className="disposal-btn disposal-btn-add" onClick={handleAddBarcode}>{t('DisposalRegister_Add')}</button>
  </div>
       </div>
       {scannerVisible && (
    <div id="disposal-reader" className="qr-reader" style={{ marginTop: '20px' }}></div>
  )}
 <div className="status-summary">
+{/* 보류 */}
   <p style={{ color: '#000' }}>
-    ✅ <span style={{ color: '#4CAF50', fontWeight: 'bold' }}>초록색</span>은 성공,
-    ❌ <span style={{ color: '#f44336', fontWeight: 'bold' }}>빨간색</span>은 실패입니다.
+    ✅ <span style={{ color: '#4CAF50', fontWeight: 'bold' }}>{t('DisposalRegister_Legend_Green')}</span>{t('DisposalRegister_Legend_Text_Middle')}
+    ❌ <span style={{ color: '#f44336', fontWeight: 'bold' }}>{t('DisposalRegister_Legend_Red')}</span>{t('DisposalRegister_Legend_Text_End')}
   </p>
 
-   <p style={{ color: '#000' }}>
+    {/* <p style={{ color: '#000' }}>
    총 등록: {totalCount}개 | 
    <span style={{ color: '#4CAF50', fontWeight: 'bold' }}>성공: {successCount}개</span> | 
    <span style={{ color: '#f44336', fontWeight: 'bold' }}>실패: {failCount}개</span>
- </p>
+ </p>  */}
+
+    <p style={{ color: '#000' }}>
+    {t('DisposalRegister_TotalRegisteredLabel')}{nCount(totalCount)} |
+    <span style={{ color: '#4CAF50', fontWeight: 'bold' }}>
+      {t('DisposalRegister_SuccessLabel')}{nCount(successCount)}
+    </span> |
+    <span style={{ color: '#f44336', fontWeight: 'bold' }}>
+      {t('DisposalRegister_FailLabel')}{nCount(failCount)}
+    </span>
+  </p> 
 </div>
 
+      <div className="disposal-table-wrap">
       <table className="disposal-table">
         <thead>
           <tr>
             <th><input type="checkbox" onChange={handleToggleAll} checked={barcodeList.length > 0 && barcodeList.every(item => item.checked)} /></th>
-            <th>바코드</th>
-            <th>삭제</th>
+            <th>{t('DisposalRegister_Barcode')}</th>
+            <th>{t('DisposalRegister_Delete')}</th>
           </tr>
         </thead>
         <tbody>
@@ -254,11 +283,12 @@ const failCount = barcodeList.filter(item => item.status === 'FAIL').length;
   ))}
 </tbody>
       </table>
+      </div>
 
 
       <div className="disposal-pagination">
-        <button className="disposal-page-btn" onClick={() => changePage(1)} disabled={currentPage === 1}>처음</button>
-        <button className="disposal-page-btn" onClick={() => changePage(Math.max(1, groupStart - 1))} disabled={groupStart === 1}>이전</button>
+        <button className="disposal-page-btn" onClick={() => changePage(1)} disabled={currentPage === 1}>{t('DisposalRegister_First')}</button>
+        <button className="disposal-page-btn" onClick={() => changePage(Math.max(1, groupStart - 1))} disabled={groupStart === 1}>{t('DisposalRegister_Prev')}</button>
         {Array.from({ length: groupEnd - groupStart + 1 }, (_, i) => (
           <button
             key={i}
@@ -268,14 +298,14 @@ const failCount = barcodeList.filter(item => item.status === 'FAIL').length;
             {groupStart + i}
           </button>
         ))}
-        <button className="disposal-page-btn" onClick={() => changePage(Math.min(totalPages, groupEnd + 1))} disabled={groupEnd === totalPages}>다음</button>
-        <button className="disposal-page-btn" onClick={() => changePage(totalPages)} disabled={currentPage === totalPages}>끝</button>
+        <button className="disposal-page-btn" onClick={() => changePage(Math.min(totalPages, groupEnd + 1))} disabled={groupEnd === totalPages}>{t('DisposalRegister_Next')}</button>
+        <button className="disposal-page-btn" onClick={() => changePage(totalPages)} disabled={currentPage === totalPages}>{t('DisposalRegister_End')}</button>
       </div>
 
       <div className="disposal-button-group">
-        <button className="disposal-btn disposal-btn-submit" onClick={handleSubmitDisposal}>선택 폐기</button>
-        <button className="disposal-btn disposal-btn-remove" onClick={handleRemoveSelected}>선택 삭제</button>
-        <button className="disposal-btn disposal-btn-reset" onClick={handleReset}>초기화</button>
+        <button className="disposal-btn disposal-btn-submit" onClick={handleSubmitDisposal}>{t('DisposalRegister_DisposeSelected')}</button>
+        <button className="disposal-btn disposal-btn-remove" onClick={handleRemoveSelected}>{t('DisposalRegister_DeleteSelected')}</button>
+        <button className="disposal-btn disposal-btn-reset" onClick={handleReset}>{t('DisposalRegister_Reset')}</button>
       </div>
     </div>
     
@@ -283,3 +313,24 @@ const failCount = barcodeList.filter(item => item.status === 'FAIL').length;
 };
 
 export default DisposalRegister;
+
+// -------- Web/PDA 자동 판별 훅 --------
+function useResponsiveMode() {
+  const [mode, setMode] = React.useState('web');
+  useEffect(() => {
+    const compute = () => {
+      const w = window.innerWidth;
+      const coarse = window.matchMedia?.('(pointer: coarse)').matches ?? false;
+      const isPDA = w <= 920 || (coarse && w <= 1200);
+      setMode(isPDA ? 'pda' : 'web');
+    };
+    compute();
+    window.addEventListener('resize', compute);
+    window.addEventListener('orientationchange', compute);
+    return () => {
+      window.removeEventListener('resize', compute);
+      window.removeEventListener('orientationchange', compute);
+    };
+  }, []);
+  return mode;
+}

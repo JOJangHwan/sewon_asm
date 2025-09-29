@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import i18n from '../src/utils/lang/i18n.js';
+import { getUILang, uiToI18n } from './utils/lang/pref';
 import React, { useContext, useEffect } from 'react';
 import { UserProvider, UserContext } from './utils/UserContext.js';
 
@@ -22,19 +23,27 @@ import RegisterCorpAndItem from './page/admin/RegisterCorpAndItem';
 import DualTransferSimple from './page/Load/DualTransferSimple';
 import DisposalRegister from './page/Load/DisposalRegister'
 import Layout from './components/layout/Layout';
-
+import AssetRegistrarChange from './components/AssetRegistrarChange.js';
 import './index';
 
 const apiUrl = window._env_?.REACT_APP_API_URL || process.env.REACT_APP_API_URL;
 
-/* ───────────────────────────────────────
-🌐 언어 초기화
-─────────────────────────────────────── */
 const LanguageInitializer = ({ children }) => {
   useEffect(() => {
-    const lang = localStorage.getItem('language') || 'ko';
-    i18n.changeLanguage(lang);
-    document.documentElement.lang = lang;
+    // 1) 저장된 UI코드(KR/CN/VN) → i18n 코드(ko/zh/vi)로 변환
+    const ui = getUILang();         // 'KR' | 'CN' | 'VN' (없으면 'KR')
+    const lng = uiToI18n(ui);       // 'ko' | 'zh' | 'vi'
+
+    // 2) 앱 부팅 시 한번 강제 적용
+    if (i18n.language !== lng) i18n.changeLanguage(lng);
+    document.documentElement.lang = lng;
+
+    // 3) 언어 변경이 일어나면 <html lang>도 동기화
+    const onChanged = (newLng) => {
+      try { document.documentElement.lang = newLng || 'ko'; } catch {}
+    };
+    i18n.on('languageChanged', onChanged);
+    return () => i18n.off('languageChanged', onChanged);
   }, []);
   return children;
 };
@@ -78,6 +87,7 @@ const AppRoutes = () => (
       <Route path="/RegisterCorpAndItem" element={<PrivateRoute element={<RegisterCorpAndItem />} />} />
       <Route path="/DualTransferSimple"  element={<PrivateRoute element={<DualTransferSimple />} />} />
       <Route path="/UserManage"  element={<PrivateRoute element={<AdminUserPage />} />} />
+      <Route path="/AssetRegistrarChange"  element={<PrivateRoute element={<AssetRegistrarChange />} />} />
     </Route>
   </Routes>
 );

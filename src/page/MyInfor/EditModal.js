@@ -1,10 +1,6 @@
-// src/page/MyInfor/EditModal.js
-// 완성본 – 2025‑06‑28
-// * 바코드 읽기 전용
-// * 회사/부서/세부위치 · 자산분류/품목 – API 로드
-// * POST /assets/update?barcode=… 로 수정
-
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { getUILang, uiToI18n } from '../../utils/lang/pref';
 import { authFetchWithRefresh } from '../../utils/authFetchWithRefresh';
 import { v4 as uuidv4 } from 'uuid'; // 상단에 추가
 import './editModal.css';
@@ -21,17 +17,22 @@ const API_BASE = window._env_?.REACT_APP_API_URL || 'http://localhost:8888';
      }
    };
 
-const acquisitionTypeOptions = [
-   { value: 0, label: '구매자산' },
-   { value: 1, label: '대여자산' },
-  ]
-  
-  const assetStatusOptions = [
-     { value: 0, label: '사용' },
-     { value: 1, label: '미사용' },
-  ];
+
 
 const EditModal = ({ item, onSave, onClose }) => {
+    // ✅ 훅은 컴포넌트 안에서!
+  const { t } = useTranslation('EditModal');
+  const langUI = getUILang();        // 'KR' | 'CN' | 'VN'
+  const langI18n = uiToI18n(langUI); // 'ko' | 'zh' | 'vi'
+  // 드롭다운 옵션(라벨 i18n)
+  const acquisitionTypeOptions = [
+    { value: 0, label: t('EditModal_PurchasedAsset') },
+    { value: 1, label: t('EditModal_OnLoanAsset') },
+  ];
+  const assetStatusOptions = [
+    { value: 0, label: t('EditModal_InUse') },
+    { value: 1, label: t('EditModal_NotInUse') },
+  ];
   // console.log('[EditModal 진입] item:', item);
   /* ────────────────────────────────────
      드롭다운 옵션(state)
@@ -78,16 +79,16 @@ const EditModal = ({ item, onSave, onClose }) => {
       return { ...prev, storageList: list };
     });
   };
-
-  const convertToGB = (value, unit) => {
-    const num = parseFloat(value) || 0;
-    switch (unit) {
-      case 'TB': return num * 1024;
-      case 'MB': return num / 1024;
-      case 'GB': return num;
-      default  : return 0;
-    }
-  };
+// 삭제 보류!
+  // const convertToGB = (value, unit) => {
+  //   const num = parseFloat(value) || 0;
+  //   switch (unit) {
+  //     case 'TB': return num * 1024;
+  //     case 'MB': return num / 1024;
+  //     case 'GB': return num;
+  //     default  : return 0;
+  //   }
+  // };
 
   const handleStorageConvert = () => {
     const total = edited.storageList.reduce(
@@ -103,11 +104,15 @@ const EditModal = ({ item, onSave, onClose }) => {
   useEffect(() => {
     (async () => {
       try {
-        const corpRes = await authFetchWithRefresh(`${API_BASE}/corporations`);
+        const corpRes = await authFetchWithRefresh(`${API_BASE}/corporations`, {
+          headers: { 'Accept-Language': langI18n, language: langUI },
+        });
         const corpJson = await corpRes.json();
         if (corpJson.code === 1) setCompanies(corpJson.data.corporationList);
 
-        const typeRes = await authFetchWithRefresh(`${API_BASE}/asset-types/hierarchy`);
+        const typeRes = await authFetchWithRefresh(`${API_BASE}/asset-types/hierarchy`, {
+          headers: { 'Accept-Language': langI18n, language: langUI },
+        });
         const typeJson = await typeRes.json();
         if (typeJson.code === 1) setParents(typeJson.data.parentList);
       } catch (e) {
@@ -250,19 +255,23 @@ const EditModal = ({ item, onSave, onClose }) => {
         
             const res = await authFetchWithRefresh(endpoint, {
               method: 'PUT',
-              headers: { 'Content-Type': 'application/json' },
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept-Language': langI18n,
+                language: langUI,
+              },
               body: JSON.stringify(payload),
             });
         const json = await res.json();
         if (json.code === 1) {
-          alert('✅ 자산 정보가 수정되었습니다.');
+          alert('✅ ' + t('EditModal_AssetInfoUpdated'));
          // console.log('[EditModal] onSave 호출:', edited);
           onSave(edited); // 부모에게 전달
         } else {
-          alert(`❌ 수정 실패: ${json.message || '알 수 없는 오류'}`);
+          alert(`❌ ${t('EditModal_EditFailed')}: ${json.message || t('EditModal_UnknownError')}`);
         }
       } catch (err) {
-        alert(`🚨 서버 오류: ${err.message}`);
+        alert(`🚨 ${t('EditModal_ServerError')}: ${err.message}`);
         console.error(err);
       }
     };
@@ -273,64 +282,64 @@ const EditModal = ({ item, onSave, onClose }) => {
   return (
     <div className="modal-overlay">
       <div className="modal-content">
-        <h2>자산 수정</h2>
+        <h2>{t('EditModal_Title')}</h2>
 
         {/* 바코드 – 변경 불가 */}
-        <label>바코드</label>
+        <label>{t('EditModal_Barcode')}</label>
         <input value={edited.barcode} readOnly />
 
         {/* 회사 */}
-        <label>회사구분</label>
+        <label>{t('EditModal_CompanyType')}</label>
         <select value={company} onChange={changeCompany}>
-          <option value="">선택</option>
+          <option value="">{t('EditModal_Select')}</option>
           {companies.map(c => (
             <option key={c.id} value={c.name}>{c.name}</option>
           ))}
         </select>
 
         {/* 부서 */}
-        <label>부서구분</label>
+        <label>{t('EditModal_DepartmentType')}</label>
         <select value={department} onChange={changeDepartment} disabled={!company}>
-          <option value="">선택</option>
+          <option value="">{t('EditModal_Select')}</option>
           {departments.map(a => (
             <option key={a.affiliationId} value={a.department}>{a.department}</option>
           ))}
         </select>
 
         {/* 세부위치 */}
-        <label>세부위치</label>
+        <label>{t('EditModal_DetailLocation')}</label>
         <select value={location} onChange={changeLocation} disabled={!department}>
-          <option value="">선택</option>
+          <option value="">{t('EditModal_Select')}</option>
           {locations.map(l => (
             <option key={l.locationId} value={l.location}>{l.location}</option>
           ))}
         </select>
 
          {/* 취득구분 */}
- <label>취득구분</label>
+ <label>{t('EditModal_AcquisitionType')}</label>
  <select
    name="acquisitionType"          // ✅ 올바른 name
    value={String(edited.acquisitionType)}
    onChange={onBasicChange}
  >
-   <option value="">선택</option>
+   <option value="">{t('EditModal_Select')}</option>
    {acquisitionTypeOptions.map(opt => (
      <option key={`acq-${opt.value}`} value={opt.value}>{opt.label}</option>
    ))}
  </select>
         {/* 자산분류 */}
-        <label>자산분류</label>
+        <label>{t('EditModal_AssetCategory')}</label>
         <select value={parent} onChange={changeParent}>
-          <option value="">선택</option>
+          <option value="">{t('EditModal_Select')}</option>
           {parents.map(p => (
   <option key={p.parentId} value={p.name}>{p.name}</option>
 ))}
         </select>
 
         {/* 품목 */}
-        <label>품목</label>
+        <label>{t('EditModal_Item')}</label>
         <select value={child} onChange={changeChild} disabled={!parent}>
-          <option value="">선택</option>
+          <option value="">{t('EditModal_Select')}</option>
           {children.map(c => (
   <option key={c.childId} value={c.name}>{c.name}</option>
 ))}
@@ -344,21 +353,21 @@ const EditModal = ({ item, onSave, onClose }) => {
     {/* 저장공간(다중) 입력 */}
      {['노트북', '컴퓨터'].includes(child) && (
    <>
-     <label>CPU</label>
+     <label>{t('EditModal_CPU')}</label>
      <input name="cpu" value={edited.cpu} onChange={onBasicChange} />
 
-     <label>메모리</label>
+     <label>{t('EditModal_Memory')}</label>
      <input name="memory" value={edited.memory} onChange={onBasicChange} />
 
-     <label>GPU</label>
+     <label>{t('EditModal_GPU')}</label>
      <input name="gpu" value={edited.gpu} onChange={onBasicChange} />
 
-     <label>데이터 변환기 (PC 저장공간)</label>
+     <label>{t('EditModal_DataConverter_PCStorage')}</label>
      {edited.storageList.map((s, idx) => (
       <div key={s.id} className="conversion-group">
 <input
   type="text"
-  placeholder="용량"
+  placeholder={t('EditModal_Capacity')}
   value={s.value}
   onChange={(e) => onStorageChange(s.id, 'value', e.target.value)}
 />
@@ -366,9 +375,9 @@ const EditModal = ({ item, onSave, onClose }) => {
   value={s.unit}
   onChange={(e) => onStorageChange(s.id, 'unit', e.target.value)}
 >
-           <option value="GB">GB</option>
-           <option value="TB">TB</option>
-           <option value="MB">MB</option>
+          <option value="GB">{t('EditModal_GB')}</option>
+          <option value="TB">{t('EditModal_TB')}</option>
+          <option value="MB">{t('EditModal_MB')}</option>
          </select>
          {idx === 0 && (
            <button type="button" className="add-btn" onClick={() =>
@@ -389,9 +398,9 @@ const EditModal = ({ item, onSave, onClose }) => {
          )}
        </div>
      ))}
-     <button type="button" onClick={handleStorageConvert}>변환</button>
+     <button type="button" onClick={handleStorageConvert}>{t('EditModal_Convert')}</button>
 
-     <label>총 저장공간(GB)</label>
+     <label>{t('EditModal_TotalStorageGB')}</label>
      <input name="totalStorage" value={edited.totalStorage} readOnly />
    </>
  )}
@@ -400,36 +409,36 @@ const EditModal = ({ item, onSave, onClose }) => {
 
 
 
-<label>자산상태</label>
+<label>{t('EditModal_AssetStatus')}</label>
 <select
   name="assetStatus"
   value={edited.assetStatus}
   onChange={onBasicChange}
 >
-  <option value="">선택</option>
+  <option value="">{t('EditModal_Select')}</option>
     {assetStatusOptions.map(opt => (
    <option key={`status-${opt.value}`} value={opt.value}>{opt.label}</option>
   ))}
 </select>
 
         {/* 제조사 · 모델 */}
-        <label>제조사</label>
+        <label>{t('EditModal_Manufacturer')}</label>
         <input name="manufacturer" value={edited.manufacturer} onChange={onBasicChange} />
 
-        <label>모델</label>
+        <label>{t('EditModal_Model')}</label>
         <input name="model" value={edited.model} onChange={onBasicChange} />
 
         {/* 취득일 · 취득가 */}
-        <label>취득일자</label>
+        <label>{t('EditModal_AcquisitionDate')}</label>
         <input name="acquisitionDate" value={edited.acquisitionDate} onChange={onBasicChange} />
 
-        <label>취득가</label>
+        <label>{t('EditModal_AcquisitionCost')}</label>
         <input name="acquisitionPrice" value={edited.acquisitionPrice} onChange={onBasicChange} />
 
         {/* 버튼 */}
         <div className="modal-button-group">
-          <button onClick={handleSave}>수정 완료</button>
-          <button onClick={onClose}>취소</button>
+          <button onClick={handleSave}>{t('EditModal_EditCompleted')}</button>
+          <button onClick={onClose}>{t('EditModal_Cancel')}</button>
         </div>
       </div>
     </div>

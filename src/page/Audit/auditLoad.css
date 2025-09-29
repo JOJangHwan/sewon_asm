@@ -64,6 +64,21 @@
   grid-template-columns:repeat(3, minmax(0,1fr));
   gap:8px;
 }
+/* PDA: 안내문을 가로 전체로 (버튼 3개 아래 한 줄) */
+.pda-mode .pda-actions-3 .pda-inline-hint{
+  grid-column: 1 / -1;      /* ← 핵심: 1컬럼부터 끝(-1)까지 */
+  margin-top: 4px;
+  padding: 10px 12px;
+  background:#fffbea;
+  border:1px solid #fde68a;
+  border-radius:10px;
+  font-size:14px;
+  line-height:1.5;
+  color:#374151;
+  text-align:center;        /* 원하면 left로 */
+  word-break: keep-all;     /* 한글 단어 단위 줄바꿈 */
+  white-space: normal;
+}
 /* PDA에서도 같은 크기/모양 유지 + 전체폭 */
 .pda-mode .pda-actions-3 > .delete-btn,
 .pda-mode .pda-actions-3 > .verify-btn,
@@ -385,3 +400,5 @@
  .audit-container.pda-mode .pda-input.barcode{
    width:210px !important;    /* PDA에서 원하는 폭 */
  }
+
+ 

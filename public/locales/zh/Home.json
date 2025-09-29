@@ -1,0 +1,28 @@
+{
+  "Home_Title": "开始地点",
+  "Home_DepartmentAssetOverview": "部门资产现况",
+  "Home_Loading": "读取中",
+  "Home_TotalAssets": "总资产",
+  "Home_OnLoan": "借出中",
+  "Home_Unit_Count": "个",
+
+  "Home_DepartmentAuditProgress": "部门点库进行现况",
+  "Home_AuditTargetLabel": "点库对象:",
+  "Home_AuditCompleted": "点完库",
+  "Home_AuditIncomplete": "未点完库",
+  "Home_CompletionRate": "完成率",
+
+  "Home_AssetCategoryDistribution": "资产分类别分布",
+  "Home_ITEquipment": "电算设备",
+  "Home_Furniture": "家具",
+  "Home_OfficeSupplies": "办公用品",
+  "Home_Facilities": "设备",
+  "Home_Others": "其他",
+
+  "Home_MonthlyLoanReturnTrend": "月别借/还变化",
+  "Home_LoanCount": "借出件数",
+  "Home_ReturnCount": "返还件数",
+  "Home_AuditCompletionRate": "点库完成率",
+  "Home_Completed": "完了",
+  "Home_Incomplete": "未完了"
+}

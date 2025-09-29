@@ -1,9 +1,12 @@
 {
-    "title": "Hệ thống quản lý tài sản Sewon Electronics",
-    "username": "Tên đăng nhập",
-    "password": "Mật khẩu",
-    "remember": "Ghi nhớ tên đăng nhập",
-    "submit": "Đăng nhập",
-    "register": "Đăng ký"
-  }
-  
+  "Login_SignUp": "Đăng kí",
+  "Login_RememberId": "아이디 저장",
+  "Login_Button": "Login",
+  "Login_EnterIdAndPassword": "아이디와 비밀번호를 입력해주세요.",
+  "Login_Failed_InvalidCredentials": "로그인 실패: 사용자 정보가 잘못되었습니다.",
+  "Login_ServerConnectionFailed": "서버 연결에 실패했습니다.",
+  "Login_Loading": "로딩 중",
+  "Login_Username": "ID",
+  "Login_AppTitle": "Hệ thống quản lí tài sản của điện tử Sewon",
+  "Login_Password": "Mật khẩu"
+}

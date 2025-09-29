@@ -1,0 +1,28 @@
+{
+  "Home_Title": "Home",
+  "Home_DepartmentAssetOverview": "부서 자산 현황",
+  "Home_Loading": "불러오는 중...",
+  "Home_TotalAssets": "총 자산",
+  "Home_OnLoan": "대여 중",
+  "Home_Unit_Count": "개",
+
+  "Home_DepartmentAuditProgress": "부서 실사 진행 현황",
+  "Home_AuditTargetLabel": "실사 대상:",
+  "Home_AuditCompleted": "완료된 실사",
+  "Home_AuditIncomplete": "미완료 실사",
+  "Home_CompletionRate": "완료율",
+
+  "Home_AssetCategoryDistribution": "자산 카테고리별 분포",
+  "Home_ITEquipment": "IT 장비",
+  "Home_Furniture": "가구",
+  "Home_OfficeSupplies": "사무용품",
+  "Home_Facilities": "설비",
+  "Home_Others": "기타",
+
+  "Home_MonthlyLoanReturnTrend": "월별 대여·반납 추이",
+  "Home_LoanCount": "대여 건수",
+  "Home_ReturnCount": "반납 건수",
+  "Home_AuditCompletionRate": "실사 완료율",
+  "Home_Completed": "완료",
+  "Home_Incomplete": "미완료"
+}

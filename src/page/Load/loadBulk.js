@@ -1,96 +1,54 @@
 import React, { useState, useEffect } from 'react';
+import {useTranslation} from 'react-i18next';
 import * as XLSX from 'xlsx';
 import './loadBulk.css';
 import useMediaQuery from '../../utils/hooks/useMediaQuery';
 import { createRoot } from 'react-dom/client';
 import LabelPrint from '../MyInfor/LabelPrint';
 import { authFetchWithRefresh } from '../../utils/authFetchWithRefresh';
+import { getUILang, uiToI18n } from '../../utils/lang/pref';
 
 // ✅ API 주소 상수 정의
 const API_BASE = window._env_?.REACT_APP_API_URL || 'http://localhost:8888';
 
-const openLabelPrintWindow = (assets) => {
-  const printWindow = window.open('', '_blank', 'width=900,height=700');
-  if (!printWindow) return alert('팝업 차단을 해제해주세요.');
+// ✅ bulk 인쇄용 (QR=10mm, 오른쪽으로 살짝 이동)
+// ✅ bulk 인쇄용 — QR 10mm, 세로 이동 0mm(안잘림), 가로만 +로 조절
+const openLabelPrintWindow = (assets, t) => {
+  const w = window.open('', '_blank', 'width=900,height=700');
+  if (!w) return alert(t('LoadBulk_DisablePopupBlocker'));
 
-  printWindow.document.write(`
+  // ← 여기 숫자만 바꾸면 됩니다.
+ const OFFSET_X_MM = 1.8;   
+const OFFSET_Y_MM = 1.6;   
+
+  w.document.write(`
     <html>
       <head>
         <title>라벨 인쇄</title>
         <style>
-          @page {
-            size: 40mm 15mm;
-            margin: 0;
-          }
-          html, body {
-            margin: 0;
-            padding: 0;
-            width: 40mm;
-            height: 15mm;
-          }
-          .label-print-wrapper {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            justify-content: flex-start;
-            width: 40mm;
-            height: 15mm;
-            margin: 0;
-            padding: 0;
-          }
+          @page { size: 40mm 15mm; margin: 0; }
+          @media print { body { margin: 0; } }
+          html, body { width:40mm; height:15mm; margin:0; padding:0; font-family:Arial, sans-serif; }
+
+          .label-print-wrapper { display:flex; flex-direction:column; width:40mm; height:15mm; margin:0; padding:0; }
           .label-box {
-            width: 40mm;
-            height: 15mm;
-            display: flex;
-            align-items: center;
-            background: white;
-            page-break-after: always;
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+            width:40mm; height:15mm; display:flex; align-items:center;
+            box-sizing:border-box; page-break-after:always; margin:0;
+            /* transform 삭제! → 잘림 방지 */
+            padding-left:${1.6 + OFFSET_X_MM}mm;  /* 기본 1.6mm + X 오프셋 */
+            padding-top:${OFFSET_Y_MM}mm;         /* Y 오프셋(0 이상 권장) */
           }
-          .qr-section {
-            width: 13mm;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+
+          .qr-section { width:12mm; height:100%; display:flex; justify-content:center; align-items:center; }
+          /* 무엇으로 렌더되든 QR은 10mm 고정 */
+          .qr-section > canvas, .qr-section > img, .qr-section > * {
+            width:10mm !important; height:10mm !important;
           }
-          .qr-canvas {
-            width: 11.5mm !important;
-            height: 11.5mm !important;
-          }
-          .info-section {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            padding-left: 1.5mm;
-          }
-          .logo-wrapper {
-            width: 100%;
-            display: flex;
-            justify-content: flex-start;
-            margin-bottom: 0.3mm;
-          }
-          .logo {
-            display: block;
-            max-width: 32mm;
-            height: 5.5mm;
-            object-fit: contain;
-            margin: 0;
-            padding: 0;
-          }
-          .text-line {
-            font-size: 2.2mm;
-            font-family: 'Arial', sans-serif;
-            margin: 0;
-            padding: 0;
-            white-space: nowrap;
-            color: black;
-          }
-          .barcode-text {
-            font-size: 2.6mm;
-            font-weight: bold;
-          }
+
+          .info-section { display:flex; flex-direction:column; justify-content:center; align-items:flex-start; padding-left:1.7mm; flex:1; }
+          .text-line   { font-size:2.0mm; line-height:2.35mm; margin:0; white-space:nowrap; color:#000; }
+          .barcode-text{ font-size:2.4mm; line-height:2.35mm; font-weight:700; text-align:left; align-self:flex-start; margin:0.2mm 0 0.1mm; }
+          .category-line{ font-size:2.0mm; line-height:2.2mm; max-width:25mm; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
         </style>
       </head>
       <body>
@@ -98,39 +56,61 @@ const openLabelPrintWindow = (assets) => {
       </body>
     </html>
   `);
-  printWindow.document.close();
+  w.document.close();
 
-  const interval = setInterval(() => {
-    const container = printWindow.document.getElementById('print-root');
-    if (container) {
-      clearInterval(interval);
-      const root = createRoot(container);
-      root.render(
-        <LabelPrint
-          selectedAssets={assets}
-          onAllImagesLoaded={() => {
-            printWindow.focus();
-            printWindow.print();
-            printWindow.close();
-          }}
-        />
-      );
-    }
+ const timerId = setInterval(() => {
+    const mount = w.document.getElementById('print-root');
+    if (!mount) return;
+    clearInterval(timerId);
+
+    let printed = false;
+    const safePrint = () => {
+      if (printed) return; printed = true; w.focus(); w.print(); w.close();
+    };
+
+    const root = createRoot(mount);
+    root.render(<LabelPrint selectedAssets={assets} onAllImagesLoaded={safePrint} />);
+    setTimeout(safePrint, 500); // 백업
   }, 100);
 };
 
-const TABLE_HEADERS = [
-  '회사구분', '부서구분', '세부위치', '취득구분', '자산분류',
-  '품목', '자산상태', '제조사', '모델', '취득일자', '취득가', '등록자',
-  'CPU', 'RAM', '그래픽카드', '총 저장공간(GB)' // ✅ 추가됨
-];
-//const EXCEL_HEADERS = TABLE_HEADERS.slice(0, -1); // 등록자 제외
-const EXCEL_HEADERS = [
-  '회사구분', '부서구분', '세부위치', '취득구분', '자산분류',
-  '품목', '자산상태', '제조사', '모델', '취득일자', '취득가', '등록자',
-  'CPU', 'RAM', '그래픽카드', '총 저장공간(GB)'
-];
+
+
+
+// const TABLE_HEADERS = [
+//   '회사구분', '부서구분', '세부위치', '취득구분', '자산분류',
+//   '품목', '자산상태', '제조사', '모델', '취득일자', '취득가', '등록자',
+//   'CPU', 'RAM', '그래픽카드', '총 저장공간(GB)' // ✅ 추가됨
+// ];
+// //const EXCEL_HEADERS = TABLE_HEADERS.slice(0, -1); // 등록자 제외
+// const EXCEL_HEADERS = [
+//   '회사구분', '부서구분', '세부위치', '취득구분', '자산분류',
+//   '품목', '자산상태', '제조사', '모델', '취득일자', '취득가', '등록자',
+//   'CPU', 'RAM', '그래픽카드', '총 저장공간(GB)'
+// ];
 //const LOGIN_USER = '홍길동';
+
+// i18n 기반 헤더들 (렌더 시점마다 t로 생성)
+const makeTableHeaders = (t) => ([
+  t('LoadBulk_CompanyType'),
+  t('LoadBulk_DepartmentType'),
+  t('LoadBulk_DetailLocation'),
+  t('LoadBulk_AcquisitionType'),
+  t('LoadBulk_AssetCategory'),
+  t('LoadBulk_Item'),
+  t('LoadBulk_AssetStatus'),
+  t('LoadBulk_Manufacturer'),
+  t('LoadBulk_Model'),
+  t('LoadBulk_AcquisitionDate'),
+  t('LoadBulk_AcquisitionCost'),
+  t('LoadBulk_Registrar'),
+  'CPU',
+  'RAM',
+  t('LoadBulk_GraphicsCard'),
+  t('LoadBulk_TotalStorageGB'),
+]);
+
+const makeExeclHeaders = makeTableHeaders;
 
 
 
@@ -153,7 +133,13 @@ const DUMMY_ASSET_MAP   = {  }
 // 🔑  자산분류·품목 → id 매핑용
 
 
-const LoadBulk = () => {
+ const LoadBulk = () => {
+ const { t, i18n } = useTranslation('loadbulk');
+ const langI18n = i18n.language || 'ko'; // 'ko' | 'zh' | 'vi'
+   const langUI = getUILang();          // 'KR' | 'CN' | 'VN'
+  const TABLE_HEADERS = makeTableHeaders(t);
+  const EXCEL_HEADERS = makeExeclHeaders(t);
+
   //db에서 가져오는 정보들을 맵핑하기 위한 정보
   const [companyMap,        setCompanyMap]        = useState(DUMMY_COMPANY_MAP);
    const [assetCategoryMap,  setAssetCategoryMap]  = useState(DUMMY_ASSET_MAP);
@@ -249,6 +235,7 @@ const LoadBulk = () => {
   };
 
   const isMobile = useMediaQuery('(max-width: 768px)');
+  const modeClass = isMobile ? 'pda-mode' : 'web-mode';
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -285,46 +272,46 @@ const LoadBulk = () => {
            const validStatusTypes = ['사용', '미사용'];
 
       
-        if (!newRow[5]) rowError.push('품목 누락');
+        if (!newRow[5]) rowError.push(t('LoadBulk_Error_MissingItem'));
       
         if (!(company in companyMap)) {
-          rowError.push('회사구분 오류');
+         rowError.push(t('LoadBulk_Error_CompanyType'));
         } else if (!(department in companyMap[company])) {
-          rowError.push('부서구분 오류');
+          rowError.push(t('LoadBulk_Error_DepartmentType'));
         } else if (!companyMap[company][department].some(loc => loc.name === location)) {
-          rowError.push('세부위치 오류');
+          rowError.push(t('LoadBulk_Error_DetailLocation'));
         }
       
         if (!(category in assetCategoryMap)) {
-          rowError.push('자산분류 오류');
+          rowError.push(t('LoadBulk_Error_AssetCategory'));
         } else if (!assetCategoryMap[category].includes(item)) {
-          rowError.push('품목 오류');
+          rowError.push(t('LoadBulk_Error_Item'));
         }
       
          // 취득구분 체크
  if (!newRow[3] || String(newRow[3]).trim() === '') {
-   rowError.push('취득구분 누락');
+   rowError.push(t('LoadBulk_Error_MissingAcquisitionType'));
  } else if (!validAcquisitionTypes.includes(newRow[3])) {
-   rowError.push('취득구분은 "구매자산" 또는 "이관자산"만 입력');
+   rowError.push(t('LoadBulk_Error_AcquisitionTypeConstraint'));
  }
 
  // 자산상태 체크
  if (!newRow[6] || String(newRow[6]).trim() === '') {
-   rowError.push('자산상태 누락');
+   rowError.push(t('LoadBulk_Error_MissingAssetStatus'));
  } else if (!validStatusTypes.includes(newRow[6])) {
-   rowError.push('자산상태는 "사용" 또는 "미사용"만 입력');
+   rowError.push(t('LoadBulk_Error_AssetStatusConstraint'));
  }
    // 1️⃣ 빈칸 먼저 체크
 if (!newRow[9] || String(newRow[9]).trim() === '') {
-  rowError.push('취득일자 누락');
+  rowError.push(t('LoadBulk_Error_MissingAcquisitionDate'));
 } else if (!dateRegex.test(newRow[9]) || isNaN(Date.parse(newRow[9]))) {
-  rowError.push('날짜 형식 오류');
+  rowError.push(t('LoadBulk_Error_InvalidDateFormat'));
 }
 
 if (!newRow[10] || String(newRow[10]).trim() === '') {
-  rowError.push('취득가 누락');
+   rowError.push(t('LoadBulk_Error_MissingAcquisitionCost'));
 } else if (!/^\d+$/.test(newRow[10])) {
-  rowError.push('취득가 숫자 아님');
+  rowError.push(t('LoadBulk_Error_AcquisitionCostNotNumber'));
 }
 
       
@@ -332,12 +319,12 @@ if (!newRow[10] || String(newRow[10]).trim() === '') {
         if (['노트북', '컴퓨터'].includes(item)) {
 // RAM: 입력했으면 숫자인지 확인
 if (newRow[13] && !/^\d+$/.test(String(newRow[13]).trim())) {
-  rowError.push('RAM 숫자 아님');
+  rowError.push(t('LoadBulk_Error_RamNotNumber'));
 }
 
 // 저장공간: 입력했으면 숫자인지 확인
 if (newRow[15] && !/^\d+$/.test(String(newRow[15]).trim())) {
-  rowError.push('저장공간 숫자 아님');
+  rowError.push(t('LoadBulk_Error_StorageNotNumber'));
 }
           //if (!newRow[12] || String(newRow[12]).trim() === '') rowError.push('CPU 누락'); 
           //if (!newRow[13] || String(newRow[13]).trim() === '') rowError.push('메모리 누락');
@@ -347,7 +334,7 @@ if (newRow[15] && !/^\d+$/.test(String(newRow[15]).trim())) {
 
         // ✅ 등록자 필수
 if (!newRow[11] || String(newRow[11]).trim() === '') {
-  rowError.push('등록자 누락');
+  rowError.push(t('LoadBulk_Error_MissingRegistrar'));
 }
       
         if (rowError.length > 0) {
@@ -388,7 +375,7 @@ if (!newRow[11] || String(newRow[11]).trim() === '') {
 
   const handleDelete = () => {
     if (selectedRows.length === 0) {
-      alert('삭제할 행을 선택하세요.');
+      alert(t('LoadBulk_SelectRowsToDelete'));
       return;
     }
     const newData = tableData.filter((_, idx) => !selectedRows.includes(idx));
@@ -401,7 +388,7 @@ if (!newRow[11] || String(newRow[11]).trim() === '') {
 
   const handleRegister = async () => {
     if (tableData.length === 0) {
-      alert('양식 업로드 후 등록하기를 눌러주세요.');
+      alert(t('LoadBulk_PressRegisterAfterUpload'));
       return;
     }
   
@@ -410,7 +397,7 @@ if (!newRow[11] || String(newRow[11]).trim() === '') {
       : tableData.filter((_, idx) => !rowErrors[idx]);
   
     if (validRows.length === 0) {
-      alert('등록 가능한 데이터가 없습니다.');
+      alert(t('LoadBulk_NoRegistrableData'));
       return;
     }
   
@@ -454,9 +441,15 @@ if (!newRow[11] || String(newRow[11]).trim() === '') {
         //   body: JSON.stringify({ list: generalRows.map(mapRowToBackend) }),
         // });
        //  console.log('📦 [POST /assets/bulk] payload:', JSON.stringify(payload, null, 2));
+ const langUI = getUILang();                // 'KR'|'CN'|'VN'
+ const langI18n = uiToI18n(langUI);        // 'ko'|'zh'|'vi'
  const res = await authFetchWithRefresh(`${API_BASE}/assets/bulk`, {
    method: 'POST',
-   headers: { 'Content-Type': 'application/json' },
+   headers: {
+     'Content-Type': 'application/json',
+     'Accept-Language': langI18n,
+     'language': langUI,
+   },
    body: JSON.stringify({ list: payload }),
  });
  //console.log('📡 [POST /assets/bulk] fetch 응답:', res);
@@ -486,7 +479,11 @@ if (!newRow[11] || String(newRow[11]).trim() === '') {
         // const res = await authFetchWithRefresh('http://192.168.0.220:8888/assets/electronic/bulk', {
           const res = await authFetchWithRefresh(`${API_BASE}/assets/electronic/bulk`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+             headers: {
+     'Content-Type': 'application/json',
+     'Accept-Language': langI18n,
+     'language': langUI,
+   },
           body: JSON.stringify(payload),
           //body: JSON.stringify({ list: electronicRows.map(mapRowToBackend) }),
         });
@@ -505,11 +502,11 @@ if (!newRow[11] || String(newRow[11]).trim() === '') {
       }
       
       if (allRegisteredAssets.length > 0) {
-        alert(`✅ ${allRegisteredAssets.length}건 등록 완료!`);
-        openLabelPrintWindow(allRegisteredAssets);
+        alert(`✅ ${allRegisteredAssets.length}${t('LoadBulk_RegisteredSuffix')}`);
+        openLabelPrintWindow(allRegisteredAssets, t);
         handleReset();
       } else {
-        alert(`❌ 등록 실패: ${lastResponseMessage || '알 수 없는 오류'}`);
+        alert('❌ ' + t('LoadBulk_RegisterFailed') + (lastResponseMessage || ''));
       }
   
     } catch (err) {
@@ -532,7 +529,7 @@ if (!newRow[11] || String(newRow[11]).trim() === '') {
       console.groupEnd();
 
       // 사용자 알림
-      alert(`🚨 서버 전송 실패: ${msg}`);
+      alert('🚨 ' + t('LoadBulk_ServerSendFailed') + msg);
     }
   };
   const mapRowToBackend = (row) => {
@@ -649,25 +646,25 @@ const formatDataForJson = (data) => {
 
   const handleDownloadTemplate = () => {
     const exampleRow = [
-      '세원전자',        // 회사구분
-      '전산운영',        // 부서구분
-      '전산실',          // 세부위치
-      '구매자산 또는 이관자산(2가지만 작성해야됨)',    // 취득구분
-      '전자자산',             // 자산분류
-      '노트북',          // 품목
-      '사용 또는 미사용(2가지만 작성해야됨)',            // 자산상태
-      '삼성',            // 제조사
-      'NT500R5W',       // 모델
-      '2024-01-15',     // 취득일자
-      '1200000',        // 취득가
-      '홍길동',          // 등록자
-      'i5-1135G7',      // ✅ CPU
-      '16',           // ✅ RAM
-      'Intel Iris Xe',  // ✅ 그래픽카드
-      '512'             // ✅ 저장공간(GB)
+      t('LoadBulk_SewonElectronics'),
+      t('LoadBulk_ITOperations'),
+      t('LoadBulk_DataCenter'),
+      t('LoadBulk_PurchasedOrTransferredOnly'),
+      t('LoadBulk_ElectronicAsset'),
+      t('LoadBulk_Laptop'),
+      t('LoadBulk_InUseOrNotUseOnly'),
+      t('LoadBulk_Manufacturer'),
+      t('LoadBulk_Model'),
+      '2024-01-15',
+      '1200000',
+      t('LoadBulk_Registrar'),
+      'i5-1135G7',
+      '16',
+      t('LoadBulk_GraphicsCard'),
+      '512'
     ];
 
-    const warningRow = ['⚠️ 이 줄은 예시입니다. 업로드 전에 반드시 삭제해주세요. 오타나지않게 작성해주세요'];
+   const warningRow = ['⚠️ ' + t('LoadBulk_SampleRowWarning')];
     
     
     const worksheet = XLSX.utils.aoa_to_sheet([
@@ -692,26 +689,26 @@ const getFixedRow = (row) => {
 
 
   return (
-    <div className="bulk-container">
-      <h2>자산 일괄 등록</h2>
+    <div className={`bulk-container ${modeClass}`}>
+      <h2>{t('LoadBulk_Title')}</h2>
 
-      {rowErrors.filter(e => !!e).length > 0 && (
-  <div className="error-summary">
-    ⚠️ 총 {rowErrors.filter(e => !!e).length}건의 오류가 있습니다. 빨간 줄과 오른쪽 메시지를 확인하세요.
-  </div>
-)}
+ {rowErrors.filter(Boolean).length > 0 && (
+   <div className="error-summary">
+     ⚠️ {t('LoadBulk_ErrorsFoundSummary_Prefix')} {rowErrors.filter(Boolean).length}{t('LoadBulk_ErrorsFoundSummary_Suffix')}
+   </div>
+ )}
 
 
   <div className="bulk-top-controls">
     <div className="controls-left">
-      <button className="btn primary" onClick={handleDownloadTemplate}>양식 내려받기</button>
-      <input type="text" placeholder="파일명" value={fileName} readOnly className="file-name-input" />
-      <label htmlFor="file-upload" className="btn upload">양식 업로드</label>
+      <button className="btn primary" onClick={handleDownloadTemplate}>{t('LoadBulk_DownloadTemplate')}</button>
+      <input type="text" placeholder={t('LoadBulk_FileName')} value={fileName} readOnly className="file-name-input" />
+      <label htmlFor="file-upload" className="btn upload">{t('LoadBulk_UploadTemplate')}</label>
       <input id="file-upload" type="file" hidden onChange={handleFileChange} />
     </div>
 
     <div className="controls-right">
-      <button className="btn danger" onClick={handleDelete}>삭제하기</button>
+      <button className="btn danger" onClick={handleDelete}>{t('LoadBulk_Delete')}</button>
       <button
         className={
           `btn success` +
@@ -720,9 +717,9 @@ const getFixedRow = (row) => {
         onClick={handleRegister}
         disabled={selectedRows.length > 0 ? selectedRows.every(idx => !!rowErrors[idx]) : !isValid}
       >
-        등록하기
+        {t('LoadBulk_Register')}
       </button>
-      <button className="btn gray" onClick={handleReset}>초기화</button>
+      <button className="btn gray" onClick={handleReset}>{t('LoadBulk_Reset')}</button>
     </div>
 
     {selectedRows.length > 0 && selectedRows.some(idx => !!rowErrors[idx]) && (
@@ -731,6 +728,19 @@ const getFixedRow = (row) => {
       </div>
     )}
   </div>
+{isMobile && (
+  <div className="mobile-select-all">
+    <label>
+      <input
+        type="checkbox"
+        onChange={handleSelectAll}
+        checked={isAllSelected}
+      />
+      {t('LoadBulk_SelectAll')}
+    </label>
+  </div>
+)}
+
 
       {/* <table className="bulk-table">
         <thead>
@@ -782,14 +792,14 @@ const getFixedRow = (row) => {
        />
      </th>
         {TABLE_HEADERS.map((header, idx) => <th key={idx}>{header}</th>)}
-        <th>에러 원인</th>
+        <th>{t('LoadBulk_ErrorCause')}</th>
       </tr>
     </thead>
     <tbody>
       {/* 실제 데이터만 출력 */}
       {tableData.length === 0 ? (
-        <tr>
-          <td colSpan={TABLE_HEADERS.length + 2}>업로드된 데이터가 없습니다.</td>
+<tr>
+          <td colSpan={TABLE_HEADERS.length + 2}>{t('LoadBulk_NoUploadedData')}</td>
         </tr>
       ) : (
         tableData.map((row, idx) => (
@@ -824,45 +834,37 @@ const getFixedRow = (row) => {
 )}
 
 
-{/* === 📱 카드형 목록 (모바일 전용) === */}
-{isMobile && (
-    <div className="bulk-card-list">
-      {/* ✅ 모바일 전체 선택 */}
-      <div className="mobile-select-all">
-        <label>
-          <input
-            type="checkbox"
-            onChange={handleSelectAll}
-            checked={isAllSelected}
-          /> 전체 선택
-        </label>
-      </div>
-    {tableData.length === 0 ? (
-      <p>업로드된 데이터가 없습니다.</p>
-    ) : (
-      tableData.map((row, idx) => (
-        <div key={idx} className={`bulk-card ${rowErrors[idx] ? 'row-error' : ''}`}>
-          <div className="card-header">
-            <input
-              type="checkbox"
-              checked={isRowSelected(idx)}
-              onChange={() => handleSelectRow(idx)}
-            />
-            <strong>등록자:</strong> {row[11]}
-          </div>
-          {TABLE_HEADERS.slice(0, 12).map((header, i) => (
-            <div key={i} className="card-row">
-            <strong>{header}:</strong> {row[i]}
-            </div>
-          ))}
-          {rowErrors[idx] && (
-            <div className="error-text">⚠️ {rowErrors[idx]}</div>
-          )}
-        </div>
-      ))
-    )}
-  </div>
+ {/* === 📱 카드형 목록 (모바일 전용) === */}
+ {isMobile && (
+   <div className="bulk-card-list">
+     {tableData.length === 0 ? (
+       <p>{t('LoadBulk_NoUploadedData')}</p>
+     ) : (
+       tableData.map((row, idx) => (
+         <div key={idx} className={`bulk-card ${rowErrors[idx] ? 'row-error' : ''}`}>
+           {/* 체크박스 왼쪽 고정 */}
+           <div className="card-header">
+             <input
+               type="checkbox"
+               checked={isRowSelected(idx)}
+               onChange={() => handleSelectRow(idx)}
+             />
+           </div>
+           {/* 등록자(11번) 제외, 2열 가로 배치 */}
+           <div className="card-body">
+             {TABLE_HEADERS.slice(0, 11).map((header, i) => (
+               <div key={i} className="card-row">
+                 <strong>{header}:</strong>&nbsp;<span>{row[i]}</span>
+               </div>
+             ))}
+           </div>
+           {rowErrors[idx] && <div className="error-text">⚠️ {rowErrors[idx]}</div>}
+         </div>
+       ))
+     )}
+   </div>
 )}
+
 
 
 

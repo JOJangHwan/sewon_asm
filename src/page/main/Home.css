@@ -375,4 +375,44 @@
   }
 }
 
+/* Sidebar.css */
+
+/* 아이템 한 줄 배치 */
+.sidebar-item{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+/* 아이콘은 고정폭 */
+.sidebar-icon{ flex:0 0 44px; }
+.sidebar-icon img{
+  width:32px;
+  height:32px;
+}
+
+/* 라벨 줄바꿈 허용 (핵심) */
+
+.sidebar-label{
+  flex:1 1 auto;
+  min-width:0;              /* ← flex overflow 방지 */
+  white-space:normal;       /* 줄바꿈 허용 */
+  overflow-wrap:anywhere;   /* 긴 단어도 강제 줄바꿈 */
+  line-height:1.25;
+}
+
+/* 모바일에서 사이드바 폭 여유 있게 */
+@media (max-width:768px){
+  .sidebar.open{
+    width:clamp(220px, 76vw, 280px);
+  }
+  /* 하위메뉴도 줄바꿈 허용 */
+  .submenu{
+    white-space:normal;
+    overflow-wrap:anywhere;
+    max-width:72vw;
+  }
+}
+
+
   

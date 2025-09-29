@@ -1,6 +1,9 @@
 import React, { useContext,useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
+import { useTranslation } from 'react-i18next';
+import { getUILang, uiToI18n } from '../../utils/lang/pref';
+
 import homeImg from '../../assets/img/home.png';
 import uploadImg from '../../assets/img/upload.png';
 import searchImg from '../../assets/img/search.png';
@@ -12,8 +15,23 @@ import AssetTransImg from '../../assets/img/a.png';
 import AdminIconImg from '../../assets/img/adminIcon.jpg';
 import { UserContext } from '../../utils/UserContext';
 
+// 모든 요청에 언어 헤더 자동 부착
+const withLang = (opts = {}) => {
+  const ui = getUILang();           // 'KR' | 'CN' | 'VN'
+  const lng = uiToI18n(ui);         // 'ko' | 'zh' | 'vi'
+  return {
+    ...opts,
+    headers: {
+      ...(opts.headers || {}),
+      'X-Client-Lang': lng,
+      'X-Client-Lang-UI': ui,
+    },
+  };
+};
+
 
 function Sidebar({ isSidebarOpen, toggleSidebar }) {
+  const { t } = useTranslation('Sidebar');
   const navigate = useNavigate();
   const location = useLocation();
   const [hoveredMenu, setHoveredMenu] = useState(null);
@@ -22,29 +40,39 @@ function Sidebar({ isSidebarOpen, toggleSidebar }) {
   if (!user) return null;
   //console.log(user)
   const menuItems = [
-    { path: '/main', icon: homeImg, label: '홈' },
+    { path: '/main', icon: homeImg, label: t('Sidebar_Home') },
     {
-      label: '등록',
+      label: t('Sidebar_Register'),
       icon: uploadImg,
       subMenus:[
-        { path: '/load/single',label: '개별등록'},
-        { path: '/load/bulk', label: '일괄등록'},
-        { path: '/load/disposal', label: '폐기등록'}
+        { path: '/load/single',label: t('Sidebar_AssetRegister')},
+        { path: '/load/bulk', label: t('Sidebar_LoadBulk')},
+        { path: '/load/disposal', label: t('Sidebar_DisposalRegister')}
       ]
     },
-    { path: '/search', icon: searchImg, label: '조회' },
+    { path: '/search', icon: searchImg, label: t('Sidebar_Search') },
     { 
-      label: '실사',
+      label: t('Sidebar_Audit'),
       icon: auditImg,
       subMenus: [
-        { path: '/audit/upload', label: '실사 등록' },
-        { path: '/audit/list', label: '실사 조회' },
+        { path: '/audit/upload', label: t('Sidebar_AuditRegister') },
+        { path: '/audit/list', label: t('Sidebar_AuditSearch') },
+      ],
+    },
+        { 
+      label: t('Sidebar_AssetAssignTransfer'),
+      icon: RegisterCorpAndItemImg,
+      subMenus: [
+        { path: '/RegisterCorpAndItem', label: t('Sidebar_RegisterCorpAndItem') },
+        { path: '/DualTransferSimple', label: t('Sidebar_TransferRegister') },
+         { path: '/AssetRegistrarChange', label: t('Sidebar_ChangeRegistrar') },
       ],
     },
     // { path: '/report', icon: reportImg, label: '보고서' },
-    { path: '/RegisterCorpAndItem', icon: RegisterCorpAndItemImg, label: '법인 및 품목등록' },
-    { path: '/DualTransferSimple', icon: AssetTransImg, label: '이관 등록' },
-    { path: '/profile', icon: myInforImg, label: '내정보' },
+    // { path: '/RegisterCorpAndItem', icon: RegisterCorpAndItemImg, label: '법인 및 자산분류 등록' },
+    // { path: '/DualTransferSimple', icon: AssetTransImg, label: '이관 등록' },
+    // { path: '/AssetRegistrarChange', icon: AssetTransImg, label: '자산 등록자 변경' },
+    { path: '/profile', icon: myInforImg, label: t('Sidebar_Profile') },
       ...(user.username === 'admin'
        ? [{
          label: '관리자',

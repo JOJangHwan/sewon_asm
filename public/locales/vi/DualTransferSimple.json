@@ -1,0 +1,28 @@
+{
+  "DualTransferSimple_Company": "회사",
+  "DualTransferSimple_SearchFailed": "조회 실패",
+  "DualTransferSimple_AssetCategory": "자산분류",
+  "DualTransferSimple_Title": "이관등록",
+  "DualTransferSimple_ItemName": "품명",
+  "DualTransferSimple_Search": "검색",
+  "DualTransferSimple_SearchBarcode": "바코드조회",
+  "DualTransferSimple_ItemsToMove": "이동할 품목",
+  "DualTransferSimple_ItemsMoved": "이동한 품목",
+
+  "DualTransferSimple_NeedFromAndTo": "from과 to를 다 선택해야지 클릭이 됩니다.",
+  "DualTransferSimple_EnterBarcode": "바코드를 입력하세요.",
+  "DualTransferSimple_AssetNotFoundByBarcode": "해당 바코드의 자산을 찾을 수 없습니다.",
+  "DualTransferSimple_AlreadyAdded": "이미 추가된 자산입니다.",
+  "DualTransferSimple_Error_BarcodeLookup": "바코드 조회 중 오류 발생!",
+  "DualTransferSimple_MustSelectAllForSearch": "회사, 부서, 세부위치를 모두 선택해야 검색할 수 있습니다.",
+  "DualTransferSimple_ServerError": "서버 오류 발생",
+  "DualTransferSimple_NetworkError": "네트워크 오류!",
+  "DualTransferSimple_SelectItemsAndDest": "이동할 품목, 회사/부서/세부위치를 선택하세요.",
+  "DualTransferSimple_InvalidDestDetailLocation": "이관 대상 세부위치가 올바르지 않습니다.",
+  "DualTransferSimple_TransferCompleted": "이관 완료!",
+  "DualTransferSimple_TransferErrorLabel": "이관 중 오류: ",
+
+  "DualTransferSimple_DetailLocation": "세부위치",
+  "DualTransferSimple_Department": "부서",
+  "DualTransferSimple_BarcodeInput": "바코드 입력"
+}

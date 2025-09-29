@@ -64,7 +64,7 @@
 
 //   return response;
 // };
-
+import { getUILang, uiToI18n } from './lang/pref';
 import { getAccessToken, getRefreshToken, saveTokens, clearTokens } from './token';
 import { jwtDecode } from 'jwt-decode';
 const API_BASE = window._env_?.REACT_APP_API_URL || 'http://localhost:8080';
@@ -102,6 +102,10 @@ export const authFetchWithRefresh = async (url, options = {}) => {
             'Authorization-a': extract(accessToken),
              'Authorization-r': extract(refreshToken),
           'Content-Type': 'application/json',
+              'Content-Type': 'application/json',
+    // ✅ 언어 헤더 공통 적용(KR/CN/VN 유지)
+    language: getUILang(),
+    'Accept-Language': getUILang(),
         },
       });
 

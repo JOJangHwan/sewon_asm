@@ -1,0 +1,18 @@
+{
+  "Sidebar_Home": "开始地点",
+  "Sidebar_AssetRegister": "个别登录",
+  "Sidebar_LoadBulk": "全数登录",
+  "Sidebar_DisposalRegister": "废弃登录",
+  "Sidebar_Audit": "点库",
+  "Sidebar_AuditRegister": "登录点库",
+  "Sidebar_AuditSearch": "查询点库",
+
+  "Sidebar_Profile": "个人信息",
+  "Sidebar_Search": "查询",
+  "Sidebar_TransferRegister": "登录移管",
+  "Sidebar_Register": "登录",
+
+  "Sidebar_AssetAssignTransfer": "资产设置·分配/移交",
+  "Sidebar_RegisterCorpAndItem": "组织·资产分类注册",
+  "Sidebar_ChangeRegistrar": "资产注册者变更"
+}

@@ -1,0 +1,15 @@
+{
+  "MyInfoModal_CompanyType": "区分公司",
+  "MyInfoModal_Name": "名称",
+  "MyInfoModal_Id": "用户",
+  "MyInfoModal_Edit": "修正",
+  "MyInfoModal_Password": "密码",
+  "MyInfoModal_DepartmentType": "部门区分",
+  "MyInfoModal_EditMyInfo": "修改我的信息",
+  "MyInfoModal_Error_InvalidDepartmentSelection": "选择的部门不正确",
+  "MyInfoModal_NoChanges": "无变更内容",
+  "MyInfoModal_InfoUpdateCompleted": "信息修正完了",
+  "MyInfoModal_Error_TokenRefreshFailed_PleaseLogin": "失败接受认证用信息。请再登录",
+  "MyInfoModal_Error_NoToken_PleaseLogin": "无认证用信息。请再登录",
+  "MyInfoModal_Close": "关闭"
+}

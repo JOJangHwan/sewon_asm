@@ -1,0 +1,32 @@
+{
+  "DisposalRegister_Reset": "초기화",
+  "DisposalRegister_First": "처음",
+  "DisposalRegister_Prev": "이전",
+  "DisposalRegister_UnknownError": "알 수 없는 오류",
+  "DisposalRegister_Select": "선택",
+  "DisposalRegister_Delete": "삭제",
+  "DisposalRegister_BarcodeInput": "바코드 입력",
+  "DisposalRegister_Barcode": "바코드",
+  "DisposalRegister_Title": "자산 폐기 등록",
+  "DisposalRegister_Add": "추가",
+  "DisposalRegister_DisposeSelected": "선택 폐기",
+  "DisposalRegister_DeleteSelected": "선택 삭제",
+
+  "DisposalRegister_Legend_SuccessGreen_FailRed": "✅ 초록색은 성공, ❌ 빨간색은 실패입니다.",
+    "DisposalRegister_Legend_Green": "초록색",
+    "DisposalRegister_Legend_Text_Middle": "은 성공, ",
+    "DisposalRegister_Legend_Red": "빨간색",
+    "DisposalRegister_Legend_Text_End": "은 실패입니다.",
+
+  "DisposalRegister_TotalRegisteredLabel": "총 등록: ",
+  "DisposalRegister_SuccessLabel": "성공: ",
+  "DisposalRegister_FailLabel": "실패: ",
+  "DisposalRegister_Count": "개",
+  "DisposalRegister_PleaseSelectItemsToDispose": "폐기할 항목을 선택하세요.",
+  "DisposalRegister_AlreadyRegisteredBarcode": "이미 등록된 바코드입니다.",
+  "DisposalRegister_ConfirmReset": "정말 초기화하시겠습니까?",
+  "DisposalRegister_CheckDisposeResult": "폐기 요청 결과를 확인하세요.",
+  "DisposalRegister_ErrorLabel": "오류: ",
+  "DisposalRegister_Next": "다음",
+  "DisposalRegister_End": "끝"
+}

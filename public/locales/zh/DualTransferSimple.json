@@ -1,0 +1,28 @@
+{
+  "DualTransferSimple_Company": "公司",
+  "DualTransferSimple_SearchFailed": "查询失败",
+  "DualTransferSimple_AssetCategory": "资产分类",
+  "DualTransferSimple_Title": "登录移管",
+  "DualTransferSimple_ItemName": "品名",
+  "DualTransferSimple_Search": "查询",
+  "DualTransferSimple_SearchBarcode": "查询条形码",
+  "DualTransferSimple_ItemsToMove": "需要移动的品目",
+  "DualTransferSimple_ItemsMoved": "已移动过的品目",
+
+  "DualTransferSimple_NeedFromAndTo": "需要全选from与to才可以按",
+  "DualTransferSimple_EnterBarcode": "请输入条形码",
+  "DualTransferSimple_AssetNotFoundByBarcode": "找不到此条形码的资产信息",
+  "DualTransferSimple_AlreadyAdded": "已追加的资产",
+  "DualTransferSimple_Error_BarcodeLookup": "查询条形码中出错",
+  "DualTransferSimple_MustSelectAllForSearch": "需要全选公司，部门，详细外置才可以查询",
+  "DualTransferSimple_ServerError": "服务器出错",
+  "DualTransferSimple_NetworkError": "网络出错",
+  "DualTransferSimple_SelectItemsAndDest": "请选择需要移动的品目/部门/详细位置",
+  "DualTransferSimple_InvalidDestDetailLocation": "需要移管品目的详细位置不对",
+  "DualTransferSimple_TransferCompleted": "移管完了",
+  "DualTransferSimple_TransferErrorLabel": "移管中错误： ",
+
+  "DualTransferSimple_DetailLocation": "详细位置",
+  "DualTransferSimple_Department": "选择部门",
+  "DualTransferSimple_BarcodeInput": "输入条形码"
+}

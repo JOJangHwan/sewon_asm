@@ -1,5 +1,7 @@
 // src/page/MyInfor/MyInfoPage.js
 import React, { useState, useEffect, useContext } from 'react';
+import { useTranslation } from 'react-i18next';
+import { getUILang, uiToI18n } from '../../utils/lang/pref.js';
 import { UserContext } from '../../utils/UserContext';
 import EditModal from './EditModal';
 import InfoEditModal from './MyInfoModal';
@@ -27,8 +29,53 @@ function useMediaQuery(query) {
   return matches;
 }
 
+// 화면 크기/포인터 특성으로 web/pda 모드 결정
+function useResponsiveMode() {
+  const [mode, setMode] = React.useState('web');
+  React.useEffect(() => {
+    const compute = () => {
+      const w = window.innerWidth;
+      const coarse = window.matchMedia?.('(pointer: coarse)').matches ?? false;
+      setMode((w <= 920 || (coarse && w <= 1200)) ? 'pda' : 'web');
+    };
+    compute();
+    window.addEventListener('resize', compute);
+    window.addEventListener('orientationchange', compute);
+    return () => {
+      window.removeEventListener('resize', compute);
+      window.removeEventListener('orientationchange', compute);
+    };
+  }, []);
+  return mode;
+}
+
 export default function MyInfoPage() {
+ const { t, i18n } = useTranslation('myInfor');
+    const langUI = getUILang();          // 'KR' | 'CN' | 'VN'
+     const langI18n = uiToI18n(langUI);        // 'ko'|'zh'|'vi'
+  const mode = useResponsiveMode();
   const { user } = useContext(UserContext);
+  
+  // 🔎 UserContext 소비자 측 스냅샷 로그
+  useEffect(() => {
+    if (!user) {
+      //console.log('[UserContext][MyInfoPage] user is null/undefined');
+      return;
+    }
+    //console.groupCollapsed('%c[UserContext][MyInfoPage] user snapshot', 'color:#0aa;font-weight:600;');
+    //console.log('raw user object:', user);
+    const {
+      username, name, company, department,
+      departmentId, corporationId, roles,
+      // 필요하면 추가 키도 여기서 펼쳐서 보세요
+    } = user || {};
+    // console.table([{
+    //   username, name, company, department,
+    //   departmentId, corporationId,
+    //   roles: Array.isArray(roles) ? roles.join(', ') : roles
+    // }]);
+   // console.groupEnd();
+  }, [user]);
 
   // 1) 법인 계층 (corporationList)
   const [corporations, setCorporations] = useState([]);
@@ -43,6 +90,13 @@ const [selectedCorpId, setSelectedCorpId] = useState("");
 const [selectedDeptId, setSelectedDeptId] = useState("");
 const [selectedLocId,  setSelectedLocId]  = useState("");
 
+// ✅ UserContext의 affiliationId(부서ID) 우선, 없으면 id 사용
+useEffect(() => {
+  if (!selectedDeptId && (user?.affiliationId ?? user?.id) != null) {
+    setSelectedDeptId(user.affiliationId ?? user.id);
+   // console.log("[MyInfoPage] selectedDeptId <-", user.affiliationId ?? user.id);
+  }
+}, [user, selectedDeptId]);
 
 
 // 여기에 missing!
@@ -67,6 +121,9 @@ const [selectedItemId, setSelectedItemId]         = useState("");
   const [endDate, setEndDate] = useState('');
   const [viewCount, setViewCount] = useState(30);
   const [loading, setLoading] = useState(false);// 로딩창
+  // ✅ 자산 상태(사용/미사용/폐각) 필터
+  const [statusFilter, setStatusFilter] = useState("");
+  const STATUS_CODE = { "사용": 0, "미사용": 1, "폐각": 2 };
 
   // ── 필터된 결과 & 검색 여부
   const [filteredItems, setFilteredItems] = useState([]);
@@ -92,12 +149,12 @@ const [selectedItemId, setSelectedItemId]         = useState("");
 
   // ── 내 정보
     // ── 내 정보 – Context 값 기준으로 표시
-    const userInfo = {
-      company:    user?.company     ?? localStorage.getItem('company')     ?? localStorage.getItem('corporation') ?? '미지정',
-      department: user?.department  ?? localStorage.getItem('department')  ?? '미지정',
-      name:       user?.name        ?? localStorage.getItem('name')        ?? '이름 없음',
-      id:         user?.username    ?? localStorage.getItem('username')    ?? '아이디 없음',
-    };
+  const userInfo = {
+    company:    user?.company     ?? localStorage.getItem('company')     ?? localStorage.getItem('corporation') ?? t('MyInfo_Unspecified'),
+    department: user?.department  ?? localStorage.getItem('department')  ?? t('MyInfo_Unspecified'),
+    name:       user?.name        ?? localStorage.getItem('name')        ?? t('MyInfo_NoName'),
+    id:         user?.username    ?? localStorage.getItem('username')    ?? t('MyInfo_NoId'),
+  };
     
 // 맵핑용
      const [companyData, setCompanyData] = useState({});
@@ -169,6 +226,17 @@ const [selectedItemId, setSelectedItemId]         = useState("");
           const ctxDept = user?.department || localStorage.getItem("department") || "";
           setSelectedCorp(ctxCorp);
           setSelectedDept(ctxDept);
+        // 🔽 이름 → ID 매핑 (selectedCorpId, selectedDeptId 채우기)
+         // 1) 법인 ID
+         const corpEntryByName = list.find(c => c.name === ctxCorp);
+         if (corpEntryByName) {
+           setSelectedCorpId(corpEntryByName.id);
+          // 2) 부서 ID (키 이름/타입 차이 대응)
+          const aff = corpEntryByName.affiliationList?.find(a => a.department === ctxDept);
+          if (aff?.departmentId || aff?.affiliationId || aff?.id) {
+            setSelectedDeptId(aff.departmentId ?? aff.affiliationId ?? aff.id);
+          }
+         }
   
           // [optional] 만약 바로 locations 세팅도 하고 싶으면
           if (ctxCorp && ctxDept) {
@@ -193,7 +261,7 @@ const [selectedItemId, setSelectedItemId]         = useState("");
           setAssetCategories(typeJson.data.parentList);
         }
       } catch (err) {
-        console.error("초기 lookup 로딩 오류:", err);
+      //  console.error("초기 lookup 로딩 오류:", err);
       }
     }
     loadLookups();
@@ -207,7 +275,9 @@ const [selectedItemId, setSelectedItemId]         = useState("");
        if (!selectedDeptId) return;
     
        const corp = corporations.find(c => c.id === selectedCorpId);
-      const aff  = corp?.affiliationList.find(a => a.departmentId === selectedDeptId);
+  const aff  = corp?.affiliationList.find(a =>
+    String(a.departmentId ?? a.affiliationId ?? a.id) === String(selectedDeptId)
+  );
        if (aff) {
          setLocations(
            aff.locations.map(l => ({
@@ -267,6 +337,7 @@ if (selectedLoc    && it.location     !== selectedLoc)    return false;
     setStartDate(''); setEndDate(''); setViewCount(30);
     setFilteredItems([]); setSearched(false);
     setCurrentPage(1); setSelectAll(false); setSelectedBarcodes(new Set());
+    setStatusFilter(""); // ✅ 상태 필터 리셋
   };
 
   // ── 페이지별 리스트
@@ -331,7 +402,7 @@ if (selectedLoc    && it.location     !== selectedLoc)    return false;
 
   // ── 수정/삭제/인쇄
   const handleModify = () => {
-    if (selectedBarcodes.size !== 1) return alert("수정은 하나만 선택해야 합니다.");
+    if (selectedBarcodes.size !== 1) return alert(t('MyInfo_EditSelectOnlyOne'));
                  // ✅ 그대로 넘기던 부분
     
         /* ─────────────────────────
@@ -368,8 +439,8 @@ if (selectedLoc    && it.location     !== selectedLoc)    return false;
       .filter(item => selectedBarcodes.has(item.barcode))
       .map(item => item.id)
       .filter(Boolean);
-    if (!selectedBarcodes.size) return alert("삭제할 항목을 선택하세요.");
-    if (!window.confirm("정말 삭제하시겠습니까?")) return;
+    if (!selectedBarcodes.size) return alert(t('MyInfo_SelectItemsToDelete'));
+    if (!window.confirm(t('MyInfo_ConfirmDelete'))) return;
   
     // 선택된 바코드로부터 id 추출 (items 또는 currentList 기준)
   
@@ -390,27 +461,27 @@ if (selectedLoc    && it.location     !== selectedLoc)    return false;
         setFilteredItems(prev => prev.filter(item => !ids.includes(item.id)));
         setSelectedBarcodes(new Set());
         setSelectAll(false);
-        alert("자산이 삭제되었습니다.");
+        alert(t('MyInfo_AssetDeleted'));
       } else {
-        alert("삭제 실패: " + (json.message || "서버 오류"));
+        alert(t('MyInfo_DeleteFailed') + ": " + (json.message || t('MyInfo_ServerCannotCommunicate')));
       }
     } catch (err) {
-      console.error("삭제 요청 오류:", err);
-      alert("서버와 통신할 수 없습니다.");
+   //   console.error("삭제 요청 오류:", err);
+      alert(t('MyInfo_ServerCannotCommunicate'));
     }
   };
 
   const handlePrint = () => {
-if (!selectedBarcodes.size) return alert("인쇄할 항목을 선택하세요!");
+if (!selectedBarcodes.size) return alert(t('MyInfo_SelectItemsToPrint'));
 const toPrint = listToShow.filter(row => selectedBarcodes.has(row.barcode));
 
     const printWindow = window.open('', '_blank', 'width=900,height=700');
-    if (!printWindow) return alert('팝업 차단을 해제해주세요.');
+    if (!printWindow) return alert(t('MyInfo_DisablePopupBlocker'));
 
     printWindow.document.write(`
       <html>
         <head>
-          <title>라벨 인쇄</title>
+          <title>${t('MyInfo_LabelPrint')}</title>
           <style>
             @page {
               size: 45mm 15mm;
@@ -442,6 +513,7 @@ const toPrint = listToShow.filter(row => selectedBarcodes.has(row.barcode));
     justify-content: flex-start;
     page-break-after: always;
     box-sizing: border-box;
+    padding-left: 3.0mm;
   }
     
             .qr-section {
@@ -458,13 +530,15 @@ const toPrint = listToShow.filter(row => selectedBarcodes.has(row.barcode));
               height: 11.5mm !important;
             }
     
-            .info-section {
-              display: flex;
-              flex-direction: column;
-              justify-content: center;
-              align-items: flex-start;
-              padding-left: 1.5mm;
-            }
+         .info-section {
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;   /* 기본은 좌측 정렬 유지 */
+  padding-left: 1.5mm;
+  flex: 1;                   /* 남은 폭을 꽉 채워서 가운데 정렬이 먹게 함 */
+ }
     
             .logo-wrapper {
               width: 100%;
@@ -489,11 +563,14 @@ const toPrint = listToShow.filter(row => selectedBarcodes.has(row.barcode));
               color: black;
             }
     
-            .barcode-text {
-              font-size: 2.6mm;
-              font-weight: bold;
-              margin-top: 0.5mm;
-            }
+ .barcode-text {
+   font-size: 2.6mm;
+   font-weight: bold;
+   margin-top: 0.5mm;
+   text-align: left;        /* ← 왼쪽 정렬 */
+   align-self: flex-start;  /* ← 컨테이너의 왼쪽에 붙이기 */
+   width: auto;             /* ← 100% 해제(선택) */
+ }
           </style>
         </head>
         <body>
@@ -502,14 +579,11 @@ const toPrint = listToShow.filter(row => selectedBarcodes.has(row.barcode));
               <div class="qr-section">
                 <canvas class="qr-canvas"></canvas>
               </div>
-              <div class="info-section">
-                <div class="logo-wrapper">
-                  <img src="로고URL" class="logo" />
-                </div>
-                <p class="text-line">평택공장 전산운영팀 전산실</p>
-                <p class="text-line barcode-text">200RSFFL1</p>
-                <p class="text-line">노트북</p>
-              </div>
+<div class="info-section">
+  <p class="text-line">세원전자 전산운영 사무실</p>   
+  <p class="text-line barcode-text">2508200681</p>     
+  <p class="text-line category-line">자산분류 품목명</p>
+</div>
             </div>
           </div>
         </body>
@@ -539,24 +613,47 @@ const toPrint = listToShow.filter(row => selectedBarcodes.has(row.barcode));
   };
 
   const handleSearch = async () => {
-       if (!selectedLocId) {
-           alert("세부위치를 선택하세요.");
-           return;
-         }
+      //  if (!selectedLocId) {
+      //      alert("세부위치를 선택하세요.");
+      //      return;
+      //    }
     if (loading) return;        // 중복 방지
    setLoading(true);           // ⏳ 로딩 시작
     // … 검색 로직 …
     // 기본 유효성 검사 (날짜 범위)
     if (startDate && endDate && startDate > endDate) {
       setLoading(false);
-        return alert("시작일이 종료일보다 클 수 없습니다.");
+        return alert(t('MyInfo_StartAfterEnd'));
       }
-  
+         // ✅ 로그인 사용자의 부서 ID 확보 (selectedDeptId 기준)
+ const deptId =
+   selectedDeptId ||
+   user?.affiliationId ||        // ✅ 부서/소속 ID
+   user?.id ||
+   user?.departmentId ||
+   localStorage.getItem("departmentId");
+   if (!deptId) {
+     setLoading(false);
+     return alert("로그인된 부서 정보를 찾을 수 없습니다.");
+   }
+//  console.log("[MyInfoPage][SEARCH] departmentId ->", deptId, "(type:", typeof deptId, ")");
       // 쿼리스트링 빌드
     const params = new URLSearchParams();
-     if (selectedLocId)        params.append("locationId", selectedLocId);
+   // ⚠️ '부서 자산만' 보이게 하려면 departmentId는 항상 포함
+ // 서버가 어떤 키를 받는지 확실치 않다면 둘 다 전송 (확정되면 하나만 남기세요)
+ params.append("affiliationId", String(deptId));
+ params.append("departmentId", String(deptId));
+
+   // (원하면 위치/분류/날짜 등 추가 필터는 그대로 사용 가능)
+   if (selectedLocId)        params.append("locationId", selectedLocId);
      if (selectedCategoryId) params.append("parentTypeId", selectedCategoryId); // ✅
      if (selectedItemId)     params.append("childTypeId",  selectedItemId); 
+          // ✅ 상태 필터 전달 (코드와 문자열 둘 다 전송)
+     if (statusFilter) {
+       const code = STATUS_CODE[statusFilter];
+       if (code !== undefined) params.append("assetStatus", String(code));
+       params.append("status", statusFilter);
+     }
       if (startDate)         params.append("after", startDate);
       if (endDate)           params.append("before", endDate);
       if (viewCount > 0)     params.append("size", viewCount);
@@ -564,13 +661,16 @@ const toPrint = listToShow.filter(row => selectedBarcodes.has(row.barcode));
   
       try {
 
-        const url = `${API_BASE_URL}/assets/paged?${params.toString()}`;
+     const url = `${API_BASE_URL}/assets/paged?${params.toString()}`;
+     // 🔎 최종 요청 로그 (URL / 파라미터 객체)
+    // console.log("[MyInfoPage][SEARCH] GET:", url);
+    // console.log("[MyInfoPage][SEARCH] params:", Object.fromEntries(params));
        // console.log("자산 받을때 url : "+url)
         const res = await authFetchWithRefresh(url);
         const json = await res.json();
           //console.log('자산 조회 응답 (전체):', json);
         if (json.code !== 1 || json.data.list.length === 0) {
-         alert("조건에 맞는 자산이 없습니다.");
+         alert(t('MyInfo_NoAssetsMatch'));
           setFilteredItems([]);
           setSearched(true);
           return;
@@ -586,19 +686,24 @@ const toPrint = listToShow.filter(row => selectedBarcodes.has(row.barcode));
            · parentCategory / childCategory 등은
              이미 프런트에서 쓰이는 이름이므로 그대로 둡니다.
         */
-        const mapped = json.data.list.map(it => ({
-          ...it,
-          company: it.corporation,   // ✅ 회사 컬럼에 쓸 필드
-        }));
+ const mapped = json.data.list.map(it => ({
+   ...it,
+   company: it.corporation,   // 회사
+   // 부서명이 다른 키로 올 경우 대비
+   department: it.department ?? it.affiliation ?? it.departmentName ?? it.affiliationName ?? "",
+ }));
 
-        /*  (2) 상태 반영 */
-        setFilteredItems(mapped);
+        /*  (2) 상태 반영 (서버가 무시할 경우를 대비한 클라이언트 필터) */
+        const finalized = statusFilter
+          ? mapped.filter(it => String(it.status) === statusFilter)
+          : mapped;
+        setFilteredItems(finalized);
         setSearched(true);
         setSelectedBarcodes(new Set());   // 페이징·체크박스 초기화
         setCurrentPage(1);
       } catch (err) {
-        console.error(err);
-        alert("서버 통신 중 오류가 발생했습니다.");
+       // console.error(err);
+        alert(t('MyInfo_ServerCommError'));
          } finally {
              setLoading(false);        // ⏹️ 로딩 종료
       }
@@ -608,95 +713,221 @@ const toPrint = listToShow.filter(row => selectedBarcodes.has(row.barcode));
 
 
   return (
-    <div className="my-info-container">
+    <div className={`my-info-container ${mode}-mode`}>
 
       {/* 1. 내정보 + 수정 버튼 */}
       <div className="top-section">
-  <h2 className="section-title">내 정보</h2>
+  <h2 className="section-title">{t('MyInfo_MyInfo')}</h2>
   <div className="user-info-inline">
-    <div>소속: {userInfo.company} {userInfo.department}</div>
-    <div>아이디: {userInfo.id}</div>
-    <div>이름: {userInfo.name}</div>
+    <div>{t('MyInfo_Affiliation')}: {userInfo.company} {userInfo.department}</div>
+    <div>{t('MyInfo_Id')}: {userInfo.id}</div>
+    <div>{t('MyInfo_Name')}: {userInfo.name}</div>
   </div>
   <button
     className="btn-edit-info"
     onClick={() => setIsInfoModalOpen(true)}
   >
-    내 정보 수정하기
+    {t('MyInfo_EditMyInfo')}
   </button>
 </div>
 
-    {/* 2. 조회 필터 */}
-      <div className="search-section">
-    <h2 className="section-title asset-search-title">자산 조회</h2>
-    {/* ✅ 가운데 정렬용 래퍼 */}
-    <div className="mi-search-row">
+        {/* 2. 조회 필터 */}
+{/* 2. 조회 필터 (WEB / PDA 완전 분리) */}
+<div className="search-section">
+  <h2 className="section-title asset-search-title">{t('MyInfo_AssetSearch')}</h2>
 
-      {/* 세부위치 */}
-      <select className="search-input" value={selectedLocId}
-              onChange={e=>setSelectedLocId(e.target.value)}>
-        <option value="">세부위치</option>
-        {locations.map(loc=>(
+  {mode === 'web' ? (
+  // ── WEB: 2줄 레이아웃
+  <div className="web-search-rows">
+    {/* 1열: 세부위치 · 자산분류 · 품목 · 갯수 */}
+    <div className="web-row">
+      <select
+        className="search-input"
+        value={selectedLocId}
+        onChange={(e) => setSelectedLocId(e.target.value)}
+      >
+        <option value="">{t('MyInfo_DetailLocation')}</option>
+        {locations.map((loc) => (
           <option key={loc.id} value={loc.id}>{loc.name}</option>
         ))}
       </select>
 
-      {/* 분류 */}
-      <select className="search-input" value={selectedCategoryId}
-              onChange={e=>setSelectedCategoryId(Number(e.target.value))}>
-        <option value="">분류</option>
-        {assetCategories.map(cat=>(
+      <select
+        className="search-input type-select"
+        value={selectedCategoryId}
+        onChange={(e) => setSelectedCategoryId(Number(e.target.value))}
+      >
+        <option value="">{t('MyInfo_AssetCategory')}</option>
+        {assetCategories.map((cat) => (
           <option key={cat.parentId} value={cat.parentId}>{cat.name}</option>
         ))}
       </select>
 
-      {/* 품목 */}
-      <select className="search-input" value={selectedItemId}
-              onChange={e=>setSelectedItemId(Number(e.target.value))}
-              disabled={!selectedCategoryId}>
-        <option value="">품목</option>
-        {items.map(it=>(
+      <select
+        className="search-input item-select"
+        value={selectedItemId}
+        onChange={(e) => setSelectedItemId(Number(e.target.value))}
+        disabled={!selectedCategoryId}
+      >
+        <option value="">{t('MyInfo_Item')}</option>
+        {items.map((it) => (
           <option key={it.id} value={it.id}>{it.name}</option>
         ))}
       </select>
 
-      {/* 출력개수 */}
-      <input type="number" className="search-input view-count"
-             value={viewCount} onChange={e=>setViewCount(+e.target.value)} />
-
-      {/* 날짜 1 */}
-      <input type="date" className="search-input"
-             value={startDate} onChange={e=>setStartDate(e.target.value)} />
-      <span className="date-tilde">~</span>
-
-      {/* 날짜 2 */}
-      <input type="date" className="search-input"
-             value={endDate} onChange={e=>setEndDate(e.target.value)} />
-
-      {/* 버튼 2개 */}
-      <button className="mi-btn-search" onClick={handleSearch}>🔍 조회</button>
-      <button className="btn-reset"  onClick={handleReset}>↺ 초기화</button>
+      <input
+        type="number"
+        className="search-input view-count"
+        value={viewCount}
+        onChange={(e) => setViewCount(+e.target.value)}
+        placeholder="30"
+      />
     </div>
+
+    {/* 2열: 자산상태 · (시작)년월일 · (끝)년월일 · 조회 · 초기화 */}
+    <div className="web-row">
+      <select
+        className="search-input"
+        value={statusFilter}
+        onChange={(e) => setStatusFilter(e.target.value)}
+      >
+        <option value="">{t('MyInfo_AssetStatus')}</option>
+        <option value="사용">{t('MyInfo_InUse')}</option>
+        <option value="미사용">{t('MyInfo_NotInUse')}</option>
+        <option value="폐각">{t('MyInfo_Disposal')}</option>
+      </select>
+
+      <input
+        type="date"
+        className="search-input date-input"
+        value={startDate}
+        onChange={(e) => setStartDate(e.target.value)}
+      />
+      <span className="date-tilde">~</span>
+      <input
+        type="date"
+        className="search-input date-input"
+        value={endDate}
+        onChange={(e) => setEndDate(e.target.value)}
+      />
+
+      <button className="btn-search" onClick={handleSearch}>🔍 {t('MyInfo_Search')}</button>
+      <button className="btn-reset"  onClick={handleReset}>↺ {t('MyInfo_Reset')}</button>
+    </div>
+  </div>
+) : (
+
+    // ── PDA: 4줄 스택 폼
+    <div className="pda-search-rows">
+      <div className="pda-row">
+        <select
+          className="search-input"
+          value={selectedLocId}
+          onChange={(e) => setSelectedLocId(e.target.value)}
+        >
+          <option value="">세부위치</option>
+          {locations.map((loc) => (
+            <option key={loc.id} value={loc.id}>{loc.name}</option>
+          ))}
+        </select>
+      </div>
+
+ <div className="pda-row pda-2col">
+        <select
+          className="search-input type-select"
+          value={selectedCategoryId}
+          onChange={(e) => setSelectedCategoryId(Number(e.target.value))}
+        >
+          <option value="">자산분류</option>
+          {assetCategories.map((cat) => (
+            <option key={cat.parentId} value={cat.parentId}>{cat.name}</option>
+          ))}
+        </select>
+    <select
+          className="search-input item-select"
+          value={selectedItemId}
+          onChange={(e) => setSelectedItemId(Number(e.target.value))}
+          disabled={!selectedCategoryId}
+        >
+          <option value="">품목</option>
+          {items.map((it) => (
+            <option key={it.id} value={it.id}>{it.name}</option>
+          ))}
+        </select>
+      </div>
+
+      <div className="pda-row">
+        <input
+          type="number"
+          className="search-input"
+          value={viewCount}
+          onChange={(e) => setViewCount(+e.target.value)}
+          placeholder="갯수"
+        />
+      </div>
+          {/* ✅ 상태(사용/미사용/폐각) */}
+      <div className="pda-row">
+        <select
+          className="search-input"
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+        >
+          <option value="">상태</option>
+          <option value="사용">사용</option>
+          <option value="미사용">미사용</option>
+          <option value="폐각">폐각</option>
+        </select>
+      </div>
+
+
+      <div className="pda-row pda-dates">
+        <div className="date-row">
+          <span className="date-label">{t('MyInfo_StartDate')}</span>
+          <input
+            type="date"
+            className="search-input date-input"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+          />
+        </div>
+        <div className="date-row">
+          <span className="date-label">{t('MyInfo_EndDate')}</span>
+          <input
+            type="date"
+            className="search-input date-input"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+          />
+        </div>
+      </div>
+
+      <div className="pda-row pda-buttons">
+        <button className="btn-search" onClick={handleSearch}>🔍 {t('MyInfo_Search')}</button>
+        <button className="btn-reset"  onClick={handleReset}>↺ {t('MyInfo_Reset')}</button>
+      </div>
+    </div>
+  )}
 </div>
+
 
 
       {/* 3. 제목 + 액션 버튼 */}
       <div className="bottom-header">
-        <h2 className="section-title">부서 자산 정보</h2>
+        <h2 className="section-title">{t('MyInfo_DepartmentAssetInfo')}</h2>
         <div className="button-group">
-          <button className="action-button" data-tip="1개만 선택하시오." onClick={handleModify} disabled={selectedBarcodes.size !== 1}>
-            수정하기
+          <button className="action-button" data-tip={t('MyInfo_SelectExactlyOne')} onClick={handleModify} disabled={selectedBarcodes.size !== 1}>
+            {t('MyInfo_Edit')}
           </button>
 <button
   className="action-button"
-  data-tip="1개이상 선택하시오."
+  data-tip={t('MyInfo_SelectAtLeastOne')}
   onClick={handleDelete}
   disabled={!selectedBarcodes.size}
 >
-  삭제하기
+  {t('MyInfo_Delete')}
 </button>
           <button className="action-button" data-tip="1개이상 선택하시오." onClick={handlePrint} disabled={!selectedBarcodes.size}>
-            인쇄하기
+            {t('MyInfo_Print')}
           </button>
         </div>
       </div>
@@ -715,9 +946,9 @@ const toPrint = listToShow.filter(row => selectedBarcodes.has(row.barcode));
                 <th>
                   <input type="checkbox" checked={selectAll} onChange={handleSelectAll} />
                 </th>
-                <th>바코드</th><th>회사</th><th>부서</th><th>위치</th>
-                <th>취득구분</th><th>자산분류</th><th>품목</th><th>자산상태</th>
-                <th>제조사</th><th>모델</th><th>취득일자</th><th>취득가</th>
+ <th>{t('MyInfo_Barcode')}</th><th>{t('MyInfo_Company')}</th><th>{t('MyInfo_Department')}</th><th>{t('MyInfo_Location')}</th>
+ <th>{t('MyInfo_AcquisitionType')}</th><th>{t('MyInfo_AssetCategory')}</th><th>{t('MyInfo_Item')}</th><th>{t('MyInfo_AssetStatus')}</th>
+ <th>{t('MyInfo_Manufacturer')}</th><th>{t('MyInfo_Model')}</th><th>{t('MyInfo_AcquisitionDate')}</th><th>{t('MyInfo_AcquisitionCost')}</th>
               </tr>
             </thead>
             <tbody>
@@ -725,7 +956,7 @@ const toPrint = listToShow.filter(row => selectedBarcodes.has(row.barcode));
     ? (
       <tr>
         <td colSpan={13} style={{ textAlign: 'center', padding: '1rem 0' }}>
-          검색 결과가 없습니다.
+          {t('MyInfo_NoSearchResults')}
         </td>
       </tr>
     )
@@ -749,11 +980,11 @@ const toPrint = listToShow.filter(row => selectedBarcodes.has(row.barcode));
           </table>
         </div>
         <div className="pagination">
-          <button className="page-btn" onClick={()=>setCurrentPage(1)} disabled={currentPage===1}>처음</button>
-          <button className="page-btn" onClick={()=>setCurrentPage(p=>Math.max(p-1,1))} disabled={currentPage===1}>이전</button>
+          <button className="page-btn" onClick={()=>setCurrentPage(1)} disabled={currentPage===1}>{t('MyInfo_First')}</button>
+          <button className="page-btn" onClick={()=>setCurrentPage(p=>Math.max(p-1,1))} disabled={currentPage===1}>{t('MyInfo_Prev')}</button>
           {renderPageNumbers()}
-          <button className="page-btn" onClick={()=>setCurrentPage(p=>Math.min(p+1,totalPages))} disabled={currentPage===totalPages}>다음</button>
-          <button className="page-btn" onClick={()=>setCurrentPage(totalPages)} disabled={currentPage===totalPages}>끝</button>
+          <button className="page-btn" onClick={()=>setCurrentPage(p=>Math.min(p+1,totalPages))} disabled={currentPage===totalPages}>{t('MyInfo_Next')}</button>
+          <button className="page-btn" onClick={()=>setCurrentPage(totalPages)} disabled={currentPage===totalPages}>{t('MyInfo_End')}</button>
         </div>
       </div>
 
@@ -766,7 +997,7 @@ const toPrint = listToShow.filter(row => selectedBarcodes.has(row.barcode));
           userInfo={userInfo}
           onClose={()=>setIsInfoModalOpen(false)}
           onSave={newInfo=>{
-            alert('내 정보가 수정되었습니다.');
+            alert(t('MyInfo_MyInfoUpdated'));
             setIsInfoModalOpen(false);
           }}
         />
@@ -814,7 +1045,7 @@ onSave={edited => {
   setIsModalOpen(false);
   setSelectedBarcodes(new Set());
   setSelectAll(false);
-  alert('자산 정보가 수정되었습니다.');
+  alert(t('MyInfo_AssetInfoUpdated'));
 }}
 
   onClose={() => setIsModalOpen(false)}
@@ -833,14 +1064,19 @@ function DetailWrapper({ item, onClose }) {
 }
 
 function FullPageDetail({ item, onClose }) {
+  const { t } = useTranslation('myInfor');
   const isElectronic = item.parentCategory === "노트북" || item.parentCategory === "컴퓨터";
   
   return (
     <div className="detail-fullpage">
-      <button className="detail-back" onClick={onClose}>← 뒤로</button>
-      <h2>자산 상세</h2>
+      <button className="detail-back" onClick={onClose}>← {t('MyInfo_Back')}</button>
+      <h2>{t('MyInfo_AssetDetail')}</h2>
       <ul>
-        <li><strong>바코드:</strong> {item.barcode}</li>
+        <li><strong>{t('MyInfo_Barcode')}:</strong> {item.barcode}</li>
+        {/* ✅ 회계코드 (categoryCode) */}
+{item.categoryCode !== undefined && item.categoryCode !== null && item.categoryCode !== "" && (
+  <li><strong>회계코드:</strong> {item.categoryCode}</li>
+)}
         <li><strong>회사:</strong> {item.company}</li>
         <li><strong>부서:</strong> {item.department}</li>
         <li><strong>위치:</strong> {item.location}</li>
@@ -870,6 +1106,7 @@ function FullPageDetail({ item, onClose }) {
 
 
 function SideDrawerDetail({ item, onClose }) {
+  const { t } = useTranslation('myInfor');
   const isElectronic = ["노트북", "컴퓨터"].includes(item.childCategory);
   
   return (
@@ -877,29 +1114,49 @@ function SideDrawerDetail({ item, onClose }) {
       <div className="drawer-overlay" onClick={onClose} />
       <div className="drawer">
         <button className="drawer-close" onClick={onClose}>×</button>
-        <h2>자산 상세</h2>
+        <h2>{t('MyInfo_AssetDetail')}</h2>
         <ul>
-          <li><strong>바코드:</strong> {item.barcode}</li>
-          <li><strong>회사:</strong> {item.company}</li>
-          <li><strong>부서:</strong> {item.department}</li>
-          <li><strong>위치:</strong> {item.location}</li>
-          <li><strong>취득일자:</strong> {item.acquisitionDate}</li>
-          <li><strong>취득가:</strong> {item.acquisitionPrice.toLocaleString()} 원</li>
-          <li><strong>취득구분:</strong> {item.division}</li>
-          <li><strong>자산분류:</strong> {item.parentCategory}</li>
-          <li><strong>품목:</strong> {item.childCategory}</li>
-          <li><strong>제조사:</strong> {item.manufacturer}</li>
-          <li><strong>모델:</strong> {item.model}</li>
-          <li><strong>자산상태:</strong> {item.status}</li>
-          <li><strong>등록자:</strong> {item.registerName}</li>
-          <li><strong>등록일:</strong> {item.registrationDate}</li>
+          <li><strong>{t('MyInfo_Barcode')}:</strong> {item.barcode}</li>
+          {/* ✅ 회계코드 (categoryCode) */}
+{item.categoryCode !== undefined && item.categoryCode !== null && item.categoryCode !== "" && (
+  <li><strong>회계코드:</strong> {item.categoryCode}</li>
+)}
+ <li><strong>{t('MyInfo_Company')}:</strong> {item.company}</li>
+
+ <li><strong>{t('MyInfo_Department')}:</strong> {item.department}</li>
+
+ <li><strong>{t('MyInfo_Location')}:</strong> {item.location}</li>
+
+ <li><strong>{t('MyInfo_AcquisitionDate')}:</strong> {item.acquisitionDate}</li>
+
+ <li><strong>{t('MyInfo_AcquisitionCost')}:</strong> {item.acquisitionPrice.toLocaleString()} {t('MyInfo_Won')}</li>
+
+ <li><strong>{t('MyInfo_AcquisitionType')}:</strong> {item.division}</li>
+
+ <li><strong>{t('MyInfo_AssetCategory')}:</strong> {item.parentCategory}</li>
+
+ <li><strong>{t('MyInfo_Item')}:</strong> {item.childCategory}</li>
+
+ <li><strong>{t('MyInfo_Manufacturer')}:</strong> {item.manufacturer}</li>
+
+ <li><strong>{t('MyInfo_Model')}:</strong> {item.model}</li>
+
+ <li><strong>{t('MyInfo_AssetStatus')}:</strong> {item.status}</li>
+
+ <li><strong>{t('MyInfo_Registrar')}:</strong> {item.registerName}</li>
+
+ <li><strong>{t('MyInfo_RegisteredDate')}:</strong> {item.registrationDate}</li>
 
           {isElectronic && (
             <>
-              <li><strong>CPU:</strong> {item.cpu}</li>
-              <li><strong>GPU:</strong> {item.gpu}</li>
-              <li><strong>RAM:</strong> {item.ram} GB</li>
-              <li><strong>Storage:</strong> {item.storage} GB</li>
+
+ <li><strong>{t('MyInfo_CPULabel')}</strong> {item.cpu}</li>
+
+ <li><strong>{t('MyInfo_GPU')}:</strong> {item.gpu}</li>
+
+ <li><strong>{t('MyInfo_RAM')}:</strong> {item.ram} GB</li>
+
+ <li><strong>{t('MyInfo_Storage')}:</strong> {item.storage} GB</li>
             </>
           )}
         </ul>

@@ -5,10 +5,27 @@ import rentImg  from '../../assets/img/rent.png';
 import alarmImg from '../../assets/img/alarm.png';
 import logoImg  from '../../assets/img/sewon.jpg';
 import { UserContext }        from '../../utils/UserContext';
+import { useTranslation } from 'react-i18next';
+import { getUILang, uiToI18n } from '../../utils/lang/pref';
 import { getValidAccessToken, authFetchWithRefresh } from '../../utils/authFetchWithRefresh';
 import NotificationDropdown    from '../common/NotificationDropdown';
 
 const API_BASE_URL = window._env_?.REACT_APP_API_URL || "http://localhost:8888";
+
+
+// 모든 요청에 언어 헤더 자동 부착
+const withLang = (opts = {}) => {
+  const ui = getUILang();           // 'KR' | 'CN' | 'VN'
+  const lng = uiToI18n(ui);         // 'ko' | 'zh' | 'vi'
+  return {
+    ...opts,
+    headers: {
+      ...(opts.headers || {}),
+      'X-Client-Lang': lng,
+      'X-Client-Lang-UI': ui,
+    },
+  };
+};
 
 // ──────────────────────────────────────────────
 // 📌 type 값이 없을 때 content 로 분류
@@ -16,6 +33,7 @@ const classifyByContent = (text = '') =>
     text.includes('실사') ? 'AUDIT' : 'RENT_RETURN';
 
 function Header({ toggleSidebar, isSidebarOpen }) {
+    const { t } = useTranslation('Header');
   const [isAlarmOpen, setIsAlarmOpen] = useState(false);
   const { user } = useContext(UserContext);
   //const [notifications, setNotifications] = useState([]); //sse
@@ -193,7 +211,7 @@ function Header({ toggleSidebar, isSidebarOpen }) {
           <img src={logoImg} alt="로고" className="header-logo" />
         </Link>
 
-        <div className="header-company-name">세원전자 자산관리 시스템</div>
+        <div className="header-company-name">{t('Header_AppTitle')}</div>
       </div>
 
       <div className="header-right" ref={alarmRef}>
@@ -234,8 +252,8 @@ function Header({ toggleSidebar, isSidebarOpen }) {
 
 
 <div className="header-user">
-<div className="user-name">이름: {user?.name || '로그인을 하시오'}</div>
-<div className="user-dept">소속: {user?.department || '로그인을 하시오'}</div>
+<div className="user-name">{t('Header_Name')}: {user?.name || t('Header_PleaseLogin')}</div>
+<div className="user-dept">{t('Header_Affiliation')}: {user?.department || t('Header_PleaseLogin')}</div>
   <button
     className="logout-button"
     onClick={() => {
@@ -243,7 +261,7 @@ function Header({ toggleSidebar, isSidebarOpen }) {
       window.location.href = '/';
     }}
   >
-    로그아웃
+    {t('Header_Logout')}
   </button>
 </div>
       </div>

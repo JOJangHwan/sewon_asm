@@ -4,17 +4,34 @@ import { saveItem, deleteItem, initDB } from '../../utils/db';
 import { authFetchWithRefresh } from '../../utils/authFetchWithRefresh';
 import { useContext } from 'react';
 import { UserContext } from '../../utils/UserContext';
+import { useTranslation } from 'react-i18next';
+import { getUILang, uiToI18n } from '../../utils/lang/pref';
 import './auditLoad.css';
 import barcodeIcon from '../../assets/img/scan.png';
 import Tooltip from '../../utils/Tooltip'; 
 
-const AuditLoad = () => {
+// 모든 요청에 언어 헤더 자동 부착
+const withLang = (opts = {}) => {
+  const ui = getUILang();           // 'KR' | 'CN' | 'VN'
+  const lng = uiToI18n(ui);         // 'ko' | 'zh' | 'vi'
+  return {
+    ...opts,
+    headers: {
+      ...(opts.headers || {}),
+      'X-Client-Lang': lng,
+      'X-Client-Lang-UI': ui,
+    },
+  };
+};
+
+ const AuditLoad = () => {
+   const { t } = useTranslation('auditLoad');
 
    const effectiveMode = useResponsiveMode();
   
   const { user } = useContext(UserContext);
-  const currentUserId   = user?.username || localStorage.getItem('username') || 'NO_ID';
-  const currentUserName = user?.name     || localStorage.getItem('name')     || '실사 등록자 없음';
+  const currentUserId   = user?.username || localStorage.getItem('username') || t('AuditLoad_NoId');
+  const currentUserName = user?.name     || localStorage.getItem('name')     || t('AuditLoad_Status_NoRegistrar');
 
   const [searchBarcode, setSearchBarcode] = useState('');
   const [items, setItems] = useState([]);
@@ -73,7 +90,7 @@ const AuditLoad = () => {
   useEffect(() => {
     const fetchLocations = async () => {
       try {
-        const response = await authFetchWithRefresh(`${API_BASE}/corporations`);
+        const response = await authFetchWithRefresh(`${API_BASE}/corporations`, withLang());
         const result = await response.json();
         const corporationList = result?.data?.corporationList;
         if (!Array.isArray(corporationList)) throw new Error('corporationList가 배열이 아님');
@@ -90,7 +107,7 @@ const AuditLoad = () => {
         setLocationOptions(matchedLocations);
       } catch (err) {
         console.error('법인 목록 불러오기 실패:', err);
-        alert('법인 데이터를 불러오는 데 실패했습니다.');
+        alert(t('AuditLoad_LoadCorporationFailed'));
       }
     };
     fetchLocations();
@@ -141,7 +158,7 @@ const AuditLoad = () => {
 
   const handleBarcodeClick = () => {
     if (!selectedLocationId) {
-      alert('먼저 세부위치를 선택해주세요.');
+      alert(t('AuditLoad_SelectDetailLocationFirst'));
       return;
     }
     setScannerVisible(true);
@@ -162,7 +179,7 @@ const AuditLoad = () => {
       (it) => it.barcode === barcode && it.registrantId === registrantId
     );
     if (existsInState) {
-      alert(`📛 이미 등록된 바코드입니다: ${barcode}`);
+      alert(`📛 ${t('AuditLoad_AlreadyRegisteredBarcodeLabel')}${barcode}`);
       return;
     }
     let existsInDB = false;
@@ -196,9 +213,9 @@ const AuditLoad = () => {
   const onScanFailure = () => {};
 
   const handleDelete = async () => {
-    if (!window.confirm("정말 삭제하시겠습니까?")) return;
+    if (!window.confirm(t('AuditLoad_ConfirmDelete'))) return;
     const toDelete = items.filter((item) => item.selected);
-    if (toDelete.length === 0) return alert('삭제할 항목을 선택하세요.');
+    if (toDelete.length === 0) return alert(t('AuditLoad_SelectItemsToDelete'));
     for (const item of toDelete) await deleteItem(item.barcode);
     setItems(items.filter((item) => !item.selected));
   };
@@ -219,11 +236,11 @@ const AuditLoad = () => {
    // console.log('[검증] 요청 payload:', payload);
   
     try {
-      const response = await authFetchWithRefresh(`${API_BASE}/stock-takings/verify`, {
+      const response = await authFetchWithRefresh(`${API_BASE}/stock-takings/verify`, withLang({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
-      });
+      }));
   
       // 응답 raw text 콘솔
       const rawText = await response.clone().text();
@@ -245,7 +262,7 @@ const AuditLoad = () => {
       disableItem.forEach(i => {
         barcodeStatusMap[i.barcode] = {
           status: 'DISABLE',
-          errorMessage: '이관처리를 해야됩니다.'
+          errorMessage: t('AuditLoad_TransferRequired')
         };
       });
 
@@ -264,14 +281,14 @@ const notFoundBarcodes = selectedBarcodes.filter(b => !returnedBarcodes.includes
      return {
        ...item,
        status: 'MISMATCH',
-       errorMessage: '실사 위치가 자산 위치와 다릅니다.',
+      errorMessage: t('AuditLoad_AuditLocationDifferent')
      };
    }
    if (mapped.status === 'DISABLE') {
      return {
        ...item,
        status: 'DISABLE',
-       errorMessage: '이관처리를 해야됩니다.',
+       errorMessage: t('AuditLoad_TransferRequired'),
      };
    }
    // MATCH는 상태만 변경하고 비고는 유지 또는 초기화 가능
@@ -286,13 +303,13 @@ const notFoundBarcodes = selectedBarcodes.filter(b => !returnedBarcodes.includes
             return {
               ...item,
               status: 'NOT_FOUND',
-              errorMessage: 'DB에서 바코드를 찾을 수 없습니다.',
+              errorMessage: t('AuditLoad_BarcodeNotFoundInDB')
             };
           }
           return item;
         });
         setItems(updates);
-        alert('✅ 검증이 완료되었습니다.');
+        alert(`✅ ${t('AuditLoad_ValidationComplete')}`);
       }
     } catch (err) {
             // 🔍 서버 응답을 콘솔에 자세히 출력
@@ -315,7 +332,7 @@ const notFoundBarcodes = selectedBarcodes.filter(b => !returnedBarcodes.includes
                     return {
                       ...item,
                       status: 'NOT_FOUND',
-                      errorMessage: '서버에 자산 정보가 없습니다.',
+                      errorMessage: t('AuditLoad_NoAssetInfoOnServer')
                     };
                   }
                   return item;
@@ -330,8 +347,7 @@ const notFoundBarcodes = selectedBarcodes.filter(b => !returnedBarcodes.includes
                 return;
               }
             }
-
-      alert('🚨 검증 중 오류가 발생했습니다.');
+      alert(`🚨 ${t('AuditLoad_ValidationError')}`);
       console.error(err);
 
       if (err instanceof Response) {
@@ -353,12 +369,12 @@ const notFoundBarcodes = selectedBarcodes.filter(b => !returnedBarcodes.includes
       // ✅ 검증 안한 상태면 등록 막기
   const hasUnverified = itemsToRegister.some(item => !item.status);
   if (hasUnverified) {
-    alert('❗ 먼저 검증을 진행해주세요.');
+    alert(`❗ ${t('AuditLoad_ValidateFirst')}`);
     return;
   }
-    if (selectedItems.length === 0) return alert('등록할 항목이 없습니다.');
+    if (selectedItems.length === 0) return alert(t('AuditLoad_NoItemsToRegister'));
     if (selectedItems.some(item => item.status === 'DISABLE' || item.status === 'NOT_FOUND')) {
-      alert('등록이 불가능한 자산이 포함되어 있습니다. 비고란을 확인하세요.');
+      alert(t('AuditLoad_ContainsUnregistrableAssets_CheckRemark'));
       return;
     }
 
@@ -366,13 +382,11 @@ const notFoundBarcodes = selectedBarcodes.filter(b => !returnedBarcodes.includes
      const mismatches = itemsToRegister.filter(item => item.status === 'MISMATCH');
      if (mismatches.length > 0) {
        const mismatchList = mismatches.map(i => `- ${i.barcode}`).join('\n');
-       const msg =
-       `아래 품목들은 자산 위치와 다릅니다.\n\n${mismatchList}\n\n` +
-       `이 품목들은 모두\n` +
-       `부서: "${department}"\n`+
-       `세부위치: "${selectedLocationName}"` +
-       `(으)로 위치가 변경되어 등록됩니다.\n` +
-       `진행할까요?`;
+const msg = t('AuditLoad_ConfirmChangeLocationForItems', {
+  list: mismatchList ? `${mismatchList}\n` : '', // 목록 끝에 줄바꿈 추가
+  department,
+  location: selectedLocationName,
+});
        const go = window.confirm(msg);
        if (!go) return;
        // YES 누르면, itemsToRegister 중 MISMATCH 항목의 location/locationId를 일괄로 변경
@@ -388,14 +402,12 @@ const notFoundBarcodes = selectedBarcodes.filter(b => !returnedBarcodes.includes
       (item) => item.registrantId !== currentUser
     );
     if (hasUnregisteredByOthers) {
-      const confirm = window.confirm(
-        '❗ 이 바코드는 다른 사용자가 로컬DB에 저장했지만 아직 실사 등록되지 않았습니다.\n해당 자산을 실사 등록하시겠습니까?'
-      );
+const confirm = window.confirm(t('AuditLoad_Prompt_RegisterBarcodeStoredLocally'));
       if (!confirm) return;
     }
     const effectiveLocationId = selectedLocationId || itemsToRegister[0]?.locationId || '';
     if (!effectiveLocationId) {
-      alert('세부위치를 선택하거나 포함된 항목에 세부위치 ID가 없습니다.');
+      alert(t('AuditLoad_MissingDetailLocationId'));
       return;
     }
     const payload = {
@@ -406,21 +418,21 @@ const notFoundBarcodes = selectedBarcodes.filter(b => !returnedBarcodes.includes
    // console.log('[검증] 요청 payload:', payload);
 
     try {
-      const response = await authFetchWithRefresh(`${API_BASE}/stock-takings`, {
+     const response = await authFetchWithRefresh(`${API_BASE}/stock-takings`, withLang({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
-      });
+      }));
       const result = await response.json();
       if (result.code === 1) {
         for (const item of itemsToRegister) await deleteItem(item.barcode);
         setItems(items.filter((item) => !item.selected));
-        alert('✅ 실사 등록이 완료되었습니다.');
+        alert(t('AuditLoad_RegisterSuccess'));
       } else {
-        alert(`❌ 등록 실패: ${result.message || '서버 응답 오류'}`);
+        alert(`${t('AuditLoad_RegisterFailedLabel')}${result.message || 'Server Error'}`);
       }
     } catch (err) {
-      alert('🚨 등록 중 알 수 없는 오류가 발생했습니다.');
+      alert(t('AuditLoad_RegisterUnknownError'));
     }
   };
 
@@ -437,13 +449,13 @@ const notFoundBarcodes = selectedBarcodes.filter(b => !returnedBarcodes.includes
 
   return (
     <div className={`audit-container ${effectiveMode}-mode`}>
-           <h2>실사 등록</h2>
+           <h2>{t('AuditLoad_AuditRegister')}</h2>
 
       {/* -------- Web 레이아웃 -------- */}
       {effectiveMode === 'web' && (
         <>
           <div className="location-wrapper">
-            <label>📍 세부위치:</label>
+            <label>📍 {t('AuditLoad_DetailLocation')}:</label>
             <select
               value={selectedLocationId}
               onChange={(e) => {
@@ -454,7 +466,7 @@ const notFoundBarcodes = selectedBarcodes.filter(b => !returnedBarcodes.includes
                 setSelectedLocationName(locObj.location || '');
               }}
             >
-              <option value="">-- 세부위치 선택 --</option>
+              <option value="">{t('AuditLoad_SelectDetailLocation')}</option>
               {locationOptions.map((loc) => (
                <option key={loc.locationId} value={loc.locationId}>
                  {loc.location}
@@ -468,13 +480,13 @@ const notFoundBarcodes = selectedBarcodes.filter(b => !returnedBarcodes.includes
               <input
                 ref={barcodeInputRef}
                 type="text"
-                placeholder="바코드 직접 입력 후 Enter"
+                placeholder={t('AuditLoad_BarcodeManualEnter')}
                 value={searchBarcode}
                 onChange={(e) => setSearchBarcode(e.target.value)}
                 onKeyDown={async (e) => {
                   if (e.key === 'Enter' && searchBarcode.trim()) {
                     if (!selectedLocationId)
-                      return alert('먼저 세부위치를 선택해주세요.');
+                      return alert(t('AuditLoad_SelectDetailLocationFirst'));
                     const barcode = searchBarcode.trim();
                     const registrantId = currentUserId;
                     const registrantName = currentUserName;
@@ -499,7 +511,7 @@ const notFoundBarcodes = selectedBarcodes.filter(b => !returnedBarcodes.includes
             </div>
 
             <div className="button-row-inline">
-              <button className="delete-btn" onClick={handleDelete}>삭제하기</button>
+              <button className="delete-btn" onClick={handleDelete}>{t('AuditLoad_Delete')}</button>
 
               <button
                 className="verify-btn"
@@ -511,10 +523,10 @@ const notFoundBarcodes = selectedBarcodes.filter(b => !returnedBarcodes.includes
                   cursor: !selectedLocationId ? 'not-allowed' : 'pointer'
                 }}
               >
-                검증하기
+                {t('AuditLoad_Validate')}
               </button>
 
-              <Tooltip message="실사는 세부위치 기준으로 시작일 포함 2주간만 등록 가능합니다.">
+              <Tooltip message={t('AuditLoad_AuditPeriodRule')}>
                 <button
                   className="register-btn"
                   onClick={handleRegister}
@@ -531,7 +543,7 @@ const notFoundBarcodes = selectedBarcodes.filter(b => !returnedBarcodes.includes
                     cursor: !selectedLocationId ? 'not-allowed' : 'pointer'
                   }}
                 >
-                  등록하기
+                  {t('AuditLoad_Register')}
                 </button>
               </Tooltip>
             </div>
@@ -569,12 +581,12 @@ const notFoundBarcodes = selectedBarcodes.filter(b => !returnedBarcodes.includes
             className="pda-input barcode"
             ref={barcodeInputRef}
             type="text"
-            placeholder="바코드 직접 입력 후 Enter"
+            placeholder={t('AuditLoad_BarcodeManualEnter')}
             value={searchBarcode}
             onChange={(e) => setSearchBarcode(e.target.value)}
             onKeyDown={async (e) => {
               if (e.key === 'Enter' && searchBarcode.trim()) {
-                if (!selectedLocationId) return alert('먼저 세부위를 선택해주세요.');
+                if (!selectedLocationId) return alert(t('AuditLoad_SelectDetailLocationFirst'));
                 const barcode = searchBarcode.trim();
                 const registrantId = currentUserId;
                 const registrantName = currentUserName;
@@ -597,33 +609,27 @@ const notFoundBarcodes = selectedBarcodes.filter(b => !returnedBarcodes.includes
             }}
           />
 
-          {/* 3열: 버튼 3개 */}
+                  {/* 3열: 버튼 3개 (PDA는 안내문 상시 노출) */}
+                   {/* 3열: 버튼 3개 + 안내문(전체폭) */}
           <div className="pda-actions-3">
             <button className="delete-btn" onClick={handleDelete}>삭제하기</button>
-
+            <button className="verify-btn" onClick={handleVerify} disabled={!selectedLocationId}>검증하기</button>
             <button
-              className="verify-btn"
-              onClick={handleVerify}
-              disabled={!selectedLocationId}
+              className="register-btn"
+              onClick={handleRegister}
+              disabled={
+                !selectedLocationId ||
+                items.some(item =>
+                  item.selected && (item.status === 'DISABLE' || item.status === 'NOT_FOUND')
+                )
+              }
             >
-              검증하기
+              등록하기
             </button>
-
-            <Tooltip message="실사는 세부위치 기준으로 시작일 포함 2주간만 등록 가능합니다.">
-              <button
-                className="register-btn"
-                onClick={handleRegister}
-                disabled={
-                  !selectedLocationId ||
-                  items.some(item =>
-                    item.selected &&
-                    (item.status === 'DISABLE' || item.status === 'NOT_FOUND')
-                  )
-                }
-              >
-                등록하기
-              </button>
-            </Tooltip>
+            {/* 안내문을 grid의 4번째 아이템으로 추가 → 1 ~ 마지막 컬럼까지 가로 전체 차지 */}
+            <div className="pda-inline-hint" role="note">
+              {t('AuditLoad_AuditPeriodRule')}
+            </div>
           </div>
         </div>
       )}
@@ -632,15 +638,15 @@ const notFoundBarcodes = selectedBarcodes.filter(b => !returnedBarcodes.includes
         <thead>
           <tr>
             <th><input type="checkbox" onChange={handleSelectAll} checked={items.every(it => it.selected) && items.length > 0} /></th>
-            <th>바코드</th>
-            <th>세부위치</th>
-            <th>등록자</th>
-            <th>비고</th>
+ <th>{t('AuditLoad_Barcode')}</th>
+ <th>{t('AuditLoad_DetailLocation')}</th>
+ <th>{t('AuditLoad_Registrar')}</th>
+ <th>{t('AuditLoad_Remark')}</th>
           </tr>
         </thead>
         <tbody>
           {items.length === 0 ? (
-            <tr><td colSpan="5" className="no-data">스캔된 데이터가 없습니다.</td></tr>
+            <tr><td colSpan="5" className="no-data">{t('AuditLoad_NoScannedData')}</td></tr>
           ) : (
             items.map((item, index) => (
               <tr key={index} className={item.selected ? 'selected-row' : ''} style={{ backgroundColor: item.new ? '#fffacd' : 'transparent' }}>
@@ -668,7 +674,7 @@ const notFoundBarcodes = selectedBarcodes.filter(b => !returnedBarcodes.includes
         onChange={handleSelectAll} 
         checked={items.every(it => it.selected) && items.length > 0} 
       />
-      전체 선택
+      {t('AuditLoad_SelectAll')}
     </label>
   </div>
         {items.map((item, index) => (
@@ -681,16 +687,16 @@ const notFoundBarcodes = selectedBarcodes.filter(b => !returnedBarcodes.includes
               <span className="barcode">{item.barcode}</span>
               <input type="checkbox" checked={item.selected || false} onChange={() => handleSelectItem(index)} />
             </div>
-            <div className="audit-card-row"><strong>위치:</strong> {item.location}</div>
+            <div className="audit-card-row"><strong>{t('AuditLoad_LocationLabel')}</strong> {item.location}</div>
             <div className="audit-card-row">
-              <strong>등록자:</strong> {`${item.registrantName} (${item.registrantId})`}
+              <strong>{t('AuditLoad_RegistrarLabel')}</strong> {`${item.registrantName} (${item.registrantId})`}
             </div>
             {item.errorMessage && (
               <div className="card-remark">
-{item.status === 'MATCH' && <span style={{ color: '#388e3c' }}>정상</span>}
-{item.status === 'MISMATCH' && <span style={{ color: '#fbc02d' }}>위치불일치</span>}
-{item.status === 'DISABLE' && <span style={{ color: '#e53935' }}>등록불가</span>}
-{item.status === 'NOT_FOUND' && <span style={{ color: '#e53935' }}>바코드 없음</span>}
+{item.status === 'MATCH' && <span style={{ color: '#388e3c' }}>{t('AuditLoad_Status_Normal')}</span>}
+{item.status === 'MISMATCH' && <span style={{ color: '#fbc02d' }}>{t('AuditLoad_Status_LocationMismatch')}</span>}
+{item.status === 'DISABLE' && <span style={{ color: '#e53935' }}>{t('AuditLoad_Status_NotRegistrable')}</span>}
+{item.status === 'NOT_FOUND' && <span style={{ color: '#e53935' }}>{t('AuditLoad_Status_NoBarcode')}</span>}
               </div>
             )}
           </div>

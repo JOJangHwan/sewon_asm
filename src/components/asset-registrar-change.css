@@ -1,0 +1,442 @@
+/* =========================
+   CSS (한 파일 안에 정리)
+   - Base: 공용
+   - Web 전용
+   - PDA 전용
+   전부 data-속성으로 스코프 → 충돌 없음
+   ========================= */
+
+/* ===== Base (공용) ===== */
+[data-ams-root]{
+  --ams-bg:#f7f8fc;
+  --ams-panel:#ffffff;
+  --ams-panel-2:#fafbfe;
+  --ams-text:#1f2937;
+  --ams-muted:#6b7280;
+  --ams-border:#e5e7eb;
+  --ams-brand:#FFC107;
+  --ams-brand-d:#FFC107;
+  --ams-shadow:0 10px 30px rgba(31,41,55,.07);
+  --ams-radius:14px;
+  --ams-search-w:260px;
+  --ams-filter-w:220px;
+}
+
+[data-ams-root] .ams-layout{
+  max-width:1200px;margin:0 auto;padding:20px 16px 80px;
+  background:var(--ams-bg); color:var(--ams-text);
+  font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR",Arial;
+}
+[data-ams-root] .ams-page-title{ text-align:center;margin:18px 0 8px;font-size:22px;font-weight:800 }
+[data-ams-root] .ams-subtitle{ text-align:center;color:var(--ams-muted);font-size:13px;margin-bottom:16px }
+[data-ams-root] .ams-muted{ color:var(--ams-muted) }
+[data-ams-root] .ams-strong{ font-weight:700 }
+[data-ams-root] .ams-cell-pick{ cursor:pointer; }
+
+[data-ams-root] .ams-btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  border:1px solid var(--ams-border); background:#fff;color:var(--ams-text);
+  padding:9px 14px;border-radius:10px;cursor:pointer;
+  transition:.15s;box-shadow:0 1px 0 rgba(0,0,0,.02);white-space:nowrap;line-height:1;
+}
+[data-ams-root] .ams-btn:hover{ transform:translateY(-1px); box-shadow:var(--ams-shadow) }
+[data-ams-root] .ams-btn.is-primary{
+  background:linear-gradient(180deg,var(--ams-brand) 0%,var(--ams-brand-d) 100%);
+  color:#222;border-color:#f3c23d
+}
+[data-ams-root] .ams-btn.is-gray{ background:#f3f4f6;border-color:#e5e7eb;color:#374151 }
+[data-ams-root] .ams-btn.is-ghost{ background:#fff;padding:0;border-color:transparent }
+[data-ams-root] .ams-row-name{ background:transparent!important;border:0!important;padding:0!important;box-shadow:none!important;color:var(--ams-text);font-weight:600;cursor:pointer; }
+[data-ams-root] .ams-row-name:hover{ text-decoration:underline; }
+[data-ams-root] .ams-icon{ width:16px;height:16px }
+[data-ams-root] .ams-counter-actions .ams-btn.is-primary{ min-width:108px; }
+
+[data-ams-root] .ams-card{ background:var(--ams-panel);border:1px solid var(--ams-border);
+  border-radius:var(--ams-radius);box-shadow:var(--ams-shadow) }
+[data-ams-root] .ams-card-header{ padding:14px 16px;border-bottom:1px dashed var(--ams-border);font-weight:700 }
+[data-ams-root] .ams-card-body{ padding:16px }
+
+/* 유틸리티 */
+[data-ams-root] .ams-card-header.ams-between{
+  display:flex; align-items:center; justify-content:space-between;
+}
+[data-ams-root] .ams-card-body.is-nopad{ padding:0 }
+
+[data-ams-root] .ams-filters{ display:grid;grid-template-columns:1fr;gap:10px }
+@media (min-width:960px){
+  [data-ams-root] .ams-filters{
+    grid-template-columns:minmax(220px,var(--ams-search-w)) repeat(3,minmax(160px,1fr));
+    column-gap:8px; row-gap:8px;
+  }
+  [data-ams-root] .ams-filters > *{ min-width:0; }
+}
+[data-ams-root] .ams-input{
+  box-sizing:border-box;width:100%;max-width:100%;
+  height:38px;padding:0 12px;border-radius:10px;border:1px solid var(--ams-border);
+  background:#fff;color:var(--ams-text);outline:none;box-shadow:inset 0 1px 0 rgba(31,41,55,.03)
+}
+[data-ams-root] select.ams-input{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+[data-ams-root] .ams-input:focus{ border-color:var(--ams-brand); box-shadow:0 0 0 3px rgba(246,195,61,.25) }
+[data-ams-root] .ams-search-wrap{ position:relative; width:100%; min-width:0 }
+[data-ams-root] .ams-search-icon{ position:absolute; left:12px; top:50%; transform:translateY(-50%); opacity:.5 }
+[data-ams-root] .ams-search-wrap .ams-input{ padding-left:34px }
+
+[data-ams-root] .ams-row2-actions{
+  grid-column:3 / 5; display:flex; justify-content:flex-end; align-items:center; gap:8px;
+}
+[data-ams-root] .ams-row2-actions .ams-btn{ min-width:110px; height:38px; padding:9px 12px; }
+
+[data-ams-root] .ams-table-wrap{ border:1px solid var(--ams-border); border-radius:12px; overflow:hidden; background:#fff }
+[data-ams-root] .ams-table{ width:100%; border-collapse:separate; border-spacing:0; table-layout:fixed }
+[data-ams-root] thead th{
+  position:sticky; top:0; background:var(--ams-panel-2); border-bottom:1px solid var(--ams-border);
+  font-size:12px; color:#4b5563; padding:12px; text-align:center;
+}
+/* 3열(회사-부서-위치) 좌정렬 */
+[data-ams-root] .ams-table thead th:nth-child(3),
+[data-ams-root] .ams-table tbody td:nth-child(3){ text-align:left; }
+/* 5열(품목) 중앙정렬 */
+[data-ams-root] .ams-table thead th:nth-child(5),
+[data-ams-root] .ams-table tbody td:nth-child(5){ text-align:center; }
+
+[data-ams-root] tbody td{ padding:12px; border-bottom:1px solid #f1f5f9; vertical-align:middle }
+[data-ams-root] tbody tr:hover{ background:#f8fafc }
+[data-ams-root] .ams-mono{ font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace }
+[data-ams-root] .ams-badges{ display:flex; flex-wrap:wrap; gap:6px }
+[data-ams-root] .ams-badge{ font-size:11px; padding:6px 10px; border-radius:999px; border:1px solid var(--ams-border); background:#fff }
+[data-ams-root] .ams-badge.is-fill{ background:#fff7db; border-color:#fde68a }
+
+[data-ams-root] .ams-pick{
+  width:28px; height:28px; line-height:26px; border-radius:999px;
+  display:inline-flex; align-items:center; justify-content:center;
+  border:1px solid var(--ams-border); background:#fff; cursor:pointer;
+  transition:.15s; font-weight:700; color:#94a3b8;
+}
+[data-ams-root] .ams-pick:hover{ border-color:#FFC107; color:#FFC107; background:#fffdf3 }
+[data-ams-root] .ams-pick.is-on{ border-color:#f1c23f; background:#fff7db; color:#FFC107; }
+
+[data-ams-root] .ams-bulkbar{
+  position:sticky; bottom:18px; z-index:30; display:flex; justify-content:center; padding:0 12px;
+}
+[data-ams-root] .ams-bulkbar-inner{
+  margin:0 auto; width:100%; max-width:calc(100% - 0px);
+  background:#fff; border:1px solid var(--ams-border); border-radius:16px;
+  box-shadow:var(--ams-shadow); display:flex; flex-wrap:wrap; gap:14px;
+  align-items:center; justify-content:space-between; padding:10px 12px; box-sizing:border-box;
+}
+[data-ams-root] .ams-bulk-grid{
+  display:grid; grid-template-columns:repeat(3,minmax(160px,1fr));
+  grid-template-areas: "company dept registrar" "counter counter counter";
+  gap:10px 14px; align-items:center; width:100%;
+}
+[data-ams-root] .ams-control{ display:flex; flex-direction:column; gap:6px }
+[data-ams-root] .ams-control label{ font-size:12px; color:var(--ams-muted) }
+[data-ams-root] .ams-control.is-company{ grid-area:company }
+[data-ams-root] .ams-control.is-dept{ grid-area:dept }
+[data-ams-root] .ams-control.is-registrar{ grid-area:registrar }
+[data-ams-root] .ams-counter{
+  grid-area:counter; background:#fff7db; border:1px solid #fde68a; padding:6px 10px; border-radius:999px;
+  font-size:12px; display:flex; align-items:center; gap:8px; justify-content:space-between; width:100%;
+  margin-right:8px;
+}
+[data-ams-root] .ams-counter-actions{ margin-left:auto; display:flex; gap:8px }
+
+@media (max-width:900px){
+  [data-ams-root] .ams-bulk-grid{
+    grid-template-columns:1fr 1fr;
+    grid-template-areas: "company dept" "registrar registrar" "counter counter";
+  }
+}
+@media (max-width:560px){
+  [data-ams-root] .ams-bulk-grid{
+    grid-template-columns:1fr;
+    grid-template-areas: "company" "dept" "registrar" "counter";
+  }
+  [data-ams-root] .ams-counter{ margin-right:6px; }
+}
+
+/* dialog & toast */
+[data-ams-root] dialog.ams-dialog{ border:none; border-radius:16px; padding:0; background:#fff; color:var(--ams-text);
+  box-shadow:var(--ams-shadow); max-width:640px; width:92% }
+[data-ams-root] dialog.ams-dialog::backdrop{ background:rgba(0,0,0,.25) }
+[data-ams-root] .ams-dialog-header{ padding:14px 16px; border-bottom:1px solid var(--ams-border); font-weight:800 }
+[data-ams-root] .ams-dialog-body{ padding:14px 16px; max-height:55vh; overflow:auto }
+[data-ams-root] .ams-dialog-foot{ padding:12px 16px; border-top:1px solid var(--ams-border); display:flex; justify-content:flex-end; gap:8px }
+
+[data-ams-root] .ams-toast{
+  position:fixed; right:16px; bottom:16px; background:#fff; border:1px solid var(--ams-border); padding:12px 14px; border-radius:12px;
+  box-shadow:var(--ams-shadow); opacity:0; transform:translateY(10px); transition:.25s
+}
+[data-ams-root] .ams-toast.is-show{ opacity:1; transform:translateY(0) }
+
+/* ===== Web 전용 ===== */
+[data-ams-root][data-ams-variant="web"] .ams-layout{
+  max-width:clamp(1100px, 92vw, 1440px);
+  padding-left:20px; padding-right:20px;
+}
+[data-ams-root][data-ams-variant="web"] .ams-input{ height:38px }
+@media (min-width:1400px){
+  [data-ams-root][data-ams-variant="web"] .ams-filters{
+    grid-template-columns:300px repeat(3,minmax(180px,1fr));
+  }
+}
+/* ───────── 웹: 하단 일괄변경 바 폭 줄이기 ───────── */
+/* 부모는 가운데 정렬 유지 */
+[data-ams-root][data-ams-variant="web"] .ams-bulkbar{
+  justify-content: center;
+}
+/* 기본 width:100% 를 이걸로 덮어써서 좁게 */
+[data-ams-root][data-ams-variant="web"] .ams-bulkbar-inner{
+  width: auto !important;          /* 100% 무시 */
+  max-width: 960px !important;     /* 원하는 최대폭 (숫자 조절 가능) */
+  flex: 0 1 960px !important;      /* flex가 늘어나지 않게 */
+  align-self: center;              /* 세로축도 중앙 */
+}
+/* 중간 화면 이하에서는 전체폭 사용(깨짐 방지) */
+@media (max-width: 1200px){
+ [data-ams-scope="arc"] [data-ams-root][data-ams-variant="web"] .ams-bulkbar-inner{
+    max-width: none !important;
+    width: calc(100% - 24px) !important;
+    flex: 1 1 auto !important;
+  }
+}
+
+/* ===== PDA 전용 ===== */
+[data-ams-root][data-ams-variant="pda"] .ams-layout{ padding-bottom:96px }
+[data-ams-root][data-ams-variant="pda"] .ams-page-title{ font-size:18px }
+
+
+[data-ams-scope="arc"] [data-ams-root][data-ams-variant="pda"] .ams-bulkbar-inner{
+  padding: 6px 8px;               /* 패딩 ↓ */
+  border-radius: 12px;            /* 모서리 ↓ */
+  gap: 8px;                       /* 간격 ↓ */
+}
+
+[data-ams-root][data-ams-variant="pda"] .ams-bulk-grid{
+  gap: 6px 8px;                   /* 그리드 간격 ↓ */
+}
+
+/* 입력/라벨/버튼 전체 축소 */
+[data-ams-root][data-ams-variant="pda"] .ams-control label{
+  font-size: 11px;                /* 라벨 글자 ↓ */
+}
+
+[data-ams-root][data-ams-variant="pda"] .ams-input{
+  height: 36px;                   /* 44px → 36px */
+  font-size: 14px;                /* 16px → 14px */
+  padding: 0 10px;                /* 내부여백 ↓ */
+  border-radius: 8px;             /* 모서리 ↓ */
+}
+
+/* 2행의 [초기화][조회] 버튼도 같이 축소 */
+[data-ams-root][data-ams-variant="pda"] .ams-row2-actions .ams-btn{
+  height: 36px;
+  padding: 8px 12px;
+  min-width: 96px;                /* 버튼 폭 살짝만 보장 */
+}
+
+/* 하단 바 내부 버튼 크기 축소 */
+[data-ams-root][data-ams-variant="pda"] .ams-btn{
+  padding: 8px 12px;              /* 12px → 8px */
+  height: 36px;
+  border-radius: 8px;
+}
+
+/* 선택 카운터 칩도 더 작게 */
+[data-ams-root][data-ams-variant="pda"] .ams-counter{
+  padding: 4px 8px;               /* 6px → 4px */
+  font-size: 11px;
+  border-radius: 999px;           /* 칩 느낌 유지 */
+}
+[data-ams-root][data-ams-variant="pda"] .ams-counter-actions .ams-btn{
+  min-width: 88px;                /* 등록/선택해제 버튼 폭 ↓ */
+}
+
+/* 테이블도 약간 더 컴팩트 (행 높이 ↓) */
+[data-ams-root][data-ams-variant="pda"] thead th,
+[data-ams-root][data-ams-variant="pda"] tbody td{
+  padding: 8px 6px;               /* 10/8px → 8/6px */
+  font-size: 14px;
+}
+
+/* 드롭다운(셀렉트) 화살표 영역이 너무 커보이면 iOS/안드에서도 균형 맞추기 */
+[data-ams-root][data-ams-variant="pda"] select.ams-input{
+  line-height: 36px;
+}
+
+
+/* 페이지 본문이 바에 가려지지 않도록 바닥 여백 확보 */
+[data-ams-root][data-ams-variant="pda"] .ams-layout{
+  padding-bottom:max(140px, env(safe-area-inset-bottom) + 140px);
+}
+
+/* (선택) 스크롤바 살짝 얇게 */
+[data-ams-root][data-ams-variant="pda"] .ams-bulkbar-inner::-webkit-scrollbar{ width: 6px; }
+[data-ams-root][data-ams-variant="pda"] .ams-bulkbar-inner::-webkit-scrollbar-thumb{
+  background: rgba(0,0,0,.2); border-radius: 6px;
+}
+
+
+
+/* === PDA 하단 바: 높이 확 줄이고, 내부 스크롤 강제 === */
+/* data-속성 3개를 한 번에 잡아서 특이성 올림 */
+[data-ams-root][data-ams-scope="arc"][data-ams-variant="pda"] .ams-bulkbar{
+  position: fixed; left: 0; right: 0; bottom: 0;
+  padding: 8px 10px; z-index: 1000; background: transparent;
+  display: flex; justify-content: center;
+}
+
+/* ★ 핵심: 높이 줄이기 + 스크롤. 숫자만 바꿔도 됨 */
+[data-ams-root][data-ams-scope="arc"][data-ams-variant="pda"] .ams-bulkbar-inner{
+  display: block;
+  max-height: clamp(140px, 32vh, 200px) !important; /* ← 높이 줄임 */
+  overflow-y: auto !important;                      /* ← 스크롤 켜기 */
+  overflow-x: hidden !important;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* 작은 기기 예외: 너무 작으면 거의 전폭 사용 */
+@media (max-width: 360px){
+  [data-ams-root][data-ams-scope="arc"][data-ams-variant="pda"] .ams-bulkbar-inner{
+    width: calc(100% - 20px) !important;
+    flex: 1 1 auto !important;
+  }
+}
+
+/* ===== PDA 전용 ===== */
+
+
+/* ===== PDA: 자산 검색 박스 한 화면에 딱 맞게 ===== */
+[data-ams-root][data-ams-scope="arc"][data-ams-variant="pda"] .ams-card > .ams-card-body{
+  padding: 10px !important;                 /* 카드 안쪽 여백 축소 */
+}
+
+/* 필터 그리드: 2열, 폭은 기기폭 기준으로 안전하게 중앙 정렬 */
+[data-ams-root][data-ams-scope="arc"][data-ams-variant="pda"] .ams-card > .ams-card-body > .ams-filters{
+  width: clamp(280px, 88vw, 420px) !important; /* 화면 안에서만 움직이게 */
+  margin: 0 auto !important;                   /* 가운데 정렬 */
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important; /* 내용 넘침 방지 */
+  grid-template-areas:
+    "barcode company"
+    "dept    loc"
+    "cat     item"
+    "actions actions";
+  column-gap: 6px !important;
+  row-gap: 6px !important;
+}
+
+/* 각 영역 매핑(기존과 동일, 특이성만 올림) */
+[data-ams-root][data-ams-variant="pda"] .ams-filters .f-barcode { grid-area: barcode; }
+[data-ams-root][data-ams-variant="pda"] .ams-filters .f-company { grid-area: company; }
+[data-ams-root][data-ams-variant="pda"] .ams-filters .f-dept    { grid-area: dept; }
+[data-ams-root][data-ams-variant="pda"] .ams-filters .f-loc     { grid-area: loc; }
+[data-ams-root][data-ams-variant="pda"] .ams-filters .f-cat     { grid-area: cat; }
+[data-ams-root][data-ams-variant="pda"] .ams-filters .f-item    { grid-area: item; }
+[data-ams-root][data-ams-variant="pda"] .ams-filters .f-actions{
+  grid-area: actions;
+  display:flex; gap:6px; justify-content:space-between;
+}
+
+/* 입력 요소를 더 컴팩트하게 (높이/글자/패딩 축소) */
+[data-ams-root][data-ams-variant="pda"] .ams-filters .ams-input{
+  height: 34px !important;
+  font-size: 13px !important;
+  padding: 0 10px !important;
+  max-width: 100% !important;   /* 셀 밖으로 안 나가게 */
+  box-sizing: border-box !important;
+}
+[data-ams-root][data-ams-variant="pda"] .ams-search-wrap .ams-input{
+  padding-left: 30px !important; /* 돋보기 아이콘 공간 */
+}
+
+/* 버튼도 축소 */
+[data-ams-root][data-ams-variant="pda"] .ams-row2-actions .ams-btn{
+  height: 34px !important;
+  padding: 7px 10px !important;
+  min-width: 92px !important;
+}
+
+/* 혹시 남아있는 웹용 grid-column 규칙 무력화 */
+[data-ams-root][data-ams-variant="pda"] .ams-filters .ams-row2-actions{
+  grid-column: auto !important;
+}
+
+
+
+/* 0) 메인 레이아웃이 스크롤 주체가 되도록 */
+[data-ams-root] .ams-layout{
+  /* 기존 max-width/padding은 그대로 두고 */
+  overflow-y: auto;                         /* body 대신 여기서 스크롤 */
+  scrollbar-gutter: stable both-edges;      /* 스크롤바 공간을 항상 확보 */
+}
+
+/* 1) 스크롤바 미지원 환경(또는 Whale/Chrome 오버레이) 대비 여유 공간 확보 */
+@supports not (scrollbar-gutter: stable) {
+  [data-ams-root] .ams-card-body{ padding-right: 28px; }   /* 기본 16px + 여유 */
+}
+@supports (scrollbar-gutter: stable) {
+  /* 지원되더라도 살짝만 여유 */
+  [data-ams-root] .ams-card-body{ padding-right: 20px; }
+}
+
+/* 2) 필터 그리드가 오른쪽으로 꽉 차며 살짝 튀어나가는 현상 방지 */
+[data-ams-root] .ams-filters{
+  max-width: calc(100% - 8px);  /* 스크롤바/테두리와 겹침 방지용 살짝 여유 */
+}
+[data-ams-root] .ams-filters > *{ min-width: 0; } /* 긴 option 텍스트 수축 허용 */
+
+/* 3) 입력 요소가 스크롤바와 겹칠 때 오른쪽 안쪽여백을 조금 더 */
+[data-ams-root] .ams-filters .ams-input{ padding-right: 14px; }
+
+
+
+
+/* 표 래퍼에 가로 스크롤 허용 */
+[data-ams-root] .ams-table-wrap{
+  overflow-x: auto !important;   /* 가로 스크롤 켜기 */
+  overflow-y: hidden;            /* 세로는 페이지가 스크롤 */
+  -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable both-edges;
+}
+
+/* 표가 너무 좁아지면 줄바꿈 대신 가로로 스크롤 되도록 최소 폭 보장 */
+[data-ams-root] .ams-table{
+  min-width: 980px;              /* 필요시 900~1200px 사이로 조절 가능 */
+}
+
+/* PDA에서 특히 겹침이 보이면 여유 조금 더 */
+[data-ams-root][data-ams-variant="pda"] .ams-table{
+  min-width: 1040px;
+}
+
+/* ───────────────────────────────────────────────
+   WEB: 하단 일괄 변경 바를 PDA처럼 화면 고정(fixed)
+   ─────────────────────────────────────────────── */
+[data-ams-root][data-ams-scope="arc"][data-ams-variant="web"] .ams-bulkbar{
+  position: fixed;          /* ← sticky → fixed */
+  left: 0;
+  right: 0;
+  bottom: 0;                /* 화면 맨 아래 붙이기 */
+  padding: 10px 12px;
+  z-index: 1000;
+  background: transparent;  /* 배경은 내부 카드가 담당 */
+  justify-content: center;  /* 가운데 정렬 유지 */
+}
+
+[data-ams-root][data-ams-scope="arc"][data-ams-variant="web"] .ams-bulkbar-inner{
+  display: block;
+  width: auto !important;
+  max-width: clamp(960px, 88vw, 1280px) !important;  /* 원래 설정 유지 */
+  flex: 0 1 auto !important;
+  /* 선택: 길어질 때 자체 스크롤 허용 */
+  max-height: 30vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* 바에 가려지지 않도록 본문 하단 여백 추가 */
+[data-ams-root][data-ams-scope="arc"][data-ams-variant="web"] .ams-layout{
+  padding-bottom: max(160px, env(safe-area-inset-bottom) + 160px);
+}

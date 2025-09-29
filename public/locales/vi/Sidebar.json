@@ -1,0 +1,19 @@
+{
+  "Sidebar_Home": "홈",
+  "Sidebar_AssetRegister": "개별등록",
+  "Sidebar_LoadBulk": "일괄등록",
+  "Sidebar_DisposalRegister": "폐기등록",
+  "Sidebar_Audit": "실사",
+  "Sidebar_AuditRegister": "실사등록",
+  "Sidebar_AuditSearch": "실사조회",
+  "Sidebar_Profile": "내정보",
+  "Sidebar_Search": "조회",
+  "Sidebar_TransferRegister": "이관등록",
+  "Sidebar_Register": "등록",
+
+    "Sidebar_AssetAssignTransfer": "자산 설정·배정/이관",
+  "Sidebar_RegisterCorpAndItem": "조직·자산 분류 등록",
+  "Sidebar_ChangeRegistrar": "자산 등록자 변경"
+
+
+}

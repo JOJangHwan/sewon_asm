@@ -1,15 +1,17 @@
 
-
+import '../../utils/lang/i18n';
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import './loadsingle.css';
 import { createRoot } from 'react-dom/client';
 import LabelPrint from '../MyInfor/LabelPrint';
 import { authFetchWithRefresh } from '../../utils/authFetchWithRefresh'
+import useMediaQuery from '../../utils/hooks/useMediaQuery';
 
 const API_BASE = window._env_?.REACT_APP_API_URL || 'http://localhost:8888';
 
 const convertToGB = (value, unit) => {
-  const num = parseFloat(value) || 0;
+const num = parseFloat(value) || 0;
   switch (unit) {
     case 'TB': return num * 1024;
     case 'MB': return num / 1024;
@@ -27,153 +29,169 @@ const convertToGB = (value, unit) => {
    return val; // 이미 초까지 있으면 그대로
  };
 
-const selectFieldLabels = {
-  company: '회사구분',
-  department: '부서구분',
-  location: '세부위치',
-  acquisitionType: '취득구분',
-  assetCategory: '자산분류',
-  item: '품목',
-  assetStatus: '자산상태',
-};
-const inputFieldLabels = {
-  manufacturer: '제조사',
-  model: '모델',
-  acquisitionDate: '취득일자',
-  acquisitionCost: '취득가',
-  cpu: 'CPU',
-  memory: '메모리',
-  gpu: 'GPU',
-  totalStorage: '총 저장공간',
-};
+// 라벨은 AssetRegister_* 키로 직접 가져옴
+const makeLabels = (t) => ({
+  select: {
+    company:         t('AssetRegister_CompanyType'),
+    department:      t('AssetRegister_DepartmentType'),
+    location:        t('AssetRegister_DetailLocation'),
+    acquisitionType: t('AssetRegister_AcquisitionType'),
+    assetCategory:   t('AssetRegister_AssetCategory'),
+    item:            t('AssetRegister_Item'),
+    assetStatus:     t('AssetRegister_AssetStatus'),
+  },
+  input: {
+    manufacturer:    t('AssetRegister_Manufacturer'),
+    model:           t('AssetRegister_Model'),
+    acquisitionDate: t('AssetRegister_AcquisitionDate'),
+    acquisitionCost: t('AssetRegister_AcquisitionCost'),
+    cpu:             t('AssetRegister_CPU'),
+    memory:          t('AssetRegister_Memory'),
+    gpu:             t('AssetRegister_GraphicsCard'),
+    totalStorage:    t('AssetRegister_TotalStorageGB').replace('(GB)','').trim(),
+  }
+});
 
-const getErrorMsg = (name) => {
-  if (selectFieldLabels[name]) return `${selectFieldLabels[name]}을 선택해주세요.`;
-  if (inputFieldLabels[name]) return `${inputFieldLabels[name]}를 입력해주세요.`;
-  if (name === 'totalStorage') return '총 저장공간을 계산해주세요.';
+const getErrorMsg = (t, labels, name) => {
+  if (labels.select[name]) return labels.select[name] + t('AssetRegister_PleaseEnter');
+  if (labels.input[name])  return labels.input[name]  + t('AssetRegister_PleaseEnter');
+  if (name === 'totalStorage') return t('AssetRegister_CalcTotalStorageWithConvert');
   return '';
 };
 
 // ✅ handleSubmit 함수 위쪽에 위치해야 함
+// ✅ 기존 openLabelPrintWindow 를 이걸로 통째로 교체
 const openLabelPrintWindow = (asset) => {
   const printWindow = window.open('', '_blank', 'width=900,height=700');
-  if (!printWindow) {
-    alert('팝업 차단을 해제해주세요.');
-    return;
-  }
+  if (!printWindow) return alert('팝업 차단을 해제해주세요.');
 
-  const { company, department, location, barcode, itemName } = asset;
-  const fullLocation = `${company} ${department} ${location}`;
-  const logoUrl = 'http://localhost:3000/logo.png';
+  const { company, department, location, barcode } = asset;
+  const fullLocation = [company, department, location].filter(Boolean).join(' ');
+  const categoryLine = [asset.assetCategory, asset.itemName].filter(Boolean).join(' ');
+
+  // 🔧 필요시 미세 보정값 (오른쪽 +, 왼쪽 -, 위쪽 - , 아래쪽 +)
+  const H_SHIFT_MM = 0.8;   // ← 오른쪽으로 0.8mm 이동 (왼쪽으로 치우쳤을 때)
+  const V_SHIFT_MM = -0.6;  // ← 위로 0.6mm 이동   (아래로 치우쳤을 때)
 
   printWindow.document.write(`
     <html>
       <head>
         <title>라벨 인쇄</title>
         <style>
+          /* === Label (40 x 15 mm) === */
           @page { size: 40mm 15mm; margin: 0; }
+          @media print { body { margin: 0; } }
           html, body {
-            width: 40mm;
-            height: 15mm;
-            margin: 0;
-            padding: 0;
+            width: 40mm; height: 15mm; margin: 0; padding: 0;
+            font-family: Arial, sans-serif;
           }
-  
+
           .label-print-wrapper {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            padding: 0;
-            margin: 0;
-            width: 40mm;
-            height: 15mm;
+            display: flex; width: 40mm; height: 15mm; margin: 0; padding: 0;
           }
-  
+
           .label-box {
-            width: 40mm;
-            height: 15mm;
-            display: flex;
-            align-items: center;
-            justify-content: flex-start;
-            box-sizing: border-box;
-          }
-  
-          .qr-section {
-            width: 11mm;
-            height: 11mm;
-            display: flex;
+            width: 40mm; height: 15mm;
+            display: flex; flex-direction: row;
+            /* ✅ 가로/세로 모두 가운데 정렬 */
             justify-content: center;
             align-items: center;
-            margin-left: 1mm;
-          }
-  
-          .qr-canvas {
-            width: 10.5mm !important;
-            height: 10.5mm !important;
-          }
-  
-          .info-section {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            padding-left: 1mm;
-          }
-  
-          .logo-wrapper {
-            display: flex;
-            justify-content: flex-start;
-            margin-bottom: 0.5mm;
-          }
-  
-          .logo {
-            max-width: 24mm;
-            height: 4mm;
-            object-fit: contain;
-          }
-  
-          .text-line {
-            font-size: 1.8mm;
-            font-family: 'Arial', sans-serif;
-            line-height: 2.2mm;
-            margin: 0;
+
+            /* ✅ 좌측 패딩 제거(왼쪽 치우침 원인) + 요소 간격 */
             padding: 0;
-            white-space: nowrap;
-            color: black;
+            gap: 2mm;
+
+            box-sizing: border-box;
+            page-break-after: always;
+
+            /* ✅ 물리종이 오프셋 보정(필요 없으면 0mm/0mm) */
+            transform: translate(${H_SHIFT_MM}mm, ${V_SHIFT_MM}mm);
+
+            transform: translate(+3.0mm, -0.6mm); /* +는 오른쪽, -는 위쪽 */
           }
-  
+
+          .qr-section {
+            width: 12mm; height: 12mm;
+            display: flex; justify-content: center; align-items: center;
+          }
+          /* QR은 canvas든 img든 10mm로 고정 */
+          .qr-section > canvas,
+          .qr-section > img,
+          .qr-section > * {
+            width: 10mm !important;
+            height: 10mm !important;
+          }
+
+          .info-section {
+            display: flex; flex-direction: column; justify-content: center;
+            align-items: flex-start;
+            /* ✅ 텍스트와 QR 사이 간격은 gap으로 처리, 여기 패딩은 0 */
+            padding: 0;
+            flex: 1;
+          }
+
+          .text-line {
+            font-size: 2.0mm; line-height: 2.35mm;
+            margin: 0; padding: 0; white-space: nowrap; color: #000;
+          }
+
+          /* 2열: 바코드(좌정렬, 볼드) */
           .barcode-text {
-            font-size: 2.2mm;
-            font-weight: bold;
+            font-size: 2.4mm; line-height: 2.35mm; font-weight: 700;
+            text-align: left; align-self: flex-start;
+            margin: 0.2mm 0 0.1mm;
+          }
+
+          /* 3열: 자산분류 + 품목 (공백만, 길면 말줄임) */
+          .category-line {
+            font-size: 2.0mm; line-height: 2.2mm;
+            max-width: 25.5mm;  /* 40 - 12(QR) - 2(gap) 대략 */
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
           }
         </style>
+
         <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
       </head>
-      <body onload="QRCode.toCanvas(document.getElementById('qr-canvas'), '${barcode}', { width: 100, margin: 0 }); window.print(); setTimeout(() => window.close(), 300);">
+      <body
+        onload="
+          /* 해상도만 담당(크기X). 90px이면 10mm에 충분히 선명 */
+          QRCode.toCanvas(
+            document.getElementById('qr-canvas'),
+            '${String(barcode || '')}',
+            { width: 90, margin: 0 }
+          );
+          window.print();
+          setTimeout(()=>window.close(), 300);
+        "
+      >
         <div class="label-print-wrapper">
           <div class="label-box">
             <div class="qr-section">
-              <canvas id="qr-canvas" class="qr-canvas"></canvas>
+              <canvas id="qr-canvas"></canvas>
             </div>
             <div class="info-section">
-              <div class="logo-wrapper">
-                <img src="${logoUrl}" class="logo" />
-              </div>
               <p class="text-line">${fullLocation}</p>
               <p class="text-line barcode-text">${barcode}</p>
-              <p class="text-line">${itemName}</p>
+              <p class="text-line category-line">${categoryLine}</p>
             </div>
           </div>
         </div>
       </body>
     </html>
   `);
-  
 
   printWindow.document.close();
 };
 
 
+
 const AssetRegister = () => {
+  const { t } = useTranslation('loadSingle');
+  const labels = makeLabels(t);
+  const optionSelect = t('AssetRegister_Select'); // "선택"
+// 화면 크기에 따라 web/pda 클래스 분리
+const isMobile = useMediaQuery('(max-width: 768px)');
+const modeClass = isMobile ? 'pda-mode' : 'web-mode';
   
   const [formData, setFormData] = useState({
     company: '',
@@ -298,7 +316,7 @@ const AssetRegister = () => {
 
     } catch (err) {
       console.error('초기 데이터 조회 실패:', err);
-      alert('초기 데이터를 불러오지 못했습니다.');
+      alert(t('AssetRegister_RegisterFail_ServerError'));
     }
   };
   
@@ -379,27 +397,27 @@ const AssetRegister = () => {
   
     // ✅ 필수 항목 검사
     const requiredFields = [
-      { key: 'company', label: '회사구분' },
-      { key: 'department', label: '부서구분' },
-      { key: 'location', label: '세부위치' },      // locationId ➔ location 으로
-      { key: 'acquisitionType', label: '취득구분' },
-      { key: 'assetCategory', label: '자산분류' }, // parentTypeId ➔ assetCategory
-      { key: 'item', label: '품목' },              // childTypeId ➔ item
-      { key: 'manufacturer', label: '제조사' },
-      { key: 'model', label: '모델' },
-      { key: 'acquisitionDate', label: '취득일자' },
-      { key: 'acquisitionCost', label: '취득가' }
+      { key: 'company',         label: labels.select.company },
+      { key: 'department',      label: labels.select.department },
+      { key: 'location',        label: labels.select.location },
+      { key: 'acquisitionType', label: labels.select.acquisitionType },
+      { key: 'assetCategory',   label: labels.select.assetCategory },
+      { key: 'item',            label: labels.select.item },
+      { key: 'manufacturer',    label: labels.input.manufacturer },
+      { key: 'model',           label: labels.input.model },
+      { key: 'acquisitionDate', label: labels.input.acquisitionDate },
+      { key: 'acquisitionCost', label: labels.input.acquisitionCost },
     ];
     
     requiredFields.forEach(field => {
       if (!formData[field.key] || formData[field.key] === '') {
-        newErrors[field.key] = `${field.label}을(를) 입력해주세요.`;
+        newErrors[field.key] = t('error.input', { field: field.label });
       }
     });
     
     
   // 노트북/컴퓨터일 때 저장공간 체크
-  const isElectronic = ['노트북', '컴퓨터'].includes(formData.item);
+const isElectronic = ['노트북', '컴퓨터'].includes(formData.item);
 
   if (isElectronic) {
     const hasInput = formData.storageList.some(s => s.value.trim() !== '');
@@ -412,7 +430,7 @@ const AssetRegister = () => {
       ).toFixed(2);
   
       if (!formData.totalStorage || Number(convertedTotal) !== Number(formData.totalStorage)) {
-        newErrors.totalStorage = '총 저장공간을 변환 버튼으로 계산해주세요.';
+        newErrors.totalStorage = t('AssetRegister_CalcTotalStorageWithConvert');
       }
     }
   }
@@ -423,7 +441,7 @@ const AssetRegister = () => {
     // 에러 있을 때 알림 한 번만
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
-      alert('❗ 필수 항목을 모두 입력해주세요.');
+      alert(t('AssetRegister_FillRequiredFields'));
       return;
     }
   
@@ -492,7 +510,7 @@ const AssetRegister = () => {
   
       if (result.code === 1) {
         const barcodeValue = result.data;
-        alert(`✅ 등록 완료! 바코드: ${barcodeValue}`);
+       alert(t('AssetRegister_RegisterSuccessBarcode') + barcodeValue);
   
         const asset = {
           barcode: barcodeValue,
@@ -512,11 +530,11 @@ const AssetRegister = () => {
         openLabelPrintWindow(asset);
         window.location.reload();
       } else {
-        alert(`❌ 등록 실패: ${result.message || '서버 오류'}`);
+        alert((t('AssetRegister_RegisterFail_ServerError')) + (result.message ? ' ' + result.message : ''));
       }
     } catch (err) {
       console.error(err);
-      alert('❌ 등록 실패: 네트워크 또는 서버 오류');
+       alert(t('AssetRegister_RegisterFail_NetworkOrServer'));
     }
   };
   
@@ -527,14 +545,14 @@ const AssetRegister = () => {
   
 
   return (
-    <div className="asset-register-page">
-      <h2 className="asset-register-title">개별 자산 등록</h2>
+    <div className={`asset-register-page ${modeClass}`}>
+      <h2 className="asset-register-title">{t('AssetRegister_Title')}</h2>
       <form className="asset-register-form" onSubmit={handleSubmit}>
         {/* 회사구분 */}
         <div className="form-row">
-          <label>회사구분</label>
+          <label>{labels.select.company}</label>
           <select name="company" value={formData.company} onChange={handleChange}>
-  <option value="">선택</option>
+<option value="">{optionSelect}</option>
   {companyList.map((corp) => (
     <option key={corp} value={corp}>{corp}</option>
   ))}
@@ -543,14 +561,14 @@ const AssetRegister = () => {
         </div>
 {/* 부서구분 */}
 <div className="form-row">
-  <label>부서구분</label>
+<label>{labels.select.department}</label>
   <select
     name="department"
     value={formData.department}
     onChange={handleChange}
     disabled={!formData.company}
   >
-    <option value="">선택</option>
+<option value="">{optionSelect}</option>
     {formData.company &&
       Object.keys(companyData[formData.company] || {}).map((dept) => (
         <option key={dept} value={dept}>
@@ -565,14 +583,15 @@ const AssetRegister = () => {
 
 {/* 세부위치 */}
 <div className="form-row">
-  <label>세부위치</label>
+<label>{labels.select.location}</label>
+{/* <option value="">{optionSelect}</option> */}
   <select
     name="location"
     value={formData.location}
     onChange={handleChange}
     disabled={!formData.company || !formData.department}
   >
-    <option value="">선택</option>
+<option value="">{optionSelect}</option>
     {formData.company &&
       formData.department &&
       companyData[formData.company]?.[formData.department]?.map((loc) => (
@@ -587,17 +606,17 @@ const AssetRegister = () => {
 
         {/* 취득구분 */}
         <div className="form-row">
-          <label>취득구분</label>
+          <label>{labels.select.acquisitionType}</label>
           <select name="acquisitionType" value={formData.acquisitionType} onChange={handleChange}>
-            <option value="">선택</option>
-            <option value="구매자산">구매자산</option>
-            <option value="이관자산">이관자산</option>
+  <option value="">{optionSelect}</option>
+  <option value="구매자산">{t('AssetRegister_PurchasedAsset')}</option>
+  <option value="이관자산">{t('AssetRegister_TransferredAsset')}</option>
           </select>
           {errors.acquisitionType && (<div style={{ color: 'red', fontSize: '12px' }}>{errors.acquisitionType}</div>)}
         </div>
 {/* 자산분류 */}
 <div className="form-row">
-  <label>자산분류</label>
+  <label>{labels.select.assetCategory}</label>
   <select
   name="assetCategory"
  value={formData.parentTypeId}
@@ -616,7 +635,7 @@ const AssetRegister = () => {
     });
   }}
 >
-  <option value="">선택</option>
+ <option value="">{optionSelect}</option>
    {Object.entries(parentTypeIdMap).map(([name, id]) => (
    <option key={`${id}-${name}`} value={id}>{name}</option>
   ))}
@@ -627,7 +646,7 @@ const AssetRegister = () => {
 
 {/* 품목 */}
 <div className="form-row">
-  <label>품목</label>
+<label>{labels.select.item}</label>
   <select
   name="item"
  value={formData.childTypeId}
@@ -647,7 +666,7 @@ const AssetRegister = () => {
   }}
   disabled={!formData.assetCategory}
 >
-  <option value="">선택</option>
+<option value="">{optionSelect}</option>
   
  {Object.entries(childTypeIdMap[formData.assetCategory] || {}).map(([name, id]) => (
      <option key={`${id}-${name}`} value={id}>{name}</option>
@@ -661,22 +680,22 @@ const AssetRegister = () => {
         {(formData.item === '노트북' || formData.item === '컴퓨터') && (
           <>
             <div className="form-row">
-              <label>CPU</label>
+              <label>{labels.input.cpu}</label>
               <input type="text" name="cpu" value={formData.cpu} onChange={handleChange} />
               {errors.cpu && (<div style={{ color: 'red', fontSize: '12px' }}>{errors.cpu}</div>)}
             </div>
             <div className="form-row">
-              <label>메모리</label>
+              <label>{labels.input.memory}</label>
               <input type="text" name="memory" value={formData.memory} onChange={handleChange} />
               {errors.memory && (<div style={{ color: 'red', fontSize: '12px' }}>{errors.memory}</div>)}
             </div>
             <div className="form-row">
-              <label>그래픽 카드</label>
+              <label>{labels.input.gpu}</label>
               <input type="text" name="gpu" value={formData.gpu} onChange={handleChange} />
               {errors.gpu && (<div style={{ color: 'red', fontSize: '12px' }}>{errors.gpu}</div>)}
             </div>
             <div className="form-row">
-              <label>데이터 변환기 (PC 저장공간)</label>
+              <label>{t('AssetRegister_DataConverter_PCStorage')}</label>
                {formData.storageList.map((s, idx) => (
    <div key={`${idx}-${s.unit}-${s.value}`} className="conversion-group">
                   <input type="text" name="storage-value" value={s.value} placeholder="용량" onChange={(e) => handleChange(e, idx)} />
@@ -695,54 +714,58 @@ const AssetRegister = () => {
                   }}>➖</button>}
                 </div>
               ))}
-              <button type="button" onClick={handleStorageConvert}>변환</button>
+              <button type="button" onClick={handleStorageConvert}>{t('AssetRegister_Convert')}</button>
               {errors.totalStorage && (<div style={{ color: 'red', fontSize: '12px' }}>{errors.totalStorage}</div>)}
             </div>
             <div className="form-row">
-              <label>총 저장공간(GB)</label>
+              <label>{t('AssetRegister_TotalStorageGB')}</label>
               <input type="text" name="totalStorage" value={formData.totalStorage} readOnly />
             </div>
           </>
         )}
         {/* 자산상태 */}
         <div className="form-row">
-          <label>자산상태</label>
+          <label>{labels.select.assetStatus}</label>
           <div className="radio-group">
-            {['사용', '미사용'].map((st) => (
+              {[t('AssetRegister_InUse'), t('AssetRegister_NotInUse')].map((st, i) => {
+     const raw = i === 0 ? '사용' : '미사용'; // 서버로 보내는 값은 원문 유지
+     return (
               <label key={st}>
-                <input type="radio" name="assetStatus" value={st} checked={formData.assetStatus === st} onChange={handleChange} />
+                <input type="radio" name="assetStatus" value={raw}
+                checked={formData.assetStatus === raw}
+                onChange={(e)=> setFormData(prev=>({...prev, assetStatus: e.target.value}))} />
                 {st}
               </label>
-            ))}
+            )})}
           </div>
         </div>
         {/* 제조사 */}
         <div className="form-row">
-          <label>제조사</label>
+          <label>{labels.input.manufacturer}</label>
           <input type="text" name="manufacturer" value={formData.manufacturer} onChange={handleChange} />
           {errors.manufacturer && (<div style={{ color: 'red', fontSize: '12px' }}>{errors.manufacturer}</div>)}
         </div>
         {/* 모델 */}
         <div className="form-row">
-          <label>모델</label>
+          <label>{labels.input.model}</label>
           <input type="text" name="model" value={formData.model} onChange={handleChange} />
           {errors.model && (<div style={{ color: 'red', fontSize: '12px' }}>{errors.model}</div>)}
         </div>
         {/* 취득일자 */}
         <div className="form-row">
-          <label>취득일자</label>
+          <label>{labels.input.acquisitionDate}</label>
           <input type="date" name="acquisitionDate" value={formData.acquisitionDate} onChange={handleChange} />
           {errors.acquisitionDate && (<div style={{ color: 'red', fontSize: '12px' }}>{errors.acquisitionDate}</div>)}
         </div>
         {/* 취득가 */}
         <div className="form-row">
-          <label>취득가</label>
+          <label>{labels.input.acquisitionCost}</label>
           <input type="number" name="acquisitionCost" value={formData.acquisitionCost} onChange={handleChange} />
           {errors.acquisitionCost && (<div style={{ color: 'red', fontSize: '12px' }}>{errors.acquisitionCost}</div>)}
         </div>
         {/* 버튼 영역 */}
-        <button type="submit" className="submit-button">등록</button>
-        <button type="button" className="reset-button" onClick={() => window.location.reload()}>초기화</button>
+  <button type="submit" className="submit-button">{t('AssetRegister_Submit')}</button>
+  <button type="button" className="reset-button" onClick={() => window.location.reload()}>{t('AssetRegister_Reset')}</button>
       </form>
     </div>
   );

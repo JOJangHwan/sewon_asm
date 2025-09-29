@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
+import { useTranslation } from 'react-i18next';
 import AssetListPanel from './AssetListPanel';
 import './DualTransferSimple.css';
 import { authFetchWithRefresh } from "../../utils/authFetchWithRefresh";
@@ -7,6 +8,7 @@ import { UserContext } from "../../utils/UserContext"; // 실제 경로 맞게!
 const API_BASE_URL = window._env_?.REACT_APP_API_URL || "http://localhost:8888";
 
 export default function AssetTransferWithFilter() {
+  const { t } = useTranslation('dualTransferSimple');
 
   const mode = useResponsiveMode();
   const { user } = useContext(UserContext); // 유저정보 구조 확인!
@@ -115,7 +117,7 @@ export default function AssetTransferWithFilter() {
   // ---- 바코드 단건 조회 ----
   const handleBarcodeSearch = async () => {
     if (!barcode.trim()) {
-      alert('바코드를 입력하세요.');
+      alert(t('DualTransferSimple_EnterBarcode'));
       return;
     }
     try {
@@ -123,14 +125,14 @@ export default function AssetTransferWithFilter() {
       const res = await authFetchWithRefresh(url, { method: 'GET' });
       const resJson = await res.json();
       if (resJson.code !== 1 || !resJson.data) {
-        alert('해당 바코드의 자산을 찾을 수 없습니다.');
+        alert(t('DualTransferSimple_AssetNotFoundByBarcode'));
         return;
       }
       const alreadyExists =
         fromItems.some(item => item.barcode === resJson.data.barcode) ||
         toItems.some(item => item.barcode === resJson.data.barcode);
       if (alreadyExists) {
-        alert('이미 추가된 자산입니다.');
+        alert(t('DualTransferSimple_AlreadyAdded'));
         setBarcode('');
         return;
       }
@@ -138,7 +140,7 @@ export default function AssetTransferWithFilter() {
       setBarcode('');
     } catch (err) {
       console.error('[바코드조회 에러]', err);
-      alert('바코드 조회 중 오류 발생!');
+      alert(t('DualTransferSimple_Error_BarcodeLookup'));
     }
   };
 
@@ -152,7 +154,7 @@ const handleSearch = async () => {
       const res = await authFetchWithRefresh(url, { method: 'GET' });
       const resJson = await res.json();
       if (resJson.code !== 1 || !resJson.data) {
-        alert('해당 바코드의 자산을 찾을 수 없습니다.');
+        alert(t('DualTransferSimple_AssetNotFoundByBarcode'));
         setFromItems([]);
         return;
       }
@@ -161,7 +163,7 @@ const handleSearch = async () => {
         fromItems.some(item => item.barcode === resJson.data.barcode) ||
         toItems.some(item => item.barcode === resJson.data.barcode);
       if (alreadyExists) {
-        alert('이미 추가된 자산입니다.');
+        alert(t('DualTransferSimple_AlreadyAdded'));
         setBarcode('');
         return;
       }
@@ -169,14 +171,14 @@ const handleSearch = async () => {
       setBarcode('');
     } catch (err) {
       console.error('[바코드조회 에러]', err);
-      alert('바코드 조회 중 오류 발생!');
+      alert(t('DualTransferSimple_Error_BarcodeLookup'));
     }
     return;
   }
 
   // 2. 바코드가 없는 경우 → 기존 페이징 조건 검색
   if (!corporationId || !affiliationId || !locationId) {
-    alert('회사, 부서, 세부위치를 모두 선택해야 검색할 수 있습니다.');
+    alert(t('DualTransferSimple_MustSelectAllForSearch'));
     return;
   }
   try {
@@ -192,12 +194,12 @@ const handleSearch = async () => {
 
     const res = await authFetchWithRefresh(url, { method: 'GET' });
     if (!res.ok) {
-      alert('서버 오류 발생');
+      alert(t('DualTransferSimple_ServerError'));
       return;
     }
     const resData = await res.json();
     if (resData.code !== 1) {
-      alert(resData.message || '조회 실패');
+      alert(resData.message || t('DualTransferSimple_SearchFailed'));
       return;
     }
     const data = resData.data?.list || [];
@@ -216,12 +218,12 @@ const handleSearch = async () => {
   // ---- 이동처리 ----
   const moveToRight = async () => {
     if (selectedFrom.length === 0 || !destCorp || !destDept || !destLoc) {
-      alert('이동할 품목, 회사/부서/세부위치를 선택하세요.');
+      alert(t('DualTransferSimple_SelectItemsAndDest'));
       return;
     }
     const toLocationId = companyIdMap[destCorp]?.departments?.[destDept]?.locations?.[destLoc];
     if (!toLocationId) {
-      alert('이관 대상 세부위치가 올바르지 않습니다.');
+      alert(t('DualTransferSimple_InvalidDestDetailLocation'));
       return;
     }
   
@@ -283,9 +285,9 @@ const handleSearch = async () => {
       setToItems([...toItems, ...moving]);
       setFromItems(fromItems.filter(item => !selectedFrom.includes(item.barcode)));
       setSelectedFrom([]);
-      alert('이관 완료!');
+      alert(t('DualTransferSimple_TransferCompleted'));
     } catch (err) {
-      alert('이관 중 오류: ' + err.message);
+      alert(t('DualTransferSimple_TransferErrorLabel') + err.message);
       console.error(err);
     }
   };
@@ -300,7 +302,12 @@ const handleSearch = async () => {
 
   // ---- UI ----
   return (
-    <div className={`transfer-sketch-wrap ${mode}-mode`}>
+  <div className={`transfer-page ${mode === 'web' ? 'at-web' : 'at-pda'}`}>
+    {/* 상단 제목 */}
+    <div className="transfer-header">
+      <h2 className="transfer-title">{t('DualTransferSimple_Title')}</h2>
+    </div>
+      <div className="transfer-sketch-wrap">
       {/* ── 검색 영역 (웹/피디에이 분기) ── */}
       {mode === 'web' ? (
         <div className="transfer-search-section web-search">
@@ -311,7 +318,7 @@ const handleSearch = async () => {
             setCompany(v);
             setCorporationId(companyIdMap[v]?.id || null);
           }}>
-            <option value="">회사</option>
+            <option value="">{t('DualTransferSimple_Company')}</option>
             {companyList.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
 
@@ -321,7 +328,7 @@ const handleSearch = async () => {
             const deptId = companyIdMap[company]?.departments?.[v]?.id;
             setAffiliationId(deptId || null);
           }}>
-            <option value="">부서</option>
+            <option value="">{t('DualTransferSimple_Department')}</option>
             {Object.keys(companyData[company] || {}).map(d => <option key={d}>{d}</option>)}
           </select>
 
@@ -331,7 +338,7 @@ const handleSearch = async () => {
             const locId = companyIdMap[company]?.departments?.[department]?.locations?.[v];
             setLocationId(locId || null);
           }}>
-            <option value="">세부위치</option>
+            <option value="">{t('DualTransferSimple_DetailLocation')}</option>
             {(companyData[company]?.[department] || []).map(l => <option key={l}>{l}</option>)}
           </select>
 
@@ -342,7 +349,7 @@ const handleSearch = async () => {
             setItemName('');
             setChildTypeId(null);
           }}>
-            <option value="">자산분류</option>
+            <option value="">{t('DualTransferSimple_AssetCategory')}</option>
             {Object.keys(assetCategoryData).map(a => <option key={a}>{a}</option>)}
           </select>
 
@@ -351,7 +358,7 @@ const handleSearch = async () => {
             setItemName(v);
             setChildTypeId(assetCategoryMap[assetCategory]?.children?.[v] || null);
           }}>
-            <option value="">품명</option>
+            <option value="">{t('DualTransferSimple_ItemName')}</option>
             {(assetCategoryData[assetCategory] || []).map(i => <option key={i}>{i}</option>)}
           </select>
 
@@ -361,18 +368,18 @@ const handleSearch = async () => {
             onChange={e => setViewCount(Number(e.target.value))}
           />
 
-          <button onClick={handleSearch} className="transfer-search-btn">검색</button>
+          <button onClick={handleSearch} className="transfer-search-btn">{t('DualTransferSimple_Search')}</button>
                 </div>
           {/* 2행 : 바코드 */}
           <div className="transfer-barcode-row">
             <input
               className="transfer-barcode-input"
-              placeholder="바코드 입력"
+              placeholder={t('DualTransferSimple_BarcodeInput')}
               value={barcode}
              onChange={e => setBarcode(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleBarcodeSearch()}
             />
-            <button onClick={handleBarcodeSearch} className="transfer-barcode-btn">바코드조회</button>
+            <button onClick={handleBarcodeSearch} className="transfer-barcode-btn">{t('DualTransferSimple_SearchBarcode')}</button>
           </div>
         </div>
       ) : (
@@ -383,14 +390,14 @@ const handleSearch = async () => {
               <select value={company} onChange={e => {
                 const v = e.target.value; setCompany(v); setCorporationId(companyIdMap[v]?.id || null);
               }}>
-                <option value="">회사</option>
+                <option value="">{t('DualTransferSimple_Company')}</option>
                 {companyList.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
               <select value={department} onChange={e => {
                 const v = e.target.value; setDepartment(v);
                 setAffiliationId(companyIdMap[company]?.departments?.[v]?.id || null);
               }} disabled={!company}>
-                <option value="">부서</option>
+                <option value="">{t('DualTransferSimple_Department')}</option>
                 {Object.keys(companyData[company] || {}).map(d => <option key={d} value={d}>{d}</option>)}
               </select>
             </div>
@@ -401,7 +408,7 @@ const handleSearch = async () => {
                 const v = e.target.value; setLocation(v);
                 setLocationId(companyIdMap[company]?.departments?.[department]?.locations?.[v] || null);
               }} disabled={!department}>
-                <option value="">세부위치</option>
+                <option value="">{t('DualTransferSimple_DetailLocation')}</option>
                 {(companyData[company]?.[department] || []).map(l => <option key={l} value={l}>{l}</option>)}
               </select>
             </div>
@@ -412,14 +419,14 @@ const handleSearch = async () => {
                 const v = e.target.value; setAssetCategory(v);
                 setParentTypeId(assetCategoryMap[v]?.id || null); setItemName(''); setChildTypeId(null);
               }}>
-                <option value="">자산분류</option>
+                <option value="">{t('DualTransferSimple_AssetCategory')}</option>
                 {Object.keys(assetCategoryData).map(a => <option key={a} value={a}>{a}</option>)}
               </select>
               <select value={itemName} onChange={e => {
                 const v = e.target.value; setItemName(v);
                 setChildTypeId(assetCategoryMap[assetCategory]?.children?.[v] || null);
               }} disabled={!assetCategory}>
-                <option value="">품명</option>
+                <option value="">{t('DualTransferSimple_ItemName')}</option>
                 {(assetCategoryData[assetCategory] || []).map(i => <option key={i} value={i}>{i}</option>)}
               </select>
             </div>
@@ -432,19 +439,19 @@ const handleSearch = async () => {
                 value={viewCount}
                 onChange={e => setViewCount(Number(e.target.value))}
               />
-              <button onClick={handleSearch} className="transfer-search-btn">검색</button>
+              <button onClick={handleSearch} className="transfer-search-btn">{t('DualTransferSimple_Search')}</button>
             </div>
 
              {/* (옵션) 바코드 입력/버튼 - 세로 배치 */}
             <div className="row">
               <input
                 className="transfer-barcode-input"
-                placeholder="바코드 입력"
+                placeholder={t('DualTransferSimple_BarcodeInput')}
                 value={barcode}
                 onChange={e => setBarcode(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleBarcodeSearch()}
               />
-              <button onClick={handleBarcodeSearch} className="transfer-barcode-btn">바코드조회</button>
+              <button onClick={handleBarcodeSearch} className="transfer-barcode-btn">{t('DualTransferSimple_SearchBarcode')}</button>
             </div>
           </div>
         </div>
@@ -454,7 +461,7 @@ const handleSearch = async () => {
 <div className="transfer-main-row">
         {/* FROM */}
         <div className="transfer-col">
-          <div className="col-title">이동할 품목 <span className="from-label">from</span></div>
+          <div className="col-title">{t('DualTransferSimple_ItemsToMove')} <span className="from-label">from</span></div>
           <AssetListPanel
             assets={fromItems}
             selected={selectedFrom}
@@ -466,7 +473,7 @@ const handleSearch = async () => {
         <div className="transfer-arrow-btns">
         <button
   className="arrow-btn"
-  data-tip="from과 to를 다 선택해야지 클릭이 됩니다."
+  data-tip={t('DualTransferSimple_NeedFromAndTo')}
   
   onClick={moveToRight}
   disabled={selectedFrom.length === 0 || !destCorp || !destDept || !destLoc}
@@ -486,7 +493,7 @@ const handleSearch = async () => {
 
         {/* TO */}
         <div className="transfer-col">
-          <div className="col-title">이동한 품목 <span className="to-label">to</span></div>
+          <div className="col-title">{t('DualTransferSimple_ItemsMoved')} <span className="to-label">to</span></div>
           {/* ▼▼▼  TO 위치 선택 Select 세트  ▼▼▼ */}
 <div className="transfer-to-select-row">
   {/* ── 회사 ── */}
@@ -499,7 +506,7 @@ const handleSearch = async () => {
       setDestLoc('');
     }}
   >
-    <option value="">회사</option>
+   <option value="">{t('DualTransferSimple_Company')}</option>
     {companyList.map(c => (
       <option key={c} value={c}>{c}</option>
     ))}
@@ -515,7 +522,7 @@ const handleSearch = async () => {
     }}
     disabled={!destCorp}
   >
-    <option value="">부서</option>
+    <option value="">{t('DualTransferSimple_Department')}</option>
     {Object.keys(companyData[destCorp] || {}).map(d => (
       <option key={d} value={d}>{d}</option>
     ))}
@@ -527,7 +534,7 @@ const handleSearch = async () => {
     onChange={e => setDestLoc(e.target.value)}
     disabled={!destDept}
   >
-    <option value="">세부위치</option>
+    <option value="">{t('DualTransferSimple_DetailLocation')}</option>
     {(companyData[destCorp]?.[destDept] || []).map(l => (
       <option key={l} value={l}>{l}</option>
     ))}
@@ -536,9 +543,10 @@ const handleSearch = async () => {
 {/* ▲▲▲  TO 위치 선택 끝  ▲▲▲ */}
 
         </div>
+      </div> 
       </div>
-    </div>
-  );
+      </div>       
+);
 }
 
 

@@ -1,0 +1,49 @@
+{
+  "RegisterCorpAndItem_Title": "法人资产分类与登录",
+  "RegisterCorpAndItem_RegisterOrgChart": "法人组织图登录",
+  "RegisterCorpAndItem_RegisteredCorporations": "登录的法人",
+  "RegisterCorpAndItem_RegisterCategoryAndItem": "资产分类 / 品目登录",
+  "RegisterCorpAndItem_RegisteredItems": "登录的品目",
+
+  "RegisterCorpAndItem_DepartmentNameRequired": "部门名（必须输入",
+  "RegisterCorpAndItem_DetailLocationRequired": "详细位置（必须输入）",
+  "RegisterCorpAndItem_AssetCategoryRequired": "资产分类（必须输入）",
+  "RegisterCorpAndItem_ItemNameRequired": "品目名（必须输入）",
+  "RegisterCorpAndItem_ItemName": "品目名",
+
+  "RegisterCorpAndItem_ConfirmEditName": "需要改名？",
+  "RegisterCorpAndItem_ConfirmDelete": "需要删除？",
+
+  "RegisterCorpAndItem_NotFoundDeptOrCorpId": "找不到部门编号或法人编号",
+  "RegisterCorpAndItem_NotFoundDeptOrDetailLocationId": "找不到部门编号或详细位置编号",
+  "RegisterCorpAndItem_DuplicateItemName": "已存在同一名的品目",
+  "RegisterCorpAndItem_ItemIdNotFoundLabel": "未找到品目编号 : ",
+  "RegisterCorpAndItem_NotEditableItem": "不可修正项目",
+  "RegisterCorpAndItem_ChangeCompleted": "变更完了",
+
+  "RegisterCorpAndItem_AffiliationIdNotFoundRefresh": "找不到所属编号（请刷新）",
+  "RegisterCorpAndItem_DetailLocationIdNotFoundRefresh": "详细位置编号找不到（请刷新）",
+  "RegisterCorpAndItem_AssetCategoryIdMissingRefresh": "无资产分类编号（请刷新）",
+  "RegisterCorpAndItem_ItemIdMissingRefresh": "无品目编号（请刷新）",
+
+  "RegisterCorpAndItem_CannotDeleteItem": "不可删除的项目",
+  "RegisterCorpAndItem_DeleteCompleted": "删除完了",
+
+  "RegisterCorpAndItem_Error_EnterCompanyDeptDetailLocationAll": "输入公司/部门/详细位置全部",
+  "RegisterCorpAndItem_Error_AlreadyRegisteredDeptAndDetailLocation": "一登录的部门与详细位置",
+  "RegisterCorpAndItem_Error_NotFoundDeptIdForDetailLocationRegister": "未找到详细位置需要登录的部门编号",
+
+  "RegisterCorpAndItem_DetailLocationRegisterCompleted": "详细位置登录完了",
+  "RegisterCorpAndItem_DetailLocationRegisterFailedLabel": "失败登录详细位置 : ",
+
+  "RegisterCorpAndItem_DepartmentRegisterCompleted": "部门登录完了",
+  "RegisterCorpAndItem_DepartmentRegisterFailedLabel": "部门登录失败： ",
+
+  "RegisterCorpAndItem_Error_MustEnterAssetCategoryAndItemName": "需要全部输入资产费雷与品目名项目",
+  "RegisterCorpAndItem_Error_AlreadyRegisteredAssetCategoryAndItem": "已登录的资产分类项目与品目",
+  "RegisterCorpAndItem_AssetCategoryRegisteredFirst": "资产分类已先登录了",
+  "RegisterCorpAndItem_ItemRegisterCompleted": "品目登录完了",
+
+  "RegisterCorpAndItem_DeleteFailed": "失败删除",
+  "RegisterCorpAndItem_Register": "登录"
+}

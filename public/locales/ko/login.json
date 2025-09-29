@@ -1,9 +1,12 @@
 {
-    "title": "세원전자 자산관리 시스템",
-    "username": "아이디",
-    "password": "비밀번호",
-    "remember": "아이디 저장",
-    "submit": "로그인",
-    "register": "회원가입"
-  }
-  
+  "Login_SignUp": "회원가입",
+  "Login_RememberId": "아이디 저장",
+  "Login_Button": "로그인",
+  "Login_EnterIdAndPassword": "아이디와 비밀번호를 입력해주세요.",
+  "Login_Failed_InvalidCredentials": "로그인 실패: 사용자 정보가 잘못되었습니다.",
+  "Login_ServerConnectionFailed": "서버 연결에 실패했습니다.",
+  "Login_Loading": "로딩 중",
+  "Login_Username": "아이디",
+  "Login_AppTitle": "세원전자 자산관리 시스템",
+  "Login_Password": "비밀번호"
+}

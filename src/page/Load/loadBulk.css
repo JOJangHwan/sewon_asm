@@ -1,344 +1,177 @@
-/* =============================================
-   loadBulk.css – 자산 일괄 등록 전용 스타일 완성본
-   ============================================= */
-
-/* ---------- 공통 ---------- */
- .bulk-container {
+/* ========== 공통(웹/모바일 공용) ========== */
+.bulk-container {
   padding: 20px;
-   font-family: Arial, sans-serif;
-   background-color: #f9f9f9;
+  font-family: Arial, sans-serif;
+  background-color: #f9f9f9;
   max-width: 100%;
-  overflow-x: hidden;          /* + 가로 넘침 차단 */
+  overflow-x: hidden;
+}
+
+h2 { font-size: 22px; margin-bottom: 16px; }
+
+/* 버튼/라벨 공통 */
+label.btn{
+  display:flex !important; align-items:center !important; justify-content:center !important;
+  height:36px !important; line-height:36px !important; padding:0 12px !important; box-sizing:border-box; margin:0;
+}
+.btn, label.btn{
+  display:inline-flex; justify-content:center; align-items:center;
+  height:36px; padding:0 12px; line-height:1; font-size:14px; font-weight:700;
+  border:none; border-radius:4px; white-space:nowrap; cursor:pointer; color:#fff;
+  min-width:auto; width:auto; flex-shrink:1; background:#9e9e9e; transition:background-color .2s;
+}
+.primary{background:#ffa726}.upload{background:#42a5f5}.danger{background:#ef5350}.success{background:#66bb6a}.gray{background:#9e9e9e}
+.btn.primary:hover{background:#fb8c00}.btn.upload:hover{background:#343c45}.btn.danger:hover{background:#e53935}
+.btn.success:hover{background:#43a047}.btn.gray:hover{background:#343c45}
+.btn-error-disabled{background:#1b5e20!important;border:2px solid #388e3c!important;cursor:not-allowed!important}
+
+/* 파일명 입력 공통 */
+.bulk-top-controls .file-name-input{
+  height:36px!important; line-height:36px; flex:1 1 220px; max-width:100%; padding:0 10px; font-size:14px;
+  border:1px solid #ccc; border-radius:6px; box-sizing:border-box; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  min-height:36px!important; max-height:36px!important; display:inline-block; appearance:none;
+}
+
+/* 테이블 공통 */
+.table-wrapper{ width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; border:1px solid #e9e9e9; border-radius:6px; background:#fff; }
+.bulk-table{ width:100%; border-collapse:collapse; background:#fff; }
+.bulk-table th,.bulk-table td{ border:1px solid #ddd; padding:8px; text-align:center; font-size:13px; white-space:nowrap; }
+.bulk-table th{ background:#eee; font-weight:700; }
+.bulk-table tr.selected{ background:#c8e6c9; }
+.bulk-table tr.row-error{ background:#ffe5e5; }
+.bulk-table .error-text{ color:#b00020; font-size:13px; }
+
+/* 경고/안내 공통 */
+.error-summary,.register-error-alert{
+  padding:12px; border-radius:6px; font-weight:700; display:flex; align-items:center; gap:8px; word-break:break-word;
+}
+.error-summary{ background:#ffdddd; color:#aa0000; margin-bottom:12px; }
+.register-error-alert{ background:#ffe2e2; color:#ba1a1a; margin:14px 0 10px; border:1px solid #ffaaaa; box-shadow:0 2px 6px rgba(200,0,0,.05); }
+
+/* ========== WEB 전용 ========== */
+.web-mode .bulk-top-controls{
+  display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; margin-bottom:16px;
+}
+.web-mode .controls-left{ display:flex; align-items:center; gap:10px; min-width:0; flex:1 1 auto; }
+.web-mode .controls-right{ display:flex; align-items:center; gap:10px; flex:0 0 auto; }
+.web-mode .controls-right .btn{ min-width:110px; }
+.web-mode .controls-left .file-name-input{
+  flex: 0 0 200px;   /* ← 기존 1 1 260px 에서 줄임 */
+  width: 200px;      /* 보조 */
+  min-width: 180px;  /* 너무 작아지는 것 방지 (원하면 더 줄여도 됨) */
+}
+
+/* ========== PDA 전용 ========== */
+.pda-mode .bulk-top-controls{
+  display:flex; flex-direction:column; align-items:stretch; gap:8px; width:100%; padding:0 12px; box-sizing:border-box;
+}
+.pda-mode .controls-left, .pda-mode .controls-right{ width:100%; }
+.pda-mode .controls-left{
+  display:grid !important; grid-template-columns:1fr !important; gap:6px; min-width:0; width:100%;
+}
+.pda-mode .controls-right{
+  display:grid !important; grid-template-columns:1fr; gap:6px; width:100%; margin-top:4px;
+}
+/* 좌측 3개 요소/우측 버튼 전부 전폭 */
+.pda-mode .controls-left .btn,
+.pda-mode .controls-left .file-name-input,
+.pda-mode .controls-left label.btn,
+.pda-mode .controls-right .btn{ width:100% !important; min-width:0; }
+
+/* PDA 카드 목록 */
+ /* 가로 스크롤 카드 리스트 */
+ .pda-mode.bulk-container{
+   overflow-x: visible;          /* 자식 가로 스크롤이 잘리지 않도록 */
+   padding-right: 12px;
  }
-
-h2 {
-  font-size: 22px;
-  margin-bottom: 16px;
-}
-/* ✅ label 버튼 정렬 보정 */
-label.btn {
-  display: flex !important;          /* inline-flex 말고 flex로 라인박스 영향 제거 */
-  align-items: center !important;     /* 세로 가운데 */
-  justify-content: center !important; /* 가로 가운데 */
-  height: 36px !important;
-  line-height: 36px !important;       /* 대부분의 브라우저에서 더 안정적 */
-  padding: 0 12px !important;
-  box-sizing: border-box;
-  vertical-align: middle;             /* (보너스) 주변 정렬 안정화 */
-  margin: 0;                          /* 혹시 모를 기본 마진 제거 */
+/* PDA 카드 리스트 래퍼 */
+.pda-mode .bulk-card-list{
+   display:flex;
+  gap:12px;
+  padding:12px 8px 0;          /* 그대로 */
+   overflow-x:auto;
+   -webkit-overflow-scrolling:touch;
 }
 
-/* 버튼 공통 */
-.btn,
-label.btn {
-  display: inline-flex;
-  justify-content: center; /* 가로 가운데 */
-  align-items: center;     /* 세로 가운데 */
-  height: 36px;
-  padding: 0 12px;
-  line-height: 1;          /* 글자 높이 균일화 */    /* 좌우 여백 축소 */
-  font-size: 14px;       /* 폰트 크기 축소 */
-  font-weight: 700;
-  border: none;
-  border-radius: 4px;    /* 모서리도 조금 줄임 */
-  white-space: nowrap;
-  cursor: pointer;
-  color: #fff;
-  min-width: auto;          /* ✅ 최소 너비 제한 해제 */
-  width: auto;              /* ✅ 필요한 만큼만 넓이 사용 */
-  flex-shrink: 1;           /* ✅ 줄어들 수 있게 허용 */
-  background: #9e9e9e;
-  transition: background-color 0.2s;
+
+
+/* 카드 폭 줄이기 */
+.pda-mode .bulk-card{
+  width: calc(100vw - 160px);
+  max-width: calc(100vw - 160px);
+  flex: 0 0 calc(100vw - 160px);
+  align-self: flex-start;    /* 왼쪽에 딱 붙이기 */
+  min-height: 300px;
+   border:1px solid #ccc;
+   border-radius:8px;
+   padding:12px;
+   background:#fff;
+   box-shadow:0 2px 6px rgba(0,0,0,.05);
+   box-sizing:border-box;
+   margin-right: 4px;
 }
-.btn.primary:hover {
-  background-color: #fb8c00; /* 오렌지 hover */
-}
-
-.btn.upload:hover {
-  background-color: #343c45; /* 파랑 hover */
-}
-
-.btn.danger:hover {
-  background-color: #e53935; /* 빨강 hover */
-}
-
-.btn.success:hover {
-  background-color: #43a047; /* 초록 hover */
-}
-
-.btn.gray:hover {
-  background-color: #343c45; /* 회색 hover */
-}
-
-/* 색상 변형 */
-.primary { background: #ffa726; }
-.upload  { background: #42a5f5; }
-.danger  { background: #ef5350; }
-.success { background: #66bb6a; }
-.gray    { background: #9e9e9e; }
-
-/* 비활성(에러) 상태 */
-.btn-error-disabled {
-  background: #1b5e20 !important;
-  border: 2px solid #388e3c !important;
-  cursor: not-allowed !important;
-}
-
-/* 파일명 입력창(데스크톱 기본) */
-.bulk-top-controls .file-name-input {
-   height: 36px !important;
-   line-height: 36px;
-   flex: 1 1 220px;
-   max-width: 100%;
-   padding: 0 10px;
-   font-size: 14px;
-   border: 1px solid #ccc;
-   border-radius: 6px;
-   box-sizing: border-box;
-   overflow: hidden;
-   text-overflow: ellipsis;
-   white-space: nowrap;
-  min-height: 36px !important;   /* 덮어쓰기 방지 */
-  max-height: 36px !important;   /* 덮어쓰기 방지 */
-  display: inline-block;         /* 혹시 block/textarea 스타일 방지 */
-  appearance: none;              /* 모바일 기본 스타일 제거 */
-}
-
- /* ---------- 테이블 스크롤 래퍼 ---------- */
-.table-wrapper {
-  width: 100%;
-  overflow-x: auto;            /* + 가로 스크롤은 래퍼에만 발생 */
-  -webkit-overflow-scrolling: touch;
-  border: 1px solid #e9e9e9;
-  border-radius: 6px;
-  background: #fff;
-}
-
-/* ---------- 상단 컨트롤 영역 ---------- */
-
-.bulk-top-controls {
-  display: flex;
-  justify-content: space-between;   /* 좌/우 그룹 분리 */
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
-  margin-bottom: 16px;
-}
-
-/* 왼쪽: 양식/파일명/업로드 */
-  .controls-left {
-    min-width: 0 !important;
-    flex: 1 1 auto !important;
-  }
-.controls-left .file-name-input {  /* 파일명은 유동 폭 */
-  flex: 1 1 260px;
-}
-
-/* 오른쪽: 삭제/등록/초기화 */
-.controls-right {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex: 0 0 auto;
-}
-.controls-right .btn { min-width: 110px; }
-
-
-
-/* ---------- 테이블 ---------- */
-.bulk-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: #fff;
-}
- .bulk-table th,
- .bulk-table td {
-  border: 1px solid #ddd;
-  padding: 8px;                /* ± 살짝 줄임 */
-  text-align: center;
-  font-size: 13px;
-  white-space: nowrap;         /* + 줄바꿈으로 높이 폭발 방지 */
+ .pda-mode .card-header{
+   margin-bottom:8px;
+   display:flex;
+   align-items:center;
+  justify-content:flex-start !important;   /* 체크박스 왼쪽 */
+   gap:8px;
+   font-weight:700;
+padding-left:0;
  }
-.bulk-table th {
-  background: #eeeeee;
-  font-weight: 700;
+.pda-mode .card-header input{
+  margin:0 !important;          /* 체크박스 여백 제거 & 왼쪽 고정 */
+  display:inline-block;
 }
-.bulk-table tr.selected {
-  background: #c8e6c9;
+/* 카드 본문: 세로(한 줄씩) 나열 */
+.pda-mode .card-body{
+  display:block;                /* 세로 스택 */
 }
-.bulk-table tr.row-error {
-  background: #ffe5e5;
+.pda-mode .card-row{
+  display:flex;
+  align-items:flex-start;
+  gap:6px;
+  width:100%;                   /* 한 줄에 하나씩 */
+  line-height:1.35;
+  border-bottom:1px solid #eee;
+  padding:6px 0;
+  white-space:normal;           /* 줄바꿈 허용 */
+  word-break:break-word;        /* 긴 값 줄바꿈 */
 }
-.bulk-table .error-text {
-  color: #b00020;
-  font-size: 13px;
-}
+ .pda-mode .card-row strong{
+   font-weight:700;
+    min-width:84px;  
+ }
+ .pda-mode .card-row:last-child{ border-bottom:none; }
+.pda-mode .bulk-card.row-error{ border:1px solid #f44336; background:#fff6f6; }
+.pda-mode .error-text{ color:#d32f2f; font-weight:600; font-size:13px; margin-top:6px; }
 
-/* ---------- 경고/안내 ---------- */
-.error-summary,
-.register-error-alert {
-  padding: 12px;
-  border-radius: 6px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-   word-break: break-word;
-}
-.error-summary {
-  background: #ffdddd;
-  color: #aa0000;
-  margin-bottom: 12px;
-}
-.register-error-alert {
-  background: #ffe2e2;
-  color: #ba1a1a;
-  margin: 14px 0 10px;
-  border: 1px solid #ffaaaa;
-  box-shadow: 0 2px 6px rgba(200, 0, 0, 0.05);
+/* (선택) 슬림 태블릿 보정: 웹 모드일 때만 */
+@media (min-width:768px) and (max-width:1024px){
+  .web-mode .bulk-top-controls{ gap:10px; }
+  .web-mode .file-name-input{ flex:1 1 260px; }
+  .web-mode .bulk-table th, .web-mode .bulk-table td{ padding:8px; font-size:13px; }
 }
 
-/* ---------- 모바일 전용 (<768px) ---------- */
-@media (max-width: 767px) {
-.bulk-top-controls .file-name-input {
-     height: 32px !important;
-     line-height: 32px;
-     font-size: 13px;
-    min-height: 32px !important;
-    max-height: 32px !important;
-  }
+.mobile-select-all { display: none; }  /* 기본: 숨김(웹) */
 
-  .bulk-top-controls {
-    flex-direction: column !important;   /* ✅ 세로로 고정 */
-    align-items: stretch !important;
-    gap: 6px;                             /* ⬅ 기존 12px → 6px로 축소 */
-    width: 100%;
-    padding: 0 12px;                     /* 좌우 여백 */
-    box-sizing: border-box;
-  }
-  .controls-left,
-  .controls-right {
-    width: 100%;
-  }
-  .controls-left {
-    display: grid !important;            /* ✅ 그리드로 강제 전환 */
-    grid-template-columns: 1fr !important;
-    gap: 6px;                             /* ⬅ 기존 10px → 6px로 축소 */
-    min-width: 0;
-    width: 100%;
-  }
-    /* ✅ 좌측 3개 요소 전부 전폭 */
-  .controls-left .btn,
-  .controls-left .file-name-input,
-  .controls-left label.btn {
-    width: 100% !important;
-    box-sizing: border-box;
-    min-width: 0;
-    display: block;                      /* label.btn 전폭 적용 보장 */
-  }
-  .controls-right {
-    display: grid !important;            /* ✅ 버튼 3개 세로 전폭 */
-    grid-template-columns: 1fr;
-    gap: 6px;                             /* ⬅ 기존 10px → 6px로 축소 */
-    width: 100%;
-    margin-top: 4px;                      /* ⬅ 기존 6px → 4px로 축소 */
-  }
-  .controls-right .btn,
-  .controls-left .btn,
-  .controls-left .file-name-input {
-    width: 100%;
-    min-width: 0;
-  }
-
-
-  .btn,
-  label.btn,
-  input.file-name-input {
-    width: 100%;
-    min-width: 0; 
-  }
-  
-  /* 모바일에선 살짝 더 컴팩트 */
-  input.file-name-input {
-    height: 34px !important;
-    line-height: 34px;
-    font-size: 13px;
-  }
-
-  .btn {
-    font-size: 14px;
-    line-height: 1;  
-  }
-
-  .file-name-input {
-    font-size: 14px;
-  }
-
-  /* 카드형 리스트 (모바일 카드형 테이블) */
-  .bulk-card-list {
-    display: flex;
-    overflow-x: auto;
-    gap: 12px;
-    padding: 12px 0;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .bulk-card {
-    flex: 0 0 auto;
-    width: 260px; 
-    min-height: 320px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    padding: 12px;
-    background: #fff;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-    scroll-snap-align: start;
-  }
-
-  .card-row {
-    display: flex;
-    justify-content: space-between;
-    padding: 8px 0;
-    border-bottom: 1px solid #eee;
-    font-size: 14px;
-  }
-
-  .card-row:last-child {
-    border-bottom: none;
-  }
-
-  .card-header {
-    font-weight: 700;
-    margin-bottom: 8px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .bulk-card.row-error {
-    border: 1px solid #f44336;
-    background: #fff6f6;
-  }
-
-  .error-text {
-    color: #d32f2f;
-    font-weight: 600;
-    font-size: 13px;
-    margin-top: 6px;
-  }
-
-  /* ---------- 슬림 태블릿 보정 (768~1024px) ---------- */
-@media (min-width: 768px) and (max-width: 1024px) {
-  .bulk-top-controls {
-    gap: 10px;
-  }
-  .file-name-input {
-    flex: 1 1 260px;
-  }
-  .bulk-table th, .bulk-table td {
-    padding: 8px;
-    font-size: 13px;
-  }
+/* PDA: 초기화 아래 전폭 표시 */
+.pda-mode .mobile-select-all{
+  display:block;
+  margin:12px 0 12px;        /* 초기화와 살짝 떨어뜨리기 */
+  padding:0;                 /* 왼쪽으로 딱 붙이기 */
+  width:100%;
+  text-align:left;           /* 좌측 정렬 고정 */
 }
+.pda-mode .mobile-select-all label{
+  display:inline-flex;       /* 라벨을 내용 너비만큼만 */
+  width:fit-content;
+  align-items:center;
+  justify-content:flex-start !important; /* 혹시 모를 상속값 차단 */
+  gap:6px;                                  /* 체크박스-텍스트 간격 */
+  font-weight:600;
+  white-space:nowrap;
 }
+.pda-mode .mobile-select-all input{ margin:0; }  /* 체크박스 여백 제거 */
+/* 안전장치: 혹시 카드리스트 내부에 남아있으면 숨김 */
+.pda-mode .bulk-card-list .mobile-select-all { display: none !important; }

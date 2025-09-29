@@ -1,71 +1,51 @@
-@page {
-  size: A4;
-  margin: 0;
-}
+/* === Label Print - Final Clean CSS === */
 
-.label-print-wrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;  /* 좌측 정렬 */
-  padding: 0;
-  margin: 0;
+@page { size: A4; margin: 0; }
+
+.label-print-wrapper{
+  display:flex; flex-direction:column; align-items:flex-start;
+  padding:0; margin:0;
 }
 
 /* 라벨 박스 */
-.label-box {
-  width: 45mm;
-  height: 15mm;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  background: white;
-  page-break-after: always;
-
-  /* A4 좌측 상단 기준 위치 조정 */
-  margin-left: 10mm;  /* 좌측 여백 */
-  margin-top: 10mm;   /* 위쪽 여백 */
-  padding: 0;
+.label-box{
+  width:45mm; height:15mm;
+  display:flex; flex-direction:row; align-items:center;
+  background:#fff; page-break-after:always;
+  margin-left:10mm; margin-top:10mm; padding:0;
 }
 
-/* QR코드 영역 */
-.qr-section {
-  width: 15mm;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+/* QR 영역 */
+.qr-section{
+  width:15mm; height:100%;
+  display:flex; justify-content:center; align-items:center;
 }
-
-.qr-canvas {
-  width: 12mm !important;
-  height: 12mm !important;
-}
+.qr-canvas{ width:12mm !important; height:12mm !important; }
 
 /* 정보 영역 */
-.info-section {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding-left: 2mm;
+.info-section{
+  flex:1;
+  display:flex; flex-direction:column; justify-content:center; align-items:flex-start;
+  padding-left:2mm;
 }
 
-.logo {
-  height: 3mm;
-  width: auto;
-  margin-bottom: 1mm;
+/* 공통 텍스트 */
+.text-line{
+  font-size:2.2mm; line-height:2.35mm;
+  font-family:'Arial', sans-serif;
+  margin:0; padding:0; white-space:nowrap; color:#000;
 }
 
-.text-line {
-  font-size: 2.2mm;
-  font-family: 'Arial', sans-serif;
-  margin: 0;
-  padding: 0;
-  white-space: nowrap;
-  color: black;
+/* 2열: 바코드 — 왼쪽 정렬 고정 */
+.barcode-text{
+  font-size:2.6mm; line-height:2.35mm; font-weight:700;
+  text-align:left; align-self:flex-start;
+  margin:0.2mm 0 0.1mm;
 }
 
-.barcode-text {
-  font-size: 2.6mm;
-  font-weight: bold;
+/* 3열: 자산분류 품목 (공백만, 말줄임) */
+.category-line{
+  font-size:2.0mm; line-height:2.2mm;
+  max-width:28mm;               /* 45 - 15(QR) - 2(padding) */
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
 }

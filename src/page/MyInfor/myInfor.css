@@ -121,7 +121,7 @@
   border-radius: 6px;
   box-sizing: border-box;
   min-width: 140px;
-  max-width: 70px;
+  max-width: 240px;
 }
 
 .btn-search,
@@ -136,6 +136,7 @@
     min-width: 100px;       /* ✅ 버튼 너비 증가 */
  padding: 6px 16px; 
 }
+.mi-btn-search{ all: unset; }
 
 .btn-search {
   background-color: #2255d0;
@@ -150,21 +151,63 @@
 }
 
 .btn-reset:hover { background-color: #e0a800; }
-
-@media (max-width: 768px) {
-  .filter-row,
-  .barcode-row {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .search-section select,
-  .search-section input,
-  .search-section button {
-    width: 100%;
-    max-width: none;
-  }
+ /* =========================
+    WEB 전용
+    ========================= */
+.web-mode .section-title{ font-size:20px; }
+.web-mode .mi-search-row{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:12px;
+  flex-wrap:nowrap;           /* 한 줄 유지 */
 }
+.web-mode .search-input{ min-width:120px; width:auto; }
+.web-mode .btn-search,
+.web-mode .btn-reset{ width:auto; min-width:90px; }
+.web-mode .pagination .page-btn{ min-width:72px; }
+
+ /* =========================
+    PDA(모바일) 전용
+    ========================= */
+.pda-mode .section-title{ font-size:18px; }
+.pda-mode.my-info-container{
+  width: 100%;
+  max-width: none;      /* ← 420px 제한 해제 */
+  margin: 0;            /* ← 가운데 정렬 해제 */
+  padding: 12px;        /* ← 적당한 안쪽 여백만 유지 */
+  box-sizing: border-box;
+}
+
+.pda-mode .top-section,
+.pda-mode .bottom-header{
+  flex-direction: column;
+  gap: 10px;
+  align-items: stretch;
+}
+.pda-mode .user-info-inline{ flex-direction: column; gap: 6px; }
+
+/* 검색 바: 세로 스택 & 전폭 */
+.pda-mode .mi-search-row{
+  display:flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap:10px;
+  width:100%;
+}
+.pda-mode .search-input,
+.pda-mode .btn-search,
+.pda-mode .btn-reset{
+  width:100%;
+  min-width:0;
+  box-sizing:border-box;
+}
+
+/* 테이블은 가로 스크롤 허용 */
+.pda-mode .table-container{ overflow-x:auto; }
+.pda-mode table{ min-width:760px; }   /* 컬럼 많을 때 깨짐 방지 */
+.pda-mode .pagination{ flex-wrap:wrap; }
+.pda-mode .page-btn{ min-width:64px; }
 /* ──────────────────────────────────────────────
    src/page/MyInfor/myInfor.css  (최종 완성본)
    ────────────────────────────────────────────── */
@@ -587,16 +630,6 @@ tbody tr:hover   { background: #f3f4f6; }
   box-shadow: 0 2px 6px rgba(0,0,0,.25);
 }
 
-
-
-
-
-
-
-
-
-
-
 /* ===== 인쇄 숨김 ===== */
 @media print {
   .top-section,
@@ -607,18 +640,6 @@ tbody tr:hover   { background: #f3f4f6; }
   th, td { border: 1px solid #999; padding: 10px; font-size: 16px; }
 }
 
-/* ===== 모바일 대응 ===== */
-@media (max-width: 768px) {
-  .top-section,
-  .search-section,
-  .bottom-header { flex-direction: column; gap: 12px; }
-  .search-bar, .button-group { justify-content: stretch; }
-  .search-input,
-  .btn-search,
-  .btn-reset,
-  .action-button { width: 100%; }
-  .user-info-inline { flex-direction: column; align-items: flex-start; }
-}
 
 /* ===== 사이드 드로어 & 상세보기 ===== */
 .drawer-overlay {
@@ -644,4 +665,363 @@ tbody tr:hover   { background: #f3f4f6; }
 .detail-back {
   background: none; border: none; font-size: 18px;
   margin-bottom: 12px; cursor: pointer;
+}
+
+/* PDA(모바일)에서 "내 정보 수정하기" 버튼 가로 중앙 정렬 */
+.pda-mode .btn-edit-info{
+  margin: 8px auto 0;   /* 좌우 auto → 가운데 */
+  align-self: center;   /* flex 교차축도 중앙 */
+}
+
+/* ----- 자산 조회: 4행 레이아웃 ----- */
+.search-rows{
+  width:100%;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+.sr-row{ display:flex; gap:12px; width:100%; }
+.sr-row-1, .sr-row-3{ justify-content:flex-start; }
+.sr-row-2{ justify-content:space-between; }
+.sr-row-2 .search-input{ flex:1 1 0; min-width:0; }
+
+.date-group{ flex-direction:column; gap:8px; }
+.date-row{ display:flex; align-items:center; gap:10px; }
+/* 날짜 인풋 폭 줄이기 (WEB 기본) */
+ /* 기본 폭 조금 축소 */
+ .date-row .search-input[type="date"],
+ .date-row input[type="date"].search-input{
+   width: 150px;
+   max-width: 150px;
+   min-width: 0;
+   flex: 0 0 150px;
+ }
+
+ /* 이 페이지의 날짜 인풋만 더 컴팩트하게(전역 min-width:140px 무시) */
+ .sr-row-4 .date-input{
+   width: 130px;
+   max-width: 130px;
+   min-width: 0;      /* ← 전역값 덮어쓰기 */
+   flex: 0 0 130px;
+ }
+ @media (max-width: 900px){
+   .pda-mode .sr-row-4 .date-input{
+     width: 120px;
+     max-width: 120px;
+     flex: 0 0 120px;
+   }
+ }
+
+/* PDA(모바일)에서는 더 좁게 */
+.pda-mode .date-row .search-input[type="date"],
+.pda-mode .date-row input[type="date"].search-input{
+  width: 130px;
+  max-width: 130px;
+  min-width: 0;
+  flex-basis: 150px;
+}
+.date-label{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:8px 12px;
+  min-width:86px;
+  height:38px;
+  background:#f1f3f5;
+  color:#5b6b7a;
+  border-radius:8px;
+  font-weight:600;
+}
+.sr-row-buttons{ justify-content:center; gap:10px; }
+
+/* 모드별 폭 */
+.web-mode .search-rows{ max-width:560px; }
+.pda-mode .search-rows{ max-width:100%; }
+
+/* ===== Width tuning: 분류/품목 & 날짜 ===== */
+/* 웹: 자산분류는 살짝 넓게, 품목은 보통 */
+.web-mode .mi-search-row .type-select { width: 220px; max-width: 220px; flex: 0 0 220px; }
+.web-mode .mi-search-row .item-select { width: 180px; max-width: 180px; flex: 0 0 180px; }
+
+/* 날짜 인풋은 조금 더 컴팩트 */
+.web-mode .mi-search-row .date-input { width: 170px; max-width: 170px; flex: 0 0 170px; }
+
+/* PDA(모바일): 날짜만 살짝 더 좁게 (분류/품목은 기존 100% 유지) */
+.pda-mode .mi-search-row .date-input { width: 140px; max-width: 140px; flex: 0 0 140px; }
+
+
+/* === 시작/종료 날짜만 강제 축소 === */
+.web-mode .sr-row-4 input.date-input[type="date"]{
+  width: 120px !important;
+  max-width: 120px !important;
+  min-width: 0 !important;
+  flex: 0 0 120px !important;
+}
+.pda-mode .sr-row-4 input.date-input[type="date"]{
+  width: 110px !important;
+  max-width: 110px !important;
+  min-width: 0 !important;
+  flex: 0 0 110px !important;
+}
+
+/* === (옵션) 자산분류 조금 넓게, 품목 보통 === */
+.web-mode .sr-row-2 .type-select{
+  width: 220px !important;
+  max-width: 220px !important;
+  flex: 0 0 220px !important;
+}
+.web-mode .sr-row-2 .item-select{
+  width: 180px !important;
+  max-width: 180px !important;
+  flex: 0 0 180px !important;
+}
+
+/* ⬇️ 날짜 라벨(왼쪽 회색 박스) 폭 더 줄이기 */
+.sr-row-4 .date-row .date-label{
+  min-width: 72px !important;   /* 기존 86px → 72px */
+  padding: 8px 10px !important; /* 좌우 여백도 살짝 축소 */
+}
+
+/* ⬇️ 날짜 인풋(오른쪽) 폭 더 줄이기 */
+.sr-row-4 .date-row input[type="date"].date-input{
+  width: 120px !important;      /* 필요하면 110~100으로 더 낮춰도 됨 */
+  max-width: 120px !important;
+  min-width: 0 !important;      /* 전역 min-width(140px) 무력화 */
+  flex: 0 0 120px !important;
+}
+
+/* 모바일에서 더 컴팩트하게 */
+@media (max-width: 900px){
+  .sr-row-4 .date-row .date-label{
+    min-width: 64px !important;
+  }
+  .sr-row-4 .date-row input[type="date"].date-input{
+    width: 105px !important;
+    max-width: 105px !important;
+    flex: 0 0 105px !important;
+  }
+}
+
+/* 날짜 인풋(오른쪽) 폭 살짝 증가 */
+.web-mode .sr-row-4 .date-row input.date-input[type="date"]{
+  width: 140px !important;      /* 기존 120 → 140 */
+  max-width: 140px !important;
+  min-width: 0 !important;
+  flex: 0 0 140px !important;
+}
+
+.pda-mode .sr-row-4 .date-row input.date-input[type="date"]{
+  width: 125px !important;      /* 모바일은 110 → 125 */
+  max-width: 125px !important;
+  min-width: 0 !important;
+  flex: 0 0 125px !important;
+}
+/* 자산분류만 살짝 더 넓게 (WEB) */
+.web-mode .sr-row-2 .type-select{
+  width: 240px !important;      /* 필요하면 230~250px로 조절 */
+  max-width: 240px !important;
+  flex: 0 0 240px !important;
+}
+
+/* 하단 액션 버튼 보기 좋게 */
+ .button-group{ display:flex; gap:12px; }   /* 기본 */
+
+/* WEB: 가로 한 줄 고정 */
+ .web-mode .bottom-header{
+   flex-direction: row;
+   align-items: center;
+   justify-content: space-between;
+ }
+ .web-mode .button-group{
+   flex-direction: row;
+   flex-wrap: nowrap;               /* 세로로 안 떨어지게 */
+ }
+ .web-mode .action-button{
+   min-width:110px;
+   width:auto;
+   white-space:nowrap;
+ }
+
+.action-button{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;                    /* 통일된 높이 */
+  min-width: 110px;                /* 글자 한 줄 유지 폭 */
+  padding: 0 16px;                 /* 좌우 여백 */
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 10px;             /* 라운드 조금 더 */
+  white-space: nowrap;             /* 줄바꿈 금지 */
+  box-shadow: 0 1px 3px rgba(0,0,0,.08);
+}
+
+/* 모바일에서는 가로폭 꽉 차게 */
+ .pda-mode .button-group{
+   gap:10px;
+   flex-wrap: wrap;
+ }
+.pda-mode .action-button{
+  flex: 1 1 0;     /* 공간 균등 분배 */
+  min-width: 0;
+  height: 46px;
+}
+
+/* ───────── WEB 전용: 한 줄 검색바 ───────── */
+.web-mode .web-search-bar-oneLine{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  flex-wrap:nowrap;          /* 한 줄 유지 */
+  overflow-x:auto;           /* 좁으면 가로 스크롤 */
+  padding:6px 0;
+}
+.web-mode .web-search-bar-oneLine .search-input{
+  height:36px; font-size:14px; padding:0 10px;
+  min-width:120px; max-width:180px; flex:0 0 auto;
+}
+.web-mode .web-search-bar-oneLine .type-select{ max-width:220px; }
+.web-mode .web-search-bar-oneLine .item-select{ max-width:180px; }
+.web-mode .web-search-bar-oneLine .view-count{ width:70px; text-align:center; }
+.web-mode .web-search-bar-oneLine .date-input{ width:160px; }
+.web-mode .date-tilde{ font-weight:600; user-select:none; }
+.web-mode .btn-search, .web-mode .btn-reset{
+  min-width:80px; height:36px; border-radius:6px; font-weight:600;
+}
+
+/* ───────── PDA 전용: 4줄 스택 ───────── */
+.pda-mode .pda-search-rows{
+  display:flex; flex-direction:column; gap:10px; width:100%;
+}
+.pda-mode .pda-row{
+  display:flex; gap:10px; align-items:center; width:100%;
+}
+.pda-mode .pda-row .search-input,
+.pda-mode .pda-row .btn-search,
+.pda-mode .pda-row .btn-reset{
+  width:100%; min-width:0; box-sizing:border-box; height:40px;
+}
+.pda-mode .pda-dates{ flex-direction:column; gap:8px; }
+.pda-mode .date-row{ display:flex; gap:8px; align-items:center; }
+.pda-mode .date-label{
+  min-width:86px; height:40px; display:inline-flex; align-items:center; justify-content:center;
+  background:#f1f3f5; color:#5b6b7a; border-radius:8px; font-weight:600;
+}
+.pda-mode .date-input{ width:130px; }
+.pda-mode .pda-buttons{ gap:8px; }
+
+/* PDA: 자산분류·품목을 한 줄 2칸(그리드)으로 — 잘림 방지 */
+/* PDA: 자산분류/품목 한 줄 2칸(그리드) — 실제 JSX(.pda-row pda-2col)에 맞춤 */
+.pda-mode .pda-row.pda-2col{
+  display: grid !important;              /* flex 규칙 무시 */
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.pda-mode .pda-row.pda-2col .search-input{
+  width: 100% !important;
+  min-width: 0 !important;               /* 전역 min-width(140px) 해제 */
+  max-width: none !important;            /* 전역 max-width(240px) 해제 */
+  height: 40px;
+  box-sizing: border-box;
+}
+.pda-mode .pda-row.pda-2col select{
+  padding-right: 28px;                   /* 네이티브 화살표 여유 */
+}
+
+/* PDA 전용: 자산분류/품목 글자 살짝 축소 */
+.pda-mode .pda-row.pda-2col .search-input{
+  font-size: 11px;   /* 14px → 12.5px */
+}
+.pda-mode .pda-row.pda-2col select option{
+  font-size: 12.5px;
+}
+
+/* ==== FIX: 웹 검색바 넘침 방지 & 사이즈 정리 ==== */
+.web-mode .web-search-bar-oneLine{
+  max-width: 100%;
+  box-sizing: border-box;
+  /* 한 줄을 유지하다가 공간이 부족하면 2줄로 내려가도록 */
+  flex-wrap: wrap;              /* 기존 nowrap을 덮어쓰기 */
+  overflow-x: hidden;           /* 미세한 가로 넘침 숨김 */
+  gap: 10px;
+}
+
+/* 전역 min-width(140px) 무력화 + 높이 통일 */
+.web-mode .web-search-bar-oneLine .search-input,
+.web-mode .web-search-bar-oneLine button{
+  height: 36px;
+  line-height: 36px;
+  padding: 0 10px;
+  min-width: 0 !important;
+  max-width: none;
+}
+
+/* 각 필드 폭 컴팩트화 (필요시 숫자만 조절) */
+.web-mode .web-search-bar-oneLine .type-select { flex: 0 0 200px; max-width: 200px; }
+.web-mode .web-search-bar-oneLine .item-select { flex: 0 0 160px; max-width: 160px; }
+.web-mode .web-search-bar-oneLine .view-count  { flex: 0 0 70px;  max-width: 70px;  text-align: center; }
+.web-mode .web-search-bar-oneLine .date-input  { flex: 0 0 140px; max-width: 140px; }
+
+/* 버튼은 과도하게 넓지 않게 */
+.web-mode .web-search-bar-oneLine .btn-search,
+.web-mode .web-search-bar-oneLine .btn-reset{
+  flex: 0 0 90px;
+  min-width: 90px !important;  /* 전역 140px 덮어쓰기 */
+}
+
+/* ===== WEB: 2줄 검색 레이아웃 ===== */
+.web-mode .web-search-rows{
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+}
+.web-mode .web-search-rows .web-row{
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;         /* 좁으면 자동 줄바꿈 */
+}
+
+/* 공통 입력 폭/높이 */
+.web-mode .web-search-rows .search-input{
+  height: 36px;
+  font-size: 14px;
+  padding: 0 10px;
+  min-width: 120px;
+}
+
+/* 필드 폭 미세 조정 */
+.web-mode .web-search-rows .type-select { width: 220px; max-width: 220px; }
+.web-mode .web-search-rows .item-select { width: 180px; max-width: 180px; }
+.web-mode .web-search-rows .view-count  { width: 70px;  text-align: center; }
+.web-mode .web-search-rows .date-input  { width: 160px; }
+
+/* 버튼 크기 통일 */
+.web-mode .web-search-rows .btn-search,
+.web-mode .web-search-rows .btn-reset{
+  min-width: 90px;
+  height: 36px;
+  border-radius: 6px;
+  font-weight: 600;
+}
+/* === WEB: 자산분류/품목 폭 더 좁게 === */
+.web-mode .web-search-rows .type-select {
+  width: 160px !important;
+  max-width: 160px !important;
+  flex: 0 0 160px !important;
+}
+
+.web-mode .web-search-rows .item-select {
+  width: 130px !important;
+  max-width: 130px !important;
+  flex: 0 0 130px !important;
+}
+
+/* (옵션) 긴 항목일 때 드롭다운은 정상, 닫혔을 때 박스는 말줄임 느낌 */
+.web-mode .web-search-rows .type-select,
+.web-mode .web-search-rows .item-select {
+  text-overflow: ellipsis;
 }
